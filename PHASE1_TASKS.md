@@ -633,7 +633,7 @@ Add request validation using zod or joi.
 ---
 
 ### Task 9.3: Implement Generate Resume API Endpoint
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2.5 hours
 
@@ -641,14 +641,14 @@ Add request validation using zod or joi.
 Create POST endpoint for resume generation.
 
 **Subtasks:**
-- [ ] Create `src/api/routes.ts`
-- [ ] Implement `POST /api/generateResume` endpoint
-- [ ] Parse request body (resume JSON + options)
-- [ ] Integrate with resume generator service
-- [ ] Return PDF/HTML as response
-- [ ] Add proper content-type headers
-- [ ] Handle errors and return appropriate status codes
-- [ ] Add request logging
+- [x] Create `src/api/routes.ts`
+- [x] Implement `POST /api/generateResume` endpoint
+- [x] Parse request body (resume JSON + options)
+- [x] Integrate with resume generator service
+- [x] Return PDF/HTML as response
+- [x] Add proper content-type headers
+- [x] Handle errors and return appropriate status codes
+- [x] Add request logging
 - [ ] Write integration tests
 
 **Acceptance Criteria:**

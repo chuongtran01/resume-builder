@@ -7,6 +7,7 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { logger } from '../utils/logger';
+import { registerRoutes } from './routes';
 
 /**
  * Create and configure Express application
@@ -58,6 +59,9 @@ function createApp(): Express {
       },
     });
   });
+
+  // Register API routes
+  registerRoutes(app);
 
   // Error handling middleware (must be last)
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
