@@ -52,6 +52,13 @@ class Logger {
   }
 
   /**
+   * Check if verbose mode is enabled
+   */
+  isVerbose(): boolean {
+    return this.config.verbose;
+  }
+
+  /**
    * Enable or disable colors
    */
   setUseColors(useColors: boolean): void {

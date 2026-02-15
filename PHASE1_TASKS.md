@@ -498,7 +498,7 @@ Create the main generator service that orchestrates all components.
 ## 💻 Task Group 8: CLI Interface
 
 ### Task 8.1: Set Up CLI Framework
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 30 minutes
 
@@ -506,10 +506,10 @@ Create the main generator service that orchestrates all components.
 Set up commander.js for CLI argument parsing.
 
 **Subtasks:**
-- [ ] Install commander
-- [ ] Create `src/cli/index.ts`
-- [ ] Set up basic command structure
-- [ ] Add version and help commands
+- [x] Install commander
+- [x] Create `src/cli/index.ts`
+- [x] Set up basic command structure
+- [x] Add version and help commands
 
 **Acceptance Criteria:**
 - CLI runs without errors
@@ -521,7 +521,7 @@ Set up commander.js for CLI argument parsing.
 ---
 
 ### Task 8.2: Implement Generate Resume CLI Command
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2 hours
 
@@ -529,18 +529,18 @@ Set up commander.js for CLI argument parsing.
 Implement the main CLI command for generating resumes.
 
 **Subtasks:**
-- [ ] Add `generateResume` command
-- [ ] Add `--input` argument (required)
-- [ ] Add `--output` argument (required)
-- [ ] Add `--template` argument (optional, default: modern)
-- [ ] Add `--format` argument (optional, default: pdf)
-- [ ] Add `--validate` flag (optional)
-- [ ] Add `--verbose` flag (optional)
-- [ ] Integrate with resume generator service
-- [ ] Add progress indicators
-- [ ] Add success/error messages
-- [ ] Handle file path validation
-- [ ] Write integration tests
+- [x] Add `generateResume` command
+- [x] Add `--input` argument (required)
+- [x] Add `--output` argument (required)
+- [x] Add `--template` argument (optional, default: modern)
+- [x] Add `--format` argument (optional, default: pdf)
+- [x] Add `--validate` flag (optional)
+- [x] Add `--verbose` flag (optional)
+- [x] Integrate with resume generator service
+- [x] Add progress indicators
+- [x] Add success/error messages
+- [x] Handle file path validation
+- [x] Write integration tests
 
 **Acceptance Criteria:**
 - Command works: `generateResume --input resume.json --output resume.pdf`
