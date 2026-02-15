@@ -224,7 +224,7 @@ Create a service that combines the enhanced resume with change tracking metadata
 ## 📄 Task Group 12: Report Generation
 
 ### Task 12.1: Implement Markdown Report Generator
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 3 hours
 
@@ -232,25 +232,25 @@ Create a service that combines the enhanced resume with change tracking metadata
 Create a service that generates a human-readable Markdown report summarizing all changes made to the resume.
 
 **Subtasks:**
-- [ ] Create `src/services/mdGenerator.ts`
-- [ ] Implement `generateMarkdownReport` function
-  - [ ] Generate report header with name
-  - [ ] Format contact information
-  - [ ] List highlighted skills
-  - [ ] Show experience changes with old → new format
-  - [ ] Include changes summary
-  - [ ] Create changes detail table
-  - [ ] List suggestions
-- [ ] Implement `formatContactInfo` helper function
-- [ ] Implement `formatExperienceChanges` helper function
-- [ ] Implement `formatChangesTable` helper function
-- [ ] Implement `writeMarkdownReport` function
-  - [ ] Write Markdown to file system
-  - [ ] Handle file write errors
-- [ ] Ensure clean, readable Markdown formatting
-- [ ] Add error handling
-- [ ] Add logging
-- [ ] Write unit tests
+- [x] Create `src/services/mdGenerator.ts`
+- [x] Implement `generateMarkdownReport` function
+  - [x] Generate report header with name
+  - [x] Format contact information
+  - [x] List highlighted skills
+  - [x] Show experience changes with old → new format
+  - [x] Include changes summary
+  - [x] Create changes detail table
+  - [x] List suggestions
+- [x] Implement `formatContactInfo` helper function
+- [x] Implement `formatExperienceChanges` helper function
+- [x] Implement `formatChangesTable` helper function
+- [x] Implement `writeMarkdownReport` function
+  - [x] Write Markdown to file system
+  - [x] Handle file write errors
+- [x] Ensure clean, readable Markdown formatting
+- [x] Add error handling
+- [x] Add logging
+- [x] Write unit tests
 
 **Files to Create:**
 - `src/services/mdGenerator.ts`
