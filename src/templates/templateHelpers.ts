@@ -2,8 +2,8 @@
  * Helper functions for template validation and common operations
  */
 
-import type { ValidationResult } from '../types/template.types';
-import type { Resume } from '../types/resume.types';
+import type { ValidationResult } from '@resume-types/template.types';
+import type { Resume } from '@resume-types/resume.types';
 
 /**
  * Create a validation result

@@ -6,7 +6,7 @@
 import { Command } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { logger } from '../utils/logger';
+import { logger } from '@utils/logger';
 import packageJson from '../../package.json';
 
 const program = new Command();
@@ -40,10 +40,10 @@ program
       }
 
       // Import templates to ensure they are registered
-      await import('../templates');
+      await import('@templates/index');
 
       // Import here to avoid circular dependencies
-      const { generateResumeFromFile } = await import('../services/resumeGenerator');
+      const { generateResumeFromFile } = await import('@services/resumeGenerator');
       
       // Validate required options
       if (!options.input) {
@@ -136,7 +136,7 @@ program
       }
 
       // Validate template
-      const { getTemplateNames, hasTemplate } = await import('../templates/templateRegistry');
+      const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
       const availableTemplates = getTemplateNames();
       
       if (!hasTemplate(options.template)) {
@@ -203,10 +203,10 @@ program
       process.exit(0);
     } catch (error) {
       // Import error types for type checking
-      const { FileNotFoundError, InvalidJsonError } = await import('../utils/fileLoader');
-      const { ResumeValidationError, MissingRequiredFieldError } = await import('../utils/resumeParser');
-      const { TemplateNotFoundError } = await import('../services/resumeGenerator');
-      const { PdfGenerationError } = await import('../utils/pdfGenerator');
+      const { FileNotFoundError, InvalidJsonError } = await import('@utils/fileLoader');
+      const { ResumeValidationError, MissingRequiredFieldError } = await import('@utils/resumeParser');
+      const { TemplateNotFoundError } = await import('@services/resumeGenerator');
+      const { PdfGenerationError } = await import('@utils/pdfGenerator');
 
       if (error instanceof FileNotFoundError) {
         logger.error(`\n❌ ${error.message}`);
@@ -279,7 +279,7 @@ program
   .action(async () => {
     try {
       // Import templates to ensure they are registered
-      await import('../templates');
+      await import('@templates/index');
       const { getTemplateNames } = await import('../templates/templateRegistry');
       const templates = getTemplateNames();
       
@@ -336,8 +336,8 @@ program
         process.exit(1);
       }
 
-      const { parseResume } = await import('../utils/resumeParser');
-      const { validateAtsCompliance } = await import('../services/atsValidator');
+      const { parseResume } = await import('@utils/resumeParser');
+      const { validateAtsCompliance } = await import('@services/atsValidator');
 
       logger.info('Validating resume...');
       
@@ -374,8 +374,8 @@ program
       process.exit(validation.isCompliant ? 0 : 1);
     } catch (error) {
       // Import error types for type checking
-      const { FileNotFoundError, InvalidJsonError } = await import('../utils/fileLoader');
-      const { ResumeValidationError, MissingRequiredFieldError } = await import('../utils/resumeParser');
+      const { FileNotFoundError, InvalidJsonError } = await import('@utils/fileLoader');
+      const { ResumeValidationError, MissingRequiredFieldError } = await import('@utils/resumeParser');
 
       if (error instanceof FileNotFoundError) {
         logger.error(`\n❌ ${error.message}`);
@@ -441,7 +441,7 @@ program
       }
 
       // Import templates to ensure they are registered
-      await import('../templates');
+      await import('@templates/index');
 
       // Validate required options
       if (!options.input) {
@@ -516,7 +516,7 @@ program
       }
 
       // Validate template
-      const { getTemplateNames, hasTemplate } = await import('../templates/templateRegistry');
+      const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
       const availableTemplates = getTemplateNames();
       
       if (!hasTemplate(options.template)) {
@@ -532,7 +532,7 @@ program
 
       // Step 1: Load and parse resume
       logger.info('📄 Step 1: Loading resume...');
-      const { parseResume } = await import('../utils/resumeParser');
+      const { parseResume } = await import('@utils/resumeParser');
       const resume = await parseResume({
         resumePath: options.input,
         validate: true,
@@ -550,7 +550,7 @@ program
 
       // Step 3: Enhance resume
       logger.info('\n🤖 Step 3: Enhancing resume...');
-      const { resumeEnhancementService } = await import('../services/resumeEnhancementService');
+      const { resumeEnhancementService } = await import('@services/resumeEnhancementService');
       const enhancementResult = await resumeEnhancementService.enhanceResume(
         resume,
         jobDescription
@@ -561,7 +561,7 @@ program
 
       // Step 4: Generate enhanced JSON
       logger.info('\n📦 Step 4: Generating enhanced resume JSON...');
-      const { generateAndWriteEnhancedResume } = await import('../services/enhancedResumeGenerator');
+      const { generateAndWriteEnhancedResume } = await import('@services/enhancedResumeGenerator');
       const baseName = path.basename(inputPath, path.extname(inputPath));
       const jsonPath = await generateAndWriteEnhancedResume(enhancementResult, {
         outputDir: options.output,
@@ -571,7 +571,7 @@ program
 
       // Step 5: Generate PDF
       logger.info(`\n📄 Step 5: Generating ${format.toUpperCase()}...`);
-      const { generateResumeFromObject } = await import('../services/resumeGenerator');
+      const { generateResumeFromObject } = await import('@services/resumeGenerator');
       const pdfPath = path.join(outputDir, `${baseName}-enhanced.${format}`);
       const pdfResult = await generateResumeFromObject(
         enhancementResult.enhancedResume,
@@ -586,8 +586,8 @@ program
 
       // Step 6: Generate Markdown report
       logger.info('\n📝 Step 6: Generating Markdown report...');
-      const { generateEnhancedResumeOutput } = await import('../services/enhancedResumeGenerator');
-      const { generateAndWriteMarkdownReport } = await import('../services/mdGenerator');
+      const { generateEnhancedResumeOutput } = await import('@services/enhancedResumeGenerator');
+      const { generateAndWriteMarkdownReport } = await import('@services/mdGenerator');
       const enhancedOutput = generateEnhancedResumeOutput(enhancementResult, {
         outputDir: options.output,
         baseName: `${baseName}-enhanced`,
@@ -613,12 +613,12 @@ program
       process.exit(0);
     } catch (error) {
       // Import error types for type checking
-      const { FileNotFoundError, InvalidJsonError } = await import('../utils/fileLoader');
-      const { ResumeValidationError, MissingRequiredFieldError } = await import('../utils/resumeParser');
-      const { TemplateNotFoundError } = await import('../services/resumeGenerator');
-      const { PdfGenerationError } = await import('../utils/pdfGenerator');
-      const { JsonWriteError } = await import('../services/enhancedResumeGenerator');
-      const { MarkdownWriteError } = await import('../services/mdGenerator');
+      const { FileNotFoundError, InvalidJsonError } = await import('@utils/fileLoader');
+      const { ResumeValidationError, MissingRequiredFieldError } = await import('@utils/resumeParser');
+      const { TemplateNotFoundError } = await import('@services/resumeGenerator');
+      const { PdfGenerationError } = await import('@utils/pdfGenerator');
+      const { JsonWriteError } = await import('@services/enhancedResumeGenerator');
+      const { MarkdownWriteError } = await import('@services/mdGenerator');
 
       if (error instanceof FileNotFoundError) {
         logger.error(`\n❌ ${error.message}`);

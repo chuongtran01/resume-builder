@@ -12,12 +12,12 @@ import {
   writeMarkdownReport,
   generateAndWriteMarkdownReport,
   MarkdownWriteError,
-} from '../../src/services/mdGenerator';
-import type { EnhancedResumeOutput } from '../../src/types/enhancement.types';
-import type { Resume } from '../../src/types/resume.types';
+} from '@services/mdGenerator';
+import type { EnhancedResumeOutput } from '@resume-types/enhancement.types';
+import type { Resume } from '@resume-types/resume.types';
 
 // Mock logger
-jest.mock('../../src/utils/logger', () => ({
+jest.mock('@utils/logger', () => ({
   logger: {
     info: jest.fn(),
     debug: jest.fn(),

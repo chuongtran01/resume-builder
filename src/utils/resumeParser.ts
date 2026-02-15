@@ -9,9 +9,9 @@ import {
   resolveFileReferences,
   FileNotFoundError,
   InvalidJsonError,
-} from './fileLoader';
-import { logger } from './logger';
-import type { Resume } from '../types/resume.types';
+} from '@utils/fileLoader';
+import { logger } from '@utils/logger';
+import type { Resume } from '@resume-types/resume.types';
 
 /**
  * Error thrown when required fields are missing

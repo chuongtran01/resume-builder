@@ -6,8 +6,8 @@ import {
   validateAtsCompliance,
   isValidAtsHeading,
   suggestHeading,
-} from '../../src/services/atsValidator';
-import type { Resume } from '../../src/types/resume.types';
+} from '@services/atsValidator';
+import type { Resume } from '@resume-types/resume.types';
 
 describe('atsValidator', () => {
   const completeResume: Resume = {

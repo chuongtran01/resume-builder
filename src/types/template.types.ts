@@ -2,7 +2,7 @@
  * Type definitions for the template system
  */
 
-import type { Resume } from './resume.types';
+import type { Resume } from '@resume-types/resume.types';
 
 /**
  * Validation result from template validation

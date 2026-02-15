@@ -2,7 +2,7 @@
  * Type definitions for AI enhancement service (Phase 2)
  */
 
-import type { Resume } from './resume.types';
+import type { Resume } from '@resume-types/resume.types';
 
 /**
  * Enhancement focus areas

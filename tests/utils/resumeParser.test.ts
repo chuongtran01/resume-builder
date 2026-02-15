@@ -9,8 +9,8 @@ import {
   parseResumeFromString,
   validateResume,
   ResumeValidationError,
-} from '../../src/utils/resumeParser';
-import type { Resume } from '../../src/types/resume.types';
+} from '@utils/resumeParser';
+import type { Resume } from '@resume-types/resume.types';
 
 describe('resumeParser', () => {
   const testDir = path.join(__dirname, '../fixtures/resumeParser');

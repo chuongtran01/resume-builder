@@ -9,7 +9,7 @@ import {
   generatePdfFromFile,
   closeBrowser,
   PdfGenerationError,
-} from '../../src/utils/pdfGenerator';
+} from '@utils/pdfGenerator';
 
 describe('pdfGenerator', () => {
   const testDir = path.join(__dirname, '../fixtures/pdfGenerator');

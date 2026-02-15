@@ -9,14 +9,14 @@ import {
   generateResumeFromObject,
   generateResumeHtml,
   TemplateNotFoundError,
-} from '../../src/services/resumeGenerator';
-import type { Resume } from '../../src/types/resume.types';
+} from '@services/resumeGenerator';
+import type { Resume } from '@resume-types/resume.types';
 
 // Import templates to ensure they are registered
-import '../../src/templates';
+import '@templates';
 
 // Mock dependencies
-jest.mock('../../src/utils/logger', () => ({
+jest.mock('@utils/logger', () => ({
   logger: {
     info: jest.fn(),
     debug: jest.fn(),
@@ -26,7 +26,7 @@ jest.mock('../../src/utils/logger', () => ({
 }));
 
 // Mock PDF generator to return a file path and create the file
-jest.mock('../../src/utils/pdfGenerator', () => ({
+jest.mock('@utils/pdfGenerator', () => ({
   generatePdfFromHtml: jest.fn().mockImplementation(async (_html: string, options: { outputPath: string }) => {
     const fs = require('fs-extra');
     await fs.ensureDir(require('path').dirname(options.outputPath));

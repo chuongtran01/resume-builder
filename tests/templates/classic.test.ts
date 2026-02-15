@@ -2,9 +2,9 @@
  * Unit tests for classic template
  */
 
-import { classicTemplate } from '../../src/templates/classic';
-import { getTemplate } from '../../src/templates/templateRegistry';
-import type { Resume } from '../../src/types/resume.types';
+import { classicTemplate } from '@templates/classic';
+import { getTemplate } from '@templates/templateRegistry';
+import type { Resume } from '@resume-types/resume.types';
 
 describe('classicTemplate', () => {
   const sampleResume: Resume = {

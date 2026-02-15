@@ -11,11 +11,11 @@ import type {
   KeywordSuggestion,
   AtsScore,
   ChangeDetail,
-} from '../types/enhancement.types';
-import type { Resume, Skills } from '../types/resume.types';
-import { parseJobDescription } from '../utils/jobParser';
-import { validateAtsCompliance } from './atsValidator';
-import { logger } from '../utils/logger';
+} from '@resume-types/enhancement.types';
+import type { Resume, Skills } from '@resume-types/resume.types';
+import { parseJobDescription } from '@utils/jobParser';
+import { validateAtsCompliance } from '@services/atsValidator';
+import { logger } from '@utils/logger';
 
 /**
  * Mock resume enhancement service implementation

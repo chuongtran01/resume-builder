@@ -13,7 +13,7 @@ import {
   InvalidJsonError,
   CircularReferenceError,
   MaxDepthExceededError,
-} from '../../src/utils/fileLoader';
+} from '@utils/fileLoader';
 
 describe('fileLoader', () => {
   const testDir = path.join(__dirname, '../fixtures/fileLoader');

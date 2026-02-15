@@ -215,7 +215,7 @@ describe('AI Provider Types', () => {
         ];
 
         expect(actions).toHaveLength(5);
-        expect(actions[0].type).toBe('enhance');
+        expect(actions[0]?.type).toBe('enhance');
       });
 
       it('should support optional suggestedChange', () => {

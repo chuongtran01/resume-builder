@@ -2,7 +2,7 @@
  * Unit tests for jobParser utility
  */
 
-import { parseJobDescription } from '../../src/utils/jobParser';
+import { parseJobDescription } from '@utils/jobParser';
 
 describe('jobParser', () => {
   describe('parseJobDescription', () => {

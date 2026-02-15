@@ -5,9 +5,9 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import type { EnhancedResumeOutput, ChangeDetail } from '../types/enhancement.types';
-import type { PersonalInfo } from '../types/resume.types';
-import { logger } from '../utils/logger';
+import type { EnhancedResumeOutput, ChangeDetail } from '@resume-types/enhancement.types';
+import type { PersonalInfo } from '@resume-types/resume.types';
+import { logger } from '@utils/logger';
 
 /**
  * Error thrown when Markdown file cannot be written

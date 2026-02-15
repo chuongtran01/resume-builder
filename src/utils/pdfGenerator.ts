@@ -6,7 +6,7 @@
 import puppeteer, { type Browser, type Page } from 'puppeteer';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { logger } from './logger';
+import { logger } from '@utils/logger';
 
 /**
  * Options for PDF generation

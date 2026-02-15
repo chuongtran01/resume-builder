@@ -14,15 +14,15 @@ import type {
   ReviewRequest,
   ReviewResponse,
   ProviderInfo,
-} from './provider.types';
+} from '@services/ai/provider.types';
 import {
   AIProviderError,
   RateLimitError,
   InvalidResponseError,
   NetworkError,
   TimeoutError,
-} from './provider.types';
-import { logger } from '../../utils/logger';
+} from '@services/ai/provider.types';
+import { logger } from '@utils/logger';
 
 /**
  * Gemini provider configuration
@@ -554,7 +554,11 @@ Focus on:
     const pricing = GEMINI_PRICING[this.config.model];
     if (!pricing) {
       logger.warn(`Unknown pricing for model ${this.config.model}, using gemini-pro pricing`);
-      return this.calculateCostWithPricing(inputTokens, outputTokens, GEMINI_PRICING['gemini-pro']);
+      const defaultPricing = GEMINI_PRICING['gemini-pro'];
+      if (!defaultPricing) {
+        throw new Error('Default pricing not found');
+      }
+      return this.calculateCostWithPricing(inputTokens, outputTokens, defaultPricing);
     }
 
     return this.calculateCostWithPricing(inputTokens, outputTokens, pricing);

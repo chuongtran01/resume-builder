@@ -4,10 +4,8 @@
 
 import { GeminiProvider, type GeminiConfig } from '../../../src/services/ai/gemini';
 import {
-  RateLimitError,
   InvalidResponseError,
   TimeoutError,
-  NetworkError,
 } from '../../../src/services/ai/provider.types';
 import type { Resume } from '../../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../../src/utils/jobParser';

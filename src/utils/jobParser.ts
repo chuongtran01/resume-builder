@@ -3,7 +3,7 @@
  * Extracts keywords, requirements, and important information from job descriptions
  */
 
-import { logger } from './logger';
+import { logger } from '@utils/logger';
 
 /**
  * Parsed job description structure

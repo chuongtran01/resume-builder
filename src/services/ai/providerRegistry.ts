@@ -5,8 +5,8 @@
  * Supports dynamic provider selection and default provider configuration.
  */
 
-import type { AIProvider } from './provider.types';
-import { logger } from '../../utils/logger';
+import type { AIProvider } from '@services/ai/provider.types';
+import { logger } from '@utils/logger';
 
 /**
  * Registry error for missing providers

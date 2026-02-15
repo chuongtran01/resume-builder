@@ -9,12 +9,12 @@ import {
   writeEnhancedResumeJson,
   generateAndWriteEnhancedResume,
   JsonWriteError,
-} from '../../src/services/enhancedResumeGenerator';
-import type { EnhancementResult } from '../../src/types/enhancement.types';
-import type { Resume } from '../../src/types/resume.types';
+} from '@services/enhancedResumeGenerator';
+import type { EnhancementResult } from '@resume-types/enhancement.types';
+import type { Resume } from '@resume-types/resume.types';
 
 // Mock logger
-jest.mock('../../src/utils/logger', () => ({
+jest.mock('@utils/logger', () => ({
   logger: {
     info: jest.fn(),
     debug: jest.fn(),

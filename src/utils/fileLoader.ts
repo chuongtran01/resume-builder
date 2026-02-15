@@ -5,7 +5,7 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import { isFileReference, type FileReference } from '../types/resume.types';
+import { isFileReference, type FileReference } from '@resume-types/resume.types';
 
 /**
  * Cache for loaded files to avoid duplicate loads

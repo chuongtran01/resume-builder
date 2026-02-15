@@ -5,12 +5,12 @@
  * Supports sequential review → modify workflow for resume enhancement.
  */
 
-import type { Resume } from '../../types/resume.types';
+import type { Resume } from '@resume-types/resume.types';
 import type {
   EnhancementOptions,
   Improvement,
-} from '../../types/enhancement.types';
-import type { ParsedJobDescription } from '../../utils/jobParser';
+} from '@resume-types/enhancement.types';
+import type { ParsedJobDescription } from '@utils/jobParser';
 
 /**
  * Provider information

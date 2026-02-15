@@ -3,14 +3,14 @@
  * Orchestrates parsing, template rendering, and PDF/HTML generation
  */
 
-import type { Resume } from '../types/resume.types';
-import type { TemplateOptions } from '../types/template.types';
-import { parseResume } from '../utils/resumeParser';
-import { getTemplate } from '../templates/templateRegistry';
-import { generateHtmlFile, generateHtmlString } from '../utils/htmlGenerator';
-import { generatePdfFromHtml } from '../utils/pdfGenerator';
-import { validateAtsCompliance, type AtsValidationResult } from './atsValidator';
-import { logger } from '../utils/logger';
+import type { Resume } from '@resume-types/resume.types';
+import type { TemplateOptions } from '@resume-types/template.types';
+import { parseResume } from '@utils/resumeParser';
+import { getTemplate } from '@templates/templateRegistry';
+import { generateHtmlFile, generateHtmlString } from '@utils/htmlGenerator';
+import { generatePdfFromHtml } from '@utils/pdfGenerator';
+import { validateAtsCompliance, type AtsValidationResult } from '@services/atsValidator';
+import { logger } from '@utils/logger';
 import * as fs from 'fs-extra';
 
 /**

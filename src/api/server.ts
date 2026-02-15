@@ -6,8 +6,8 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import { logger } from '../utils/logger';
-import { registerRoutes } from './routes';
+import { logger } from '@utils/logger';
+import { registerRoutes } from '@api/routes';
 
 /**
  * Create and configure Express application

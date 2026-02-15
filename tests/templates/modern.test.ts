@@ -2,9 +2,9 @@
  * Unit tests for modern template
  */
 
-import { modernTemplate } from '../../src/templates/modern';
-import { getTemplate } from '../../src/templates/templateRegistry';
-import type { Resume } from '../../src/types/resume.types';
+import { modernTemplate } from '@templates/modern';
+import { getTemplate } from '@templates/templateRegistry';
+import type { Resume } from '@resume-types/resume.types';
 
 describe('modernTemplate', () => {
   const sampleResume: Resume = {

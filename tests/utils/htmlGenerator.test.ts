@@ -10,7 +10,7 @@ import {
   validateHtml,
   formatHtml,
   HtmlValidationError,
-} from '../../src/utils/htmlGenerator';
+} from '@utils/htmlGenerator';
 
 describe('htmlGenerator', () => {
   const testDir = path.join(__dirname, '../fixtures/htmlGenerator');

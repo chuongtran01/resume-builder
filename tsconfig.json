@@ -36,22 +36,28 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     /* Path Aliases */
-    "baseUrl": "./src",
+    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "./*"
+        "./src/*"
       ],
       "@templates/*": [
-        "./templates/*"
+        "./src/templates/*"
       ],
       "@services/*": [
-        "./services/*"
+        "./src/services/*"
       ],
-      "@types/*": [
-        "./types/*"
+      "@resume-types/*": [
+        "./src/types/*"
       ],
       "@utils/*": [
-        "./utils/*"
+        "./src/utils/*"
+      ],
+      "@cli/*": [
+        "./src/cli/*"
+      ],
+      "@api/*": [
+        "./src/api/*"
       ]
     }
   },
@@ -61,8 +67,6 @@
   "exclude": [
     "node_modules",
     "dist",
-    "tests",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "tests"
   ]
 }

@@ -5,8 +5,8 @@
 import {
   MockResumeEnhancementService,
   resumeEnhancementService,
-} from '../../src/services/resumeEnhancementService';
-import type { Resume } from '../../src/types/resume.types';
+} from '@services/resumeEnhancementService';
+import type { Resume } from '@resume-types/resume.types';
 
 describe('resumeEnhancementService', () => {
   const sampleResume: Resume = {

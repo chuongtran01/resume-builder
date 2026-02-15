@@ -5,10 +5,9 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import type { EnhancementResult } from '../types/enhancement.types';
-import type { EnhancedResumeOutput, ChangeDetail } from '../types/enhancement.types';
-import { logger } from '../utils/logger';
-import { MockResumeEnhancementService } from './resumeEnhancementService';
+import type { EnhancementResult, EnhancedResumeOutput, ChangeDetail } from '@resume-types/enhancement.types';
+import { logger } from '@utils/logger';
+import { MockResumeEnhancementService } from '@services/resumeEnhancementService';
 
 /**
  * Error thrown when output directory cannot be created

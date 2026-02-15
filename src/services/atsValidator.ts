@@ -3,8 +3,8 @@
  * Checks resume for ATS compatibility and provides suggestions
  */
 
-import type { Resume } from '../types/resume.types';
-import { logger } from '../utils/logger';
+import type { Resume } from '@resume-types/resume.types';
+import { logger } from '@utils/logger';
 
 /**
  * ATS validation result

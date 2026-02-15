@@ -6,18 +6,18 @@ import { Express, Request, Response } from 'express';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
-import { logger } from '../utils/logger';
-import { generateResumeFromObject, TemplateNotFoundError } from '../services/resumeGenerator';
-import { PdfGenerationError } from '../utils/pdfGenerator';
+import { logger } from '@utils/logger';
+import { generateResumeFromObject, TemplateNotFoundError } from '@services/resumeGenerator';
+import { PdfGenerationError } from '@utils/pdfGenerator';
 import {
   validateRequest,
   generateResumeRequestSchema,
   validateResumeRequestSchema,
   enhanceResumeRequestSchema,
   getValidatedBody,
-} from './middleware';
-import { validateAtsCompliance } from '../services/atsValidator';
-import type { Resume } from '../types/resume.types';
+} from '@api/middleware';
+import { validateAtsCompliance } from '@services/atsValidator';
+import type { Resume } from '@resume-types/resume.types';
 
 /**
  * Type for validated generate resume request body

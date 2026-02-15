@@ -3,15 +3,15 @@
  * Single-column layout with clean, professional styling
  */
 
-import type { ResumeTemplate, TemplateOptions } from '../types/template.types';
-import type { Resume } from '../types/resume.types';
+import type { ResumeTemplate, TemplateOptions } from '@resume-types/template.types';
+import type { Resume } from '@resume-types/resume.types';
 import {
   baseTemplateValidation,
   escapeHtml,
   formatDate,
   estimateContentDensity,
 } from './templateHelpers';
-import { isSingleEducation, isEducationArray } from '../types/resume.types';
+import { isSingleEducation, isEducationArray } from '@resume-types/resume.types';
 import { registerTemplate } from './templateRegistry';
 
 /**

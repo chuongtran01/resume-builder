@@ -2,7 +2,7 @@
  * Template registry for managing and retrieving resume templates
  */
 
-import type { ResumeTemplate, TemplateRegistry } from '../types/template.types';
+import type { ResumeTemplate, TemplateRegistry } from '@resume-types/template.types';
 
 /**
  * Global template registry
