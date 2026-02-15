@@ -17,6 +17,11 @@ export interface ValidationResult {
 }
 
 /**
+ * Spacing mode for templates
+ */
+export type SpacingMode = 'compact' | 'normal' | 'spacious' | 'auto';
+
+/**
  * Template rendering options
  */
 export interface TemplateOptions {
@@ -26,6 +31,8 @@ export interface TemplateOptions {
   customCss?: string;
   /** Whether to include print styles */
   printStyles?: boolean;
+  /** Spacing mode: 'compact' for tight spacing, 'normal' for standard, 'spacious' for loose, 'auto' to auto-detect */
+  spacing?: SpacingMode;
 }
 
 /**

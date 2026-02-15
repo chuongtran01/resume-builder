@@ -184,3 +184,84 @@ export function formatDate(date: string): string {
 
   return date;
 }
+
+/**
+ * Estimate if resume content is dense and needs compact spacing
+ * Returns 'compact' if content is dense, 'normal' otherwise
+ */
+export function estimateContentDensity(resume: Resume): 'compact' | 'normal' {
+  let itemCount = 0;
+  let totalBulletPoints = 0;
+  let totalTextLength = 0;
+
+  // Count experience items and bullet points
+  itemCount += resume.experience.length;
+  resume.experience.forEach((exp) => {
+    if (exp.bulletPoints) {
+      totalBulletPoints += exp.bulletPoints.length;
+      exp.bulletPoints.forEach((bullet) => {
+        totalTextLength += bullet.length;
+      });
+    }
+  });
+
+  // Count education items
+  if (resume.education) {
+    const edu = Array.isArray(resume.education) ? resume.education : [resume.education];
+    itemCount += edu.length;
+  }
+
+  // Count projects
+  if (resume.projects) {
+    const proj = Array.isArray(resume.projects) ? resume.projects : [resume.projects];
+    itemCount += proj.length;
+    proj.forEach((project) => {
+      if (typeof project === 'object' && project !== null && 'description' in project) {
+        const desc = project.description;
+        if (typeof desc === 'string') {
+          totalTextLength += desc.length;
+        }
+      }
+    });
+  }
+
+  // Count certifications
+  if (resume.certifications) {
+    const cert = Array.isArray(resume.certifications)
+      ? resume.certifications
+      : [resume.certifications];
+    itemCount += cert.length;
+  }
+
+  // Count languages
+  if (resume.languages) {
+    const lang = Array.isArray(resume.languages) ? resume.languages : [resume.languages];
+    itemCount += lang.length;
+  }
+
+  // Count awards
+  if (resume.awards) {
+    const award = Array.isArray(resume.awards) ? resume.awards : [resume.awards];
+    itemCount += award.length;
+  }
+
+  // Count skills categories
+  if (resume.skills && typeof resume.skills === 'object' && 'categories' in resume.skills) {
+    itemCount += resume.skills.categories?.length || 0;
+  }
+
+  // Add summary length
+  if (resume.summary) {
+    totalTextLength += resume.summary.length;
+  }
+
+  // Heuristic: Use compact if:
+  // - More than 20 total items, OR
+  // - More than 15 bullet points, OR
+  // - More than 2000 characters of text
+  if (itemCount > 20 || totalBulletPoints > 15 || totalTextLength > 2000) {
+    return 'compact';
+  }
+
+  return 'normal';
+}

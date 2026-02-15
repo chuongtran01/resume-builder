@@ -27,6 +27,8 @@ program
   .option('-t, --template <name>', 'Template name (modern, classic, minimal)', 'modern')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
   .option('--validate', 'Run ATS validation', false)
+  .option('--spacing <mode>', 'Spacing mode: auto (default), compact, normal', 'auto')
+  .option('--compact', 'Use compact spacing (shorthand for --spacing compact)', false)
   .option('-v, --verbose', 'Enable verbose logging', false)
   .action(async (options) => {
     try {
@@ -34,6 +36,9 @@ program
       if (options.verbose) {
         logger.setVerbose(true);
       }
+
+      // Import templates to ensure they are registered
+      await import('../templates');
 
       // Import here to avoid circular dependencies
       const { generateResumeFromFile } = await import('../services/resumeGenerator');
@@ -57,6 +62,13 @@ program
         process.exit(1);
       }
 
+      // Determine spacing mode
+      let spacing: 'auto' | 'compact' | 'normal' = options.compact ? 'compact' : (options.spacing as 'auto' | 'compact' | 'normal' || 'auto');
+      if (!['auto', 'compact', 'normal'].includes(spacing)) {
+        logger.error(`Error: Invalid spacing mode "${spacing}". Must be "auto", "compact", or "normal"`);
+        process.exit(1);
+      }
+
       // Validate template (will be checked by generator service)
       
       logger.info('Starting resume generation...');
@@ -68,6 +80,9 @@ program
           template: options.template,
           format: options.format.toLowerCase() as 'pdf' | 'html',
           validate: options.validate,
+          templateOptions: {
+            spacing: spacing as 'auto' | 'compact' | 'normal',
+          },
         }
       );
 

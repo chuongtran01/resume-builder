@@ -9,6 +9,7 @@ import {
   baseTemplateValidation,
   escapeHtml,
   formatDate,
+  estimateContentDensity,
 } from './templateHelpers';
 import { isSingleEducation, isEducationArray } from '../types/resume.types';
 import { registerTemplate } from './templateRegistry';
@@ -21,7 +22,17 @@ export const modernTemplate: ResumeTemplate = {
   description: 'Modern single-column template with clean styling',
 
   render(resume: Resume, options?: TemplateOptions): string {
-    const css = getCss(options);
+    // Determine spacing mode
+    let spacing: 'compact' | 'normal' = 'normal';
+    if (options?.spacing === 'auto') {
+      spacing = estimateContentDensity(resume);
+    } else if (options?.spacing === 'compact') {
+      spacing = 'compact';
+    } else if (options?.spacing === 'spacious') {
+      spacing = 'normal'; // Spacious not implemented yet, fallback to normal
+    }
+
+    const css = getCss(options, spacing);
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -62,8 +73,87 @@ registerTemplate(modernTemplate);
 /**
  * Get CSS styles for modern template
  */
-function getCss(options?: TemplateOptions): string {
+function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'normal'): string {
   const customCss = options?.customCss || '';
+
+  // Define spacing presets
+  const spacingPresets = {
+    compact: {
+      bodyPadding: '0.35in',
+      bodyFontSize: '10pt',
+      lineHeight: '1.25',
+      headerMarginBottom: '10pt',
+      headerPaddingBottom: '6pt',
+      headerH1FontSize: '18pt',
+      headerH1MarginBottom: '4pt',
+      headerContactFontSize: '9pt',
+      headerContactSpanMargin: '0 6pt',
+      sectionMarginBottom: '8pt',
+      sectionTitleFontSize: '12pt',
+      sectionTitleMarginBottom: '4pt',
+      sectionTitlePaddingBottom: '2pt',
+      summaryFontSize: '10pt',
+      summaryLineHeight: '1.3',
+      summaryMarginBottom: '10pt',
+      experienceItemMarginBottom: '6pt',
+      experienceHeaderMarginBottom: '2pt',
+      experienceTitleFontSize: '11pt',
+      experienceCompanyFontSize: '10pt',
+      experienceDatesFontSize: '9pt',
+      bulletMarginTop: '2pt',
+      bulletMarginLeft: '16pt',
+      bulletMarginBottom: '1.5pt',
+      bulletFontSize: '10pt',
+      skillsCategoriesMarginTop: '4pt',
+      skillCategoryMarginBottom: '6pt',
+      skillCategoryNameFontSize: '10pt',
+      skillCategoryNameMarginBottom: '2pt',
+      skillItemsFontSize: '10pt',
+      certificationItemMarginBottom: '5pt',
+      certificationNameFontSize: '10pt',
+      certificationIssuerFontSize: '10pt',
+      certificationIssuerMarginTop: '1pt',
+    },
+    normal: {
+      bodyPadding: '0.5in',
+      bodyFontSize: '11pt',
+      lineHeight: '1.6',
+      headerMarginBottom: '20pt',
+      headerPaddingBottom: '15pt',
+      headerH1FontSize: '20pt',
+      headerH1MarginBottom: '8pt',
+      headerContactFontSize: '10pt',
+      headerContactSpanMargin: '0 8pt',
+      sectionMarginBottom: '16pt',
+      sectionTitleFontSize: '14pt',
+      sectionTitleMarginBottom: '10pt',
+      sectionTitlePaddingBottom: '4pt',
+      summaryFontSize: '11pt',
+      summaryLineHeight: '1.6',
+      summaryMarginBottom: '16pt',
+      experienceItemMarginBottom: '12pt',
+      experienceHeaderMarginBottom: '4pt',
+      experienceTitleFontSize: '12pt',
+      experienceCompanyFontSize: '11pt',
+      experienceDatesFontSize: '10pt',
+      bulletMarginTop: '6pt',
+      bulletMarginLeft: '20pt',
+      bulletMarginBottom: '4pt',
+      bulletFontSize: '11pt',
+      skillsCategoriesMarginTop: '8pt',
+      skillCategoryMarginBottom: '10pt',
+      skillCategoryNameFontSize: '11pt',
+      skillCategoryNameMarginBottom: '4pt',
+      skillItemsFontSize: '11pt',
+      certificationItemMarginBottom: '8pt',
+      certificationNameFontSize: '11pt',
+      certificationIssuerFontSize: '11pt',
+      certificationIssuerMarginTop: '2pt',
+    },
+  };
+
+  const s = spacingPresets[spacing];
+
   return `
     * {
       margin: 0;
@@ -73,11 +163,11 @@ function getCss(options?: TemplateOptions): string {
 
     body {
       font-family: Arial, Helvetica, sans-serif;
-      font-size: 11pt;
-      line-height: 1.6;
+      font-size: ${s.bodyFontSize};
+      line-height: ${s.lineHeight};
       color: #000000;
       background-color: #ffffff;
-      padding: 0.5in;
+      padding: ${s.bodyPadding};
     }
 
     .resume {
@@ -88,51 +178,51 @@ function getCss(options?: TemplateOptions): string {
 
     .header {
       text-align: center;
-      margin-bottom: 20pt;
-      padding-bottom: 15pt;
+      margin-bottom: ${s.headerMarginBottom};
+      padding-bottom: ${s.headerPaddingBottom};
       border-bottom: 2pt solid #000000;
     }
 
     .header h1 {
-      font-size: 20pt;
+      font-size: ${s.headerH1FontSize};
       font-weight: bold;
-      margin-bottom: 8pt;
+      margin-bottom: ${s.headerH1MarginBottom};
       color: #000000;
     }
 
     .header .contact-info {
-      font-size: 10pt;
+      font-size: ${s.headerContactFontSize};
       color: #000000;
     }
 
     .header .contact-info span {
-      margin: 0 8pt;
+      margin: ${s.headerContactSpanMargin};
     }
 
     .section {
-      margin-bottom: 16pt;
+      margin-bottom: ${s.sectionMarginBottom};
     }
 
     .section-title {
-      font-size: 14pt;
+      font-size: ${s.sectionTitleFontSize};
       font-weight: bold;
-      margin-bottom: 10pt;
+      margin-bottom: ${s.sectionTitleMarginBottom};
       color: #000000;
       text-transform: uppercase;
       border-bottom: 1pt solid #000000;
-      padding-bottom: 4pt;
+      padding-bottom: ${s.sectionTitlePaddingBottom};
     }
 
     .summary {
-      font-size: 11pt;
-      line-height: 1.6;
-      margin-bottom: 16pt;
+      font-size: ${s.summaryFontSize};
+      line-height: ${s.summaryLineHeight};
+      margin-bottom: ${s.summaryMarginBottom};
       text-align: justify;
     }
 
     .experience-item,
     .education-item {
-      margin-bottom: 12pt;
+      margin-bottom: ${s.experienceItemMarginBottom};
     }
 
     .experience-header,
@@ -140,76 +230,76 @@ function getCss(options?: TemplateOptions): string {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
-      margin-bottom: 4pt;
+      margin-bottom: ${s.experienceHeaderMarginBottom};
     }
 
     .experience-title,
     .education-title {
       font-weight: bold;
-      font-size: 12pt;
+      font-size: ${s.experienceTitleFontSize};
     }
 
     .experience-company,
     .education-institution {
       font-weight: bold;
-      font-size: 11pt;
+      font-size: ${s.experienceCompanyFontSize};
     }
 
     .experience-location,
     .education-location,
     .experience-dates,
     .education-dates {
-      font-size: 10pt;
+      font-size: ${s.experienceDatesFontSize};
       color: #000000;
     }
 
     .bullet-points {
-      margin-top: 6pt;
-      margin-left: 20pt;
+      margin-top: ${s.bulletMarginTop};
+      margin-left: ${s.bulletMarginLeft};
     }
 
     .bullet-points li {
-      margin-bottom: 4pt;
-      font-size: 11pt;
+      margin-bottom: ${s.bulletMarginBottom};
+      font-size: ${s.bulletFontSize};
     }
 
     .skills-categories {
-      margin-top: 8pt;
+      margin-top: ${s.skillsCategoriesMarginTop};
     }
 
     .skill-category {
-      margin-bottom: 10pt;
+      margin-bottom: ${s.skillCategoryMarginBottom};
     }
 
     .skill-category-name {
       font-weight: bold;
-      font-size: 11pt;
-      margin-bottom: 4pt;
+      font-size: ${s.skillCategoryNameFontSize};
+      margin-bottom: ${s.skillCategoryNameMarginBottom};
     }
 
     .skill-items {
-      font-size: 11pt;
+      font-size: ${s.skillItemsFontSize};
     }
 
     .certification-item,
     .project-item,
     .language-item,
     .award-item {
-      margin-bottom: 8pt;
+      margin-bottom: ${s.certificationItemMarginBottom};
     }
 
     .certification-name,
     .project-name,
     .award-name {
       font-weight: bold;
-      font-size: 11pt;
+      font-size: ${s.certificationNameFontSize};
     }
 
     .certification-issuer,
     .project-description,
     .award-issuer {
-      font-size: 11pt;
-      margin-top: 2pt;
+      font-size: ${s.certificationIssuerFontSize};
+      margin-top: ${s.certificationIssuerMarginTop};
     }
 
     @media print {
