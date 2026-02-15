@@ -28,7 +28,7 @@ Phase 3 replaces the mock enhancement service (Phase 2) with Google Gemini AI mo
 ## 🤖 Task Group 16: AI Provider Abstraction
 
 ### Task 16.1: Design AI Provider Interface
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2 hours
 
@@ -36,24 +36,31 @@ Phase 3 replaces the mock enhancement service (Phase 2) with Google Gemini AI mo
 Create a unified interface for AI providers, designed for Gemini but extensible for future providers.
 
 **Subtasks:**
-- [ ] Create `src/services/ai/provider.types.ts` with:
-  - [ ] `AIProvider` interface defining common methods
-  - [ ] `AIProviderConfig` interface for provider configuration
-  - [ ] `AIRequest` interface for enhancement requests
-  - [ ] `AIResponse` interface for provider responses
-  - [ ] `EnhancementPrompt` interface for structured prompts
-- [ ] Define methods:
-  - [ ] `enhanceResume(request: AIRequest): Promise<AIResponse>`
-  - [ ] `validateResponse(response: AIResponse): boolean`
-  - [ ] `estimateCost(request: AIRequest): number`
-  - [ ] `getProviderInfo(): ProviderInfo`
-- [ ] Add error types:
-  - [ ] `AIProviderError` base class
-  - [ ] `RateLimitError` for rate limiting
-  - [ ] `InvalidResponseError` for malformed responses
-  - [ ] `CostLimitExceededError` for cost limits
-- [ ] Add JSDoc comments for all interfaces
-- [ ] Create unit tests for type definitions
+- [x] Create `src/services/ai/provider.types.ts` with:
+  - [x] `AIProvider` interface defining common methods
+  - [x] `AIProviderConfig` interface for provider configuration
+  - [x] `AIRequest` interface for enhancement requests
+  - [x] `AIResponse` interface for provider responses
+  - [x] `EnhancementPrompt` interface for structured prompts
+  - [x] `ReviewRequest` and `ReviewResponse` interfaces for review phase
+  - [x] `ReviewResult` and `PrioritizedAction` interfaces
+  - [x] `ProviderInfo` interface
+- [x] Define methods:
+  - [x] `reviewResume(request: ReviewRequest): Promise<ReviewResponse>`
+  - [x] `modifyResume(request: AIRequest): Promise<AIResponse>`
+  - [x] `enhanceResume(request: AIRequest): Promise<AIResponse>`
+  - [x] `validateResponse(response: AIResponse | ReviewResponse): boolean`
+  - [x] `estimateCost(request: AIRequest | ReviewRequest): number`
+  - [x] `getProviderInfo(): ProviderInfo`
+- [x] Add error types:
+  - [x] `AIProviderError` base class
+  - [x] `RateLimitError` for rate limiting
+  - [x] `InvalidResponseError` for malformed responses
+  - [x] `CostLimitExceededError` for cost limits
+  - [x] `NetworkError` for network issues
+  - [x] `TimeoutError` for timeout issues
+- [x] Add JSDoc comments for all interfaces
+- [x] Create unit tests for type definitions
 
 **Files to Create:**
 - `src/services/ai/provider.types.ts`
