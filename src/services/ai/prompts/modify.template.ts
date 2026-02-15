@@ -15,7 +15,7 @@ const SYSTEM_MESSAGE = `You are an expert resume writer specializing in ATS-opti
 /**
  * Task description for modification
  */
-const TASK_DESCRIPTION = `Enhance the provided resume based on the review findings and job requirements. Your goal is to improve the resume's alignment with the job posting while maintaining complete truthfulness and authenticity.`;
+const TASK_DESCRIPTION = `Enhance the provided resume based on the review findings and job requirements. Your goal is to improve the resume's alignment with the job posting while maintaining complete truthfulness and authenticity. You can intelligently infer and add related content based on what's already in the resume (e.g., if the resume mentions "Java", you can add "backend development" or "server-side programming" since Java is commonly associated with backend work).`;
 
 /**
  * Output format specification
@@ -43,13 +43,20 @@ Ensure the JSON is valid and complete.`;
  * Truthfulness requirements
  */
 const TRUTHFULNESS_RULES = [
-  'NEVER add experiences, skills, or achievements not present in the original resume',
-  'Only enhance and reword existing content - do not fabricate anything',
-  'Maintain truthfulness - all claims must be supported by original resume data',
+  'NEVER add experiences, companies, roles, or dates not present in the original resume',
+  'NEVER fabricate achievements, metrics, or accomplishments that cannot be reasonably inferred',
+  'You CAN intelligently infer and add related content based on existing resume information',
+  'Examples of allowed intelligent inference:',
+  '  - If resume mentions "Java" → can add "backend development", "server-side programming", "enterprise applications"',
+  '  - If resume mentions "React" → can add "frontend development", "user interface", "client-side applications"',
+  '  - If resume mentions "Python" → can add "data science", "automation", "scripting", "backend development"',
+  '  - If resume mentions "AWS" → can add "cloud infrastructure", "cloud services", "cloud deployment"',
+  '  - If resume mentions "Docker" → can add "containerization", "container orchestration", "DevOps"',
+  'Maintain truthfulness - all added content must be reasonably inferable from existing resume data',
   'Use natural language - avoid mechanical keyword stuffing',
   'Preserve the original meaning and context of all content',
   'Do not change dates, company names, or factual information',
-  'Only reword and restructure - never invent new accomplishments',
+  'Only enhance, reword, and intelligently expand - never invent completely unrelated content',
 ];
 
 /**
@@ -57,7 +64,9 @@ const TRUTHFULNESS_RULES = [
  */
 const ENHANCEMENT_AREAS = [
   'Rewriting bullet points to naturally incorporate job-relevant keywords',
+  'Intelligently inferring and adding related content based on existing resume information',
   'Reordering skills to prioritize job-relevant ones',
+  'Adding related skills that can be reasonably inferred (e.g., Java → backend, React → frontend)',
   'Enhancing summary to align with job requirements',
   'Improving action verbs and impact language',
   'Maintaining professional tone and authenticity',
@@ -74,6 +83,11 @@ const ENHANCEMENT_EXAMPLES: EnhancementExample[] = [
     explanation: 'Enhanced to include specific technologies mentioned in job requirements while maintaining truthfulness',
   },
   {
+    original: 'Developed applications using Java',
+    enhanced: 'Developed scalable backend applications using Java, implementing RESTful APIs and microservices architecture',
+    explanation: 'Intelligently inferred "backend", "RESTful APIs", and "microservices" from Java, as Java is commonly used for backend development',
+  },
+  {
     original: 'Managed team projects',
     enhanced: 'Led cross-functional team of 5 developers to deliver 3 major product releases, improving deployment efficiency by 40%',
     explanation: 'Added quantifiable metrics and stronger action verb while preserving original meaning',
@@ -82,6 +96,11 @@ const ENHANCEMENT_EXAMPLES: EnhancementExample[] = [
     original: 'Responsible for database maintenance',
     enhanced: 'Optimized PostgreSQL database performance, reducing query time by 30% through indexing and query optimization',
     explanation: 'Transformed passive language into active achievements with specific technical details',
+  },
+  {
+    original: 'Worked with Python for data analysis',
+    enhanced: 'Performed data analysis and automation using Python, leveraging pandas and NumPy for data processing and insights',
+    explanation: 'Intelligently inferred "automation", "pandas", and "NumPy" from Python, as these are commonly associated with Python data science work',
   },
 ];
 
@@ -127,6 +146,7 @@ export function getEnhancementAreasForMode(
       return [
         'Focus ONLY on rewriting experience bullet points',
         'Incorporate job-relevant keywords naturally',
+        'Intelligently infer and add related content (e.g., Java → backend, React → frontend)',
         'Use strong action verbs and quantifiable metrics',
         'Do not modify other sections',
       ];
@@ -134,6 +154,7 @@ export function getEnhancementAreasForMode(
       return [
         'Focus ONLY on reordering and enhancing skills section',
         'Prioritize skills mentioned in job requirements',
+        'Intelligently add related skills that can be inferred (e.g., Java → backend, React → frontend)',
         'Group related skills together',
         'Do not modify other sections',
       ];

@@ -44,7 +44,8 @@ const OUTPUT_FORMAT = `Provide your analysis as a JSON object with the following
 const FOCUS_AREAS = [
   'How well the resume matches the job requirements',
   'Missing keywords or skills from the job description',
-  'Areas where the resume could be strengthened',
+  'Opportunities to intelligently infer and add related content (e.g., Java → backend, React → frontend)',
+  'Areas where the resume could be strengthened through intelligent inference',
   'Prioritized actions to enhance ATS compatibility',
   'Content quality and professional presentation',
   'Keyword density and relevance',
