@@ -12,8 +12,10 @@ import { PdfGenerationError } from '../utils/pdfGenerator';
 import {
   validateRequest,
   generateResumeRequestSchema,
+  validateResumeRequestSchema,
   getValidatedBody,
 } from './middleware';
+import { validateAtsCompliance } from '../services/atsValidator';
 import type { Resume } from '../types/resume.types';
 
 /**
@@ -138,6 +140,49 @@ export function registerRoutes(app: Express): void {
             message: error instanceof Error ? error.message : 'An error occurred while generating the resume',
           });
         }
+      }
+    }
+  );
+
+  // POST /api/validate - Validate resume for ATS compliance
+  app.post(
+    '/api/validate',
+    validateRequest(validateResumeRequestSchema),
+    async (req: Request, res: Response) => {
+      const startTime = Date.now();
+      const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      try {
+        logger.info(`[${requestId}] POST /api/validate - Starting resume validation`);
+
+        // Get validated request body
+        const body = getValidatedBody<{ resume: Resume }>(req);
+        const { resume } = body;
+
+        // Run ATS validation
+        const validationResult = validateAtsCompliance(resume);
+
+        logger.info(`[${requestId}] Validation completed - Score: ${validationResult.score}/100, Compliant: ${validationResult.isCompliant}`);
+
+        // Return validation results
+        res.status(200).json({
+          score: validationResult.score,
+          isCompliant: validationResult.isCompliant,
+          errors: validationResult.errors,
+          warnings: validationResult.warnings,
+          suggestions: validationResult.suggestions,
+        });
+
+        const duration = Date.now() - startTime;
+        logger.info(`[${requestId}] Request completed in ${duration}ms`);
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error(`[${requestId}] Error validating resume (${duration}ms): ${error instanceof Error ? error.message : String(error)}`);
+
+        res.status(500).json({
+          error: 'Internal server error',
+          message: error instanceof Error ? error.message : 'An error occurred while validating the resume',
+        });
       }
     }
   );

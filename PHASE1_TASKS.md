@@ -663,7 +663,7 @@ Create POST endpoint for resume generation.
 ---
 
 ### Task 9.4: Implement Validate Resume API Endpoint
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** Medium  
 **Estimated Time:** 1 hour
 
@@ -671,10 +671,10 @@ Create POST endpoint for resume generation.
 Create POST endpoint for resume validation.
 
 **Subtasks:**
-- [ ] Add `POST /api/validate` endpoint
-- [ ] Accept resume JSON in request body
-- [ ] Run ATS validator
-- [ ] Return validation results
+- [x] Add `POST /api/validate` endpoint
+- [x] Accept resume JSON in request body
+- [x] Run ATS validator
+- [x] Return validation results
 - [ ] Write integration tests
 
 **Acceptance Criteria:**
