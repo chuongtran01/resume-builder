@@ -83,8 +83,8 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       bodyPadding: '0.35in',
       bodyFontSize: '10pt',
       lineHeight: '1.25',
-      headerMarginBottom: '8pt',
-      headerPaddingBottom: '5pt',
+      headerMarginBottom: '6pt',
+      headerPaddingBottom: '2pt',
       headerH1FontSize: '15pt',
       headerH1MarginBottom: '4pt',
       headerContactFontSize: '8pt',
@@ -126,8 +126,8 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       bodyPadding: '0.6in',
       bodyFontSize: '11pt',
       lineHeight: '1.5',
-      headerMarginBottom: '16pt',
-      headerPaddingBottom: '10pt',
+      headerMarginBottom: '10pt',
+      headerPaddingBottom: '4pt',
       headerH1FontSize: '16pt',
       headerH1MarginBottom: '6pt',
       headerContactFontSize: '9pt',
@@ -195,7 +195,6 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       text-align: left;
       margin-bottom: ${s.headerMarginBottom};
       padding-bottom: ${s.headerPaddingBottom};
-      border-bottom: 0.5pt solid #cccccc;
     }
 
     .header h1 {
