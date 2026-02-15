@@ -1,5 +1,5 @@
 {
-  "personalInfo": "file:../resume-sections/personalInfo.json",
+  "personalInfo": "file:./resume-sections/personalInfo.json",
   "experience": [
     {
       "company": "Infodat",
@@ -41,8 +41,8 @@
       ]
     }
   ],
-  "education": "file:../resume-sections/education.json",
-  "skills": "file:../resume-sections/skills.json",
+  "education": "file:./resume-sections/education.json",
+  "skills": "file:./resume-sections/skills.json",
   "projects": [
     {
       "name": "Brain Tumors Classification",
