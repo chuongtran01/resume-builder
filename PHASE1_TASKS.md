@@ -532,7 +532,7 @@ Implement the main CLI command for generating resumes.
 - [x] Add `generate` command
 - [x] Add `--input` argument (required)
 - [x] Add `--output` argument (required)
-- [x] Add `--template` argument (optional, default: modern)
+- [x] Add `--template` argument (optional, default: classic)
 - [x] Add `--format` argument (optional, default: pdf)
 - [x] Add `--validate` flag (optional)
 - [x] Add `--verbose` flag (optional)

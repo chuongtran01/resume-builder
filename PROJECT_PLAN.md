@@ -402,6 +402,7 @@ The ATS validator will check for:
 ```bash
 generate --input resume.json --output resume.pdf
 ```
+(Default template: classic)
 
 #### Specify Template
 ```bash
