@@ -50,8 +50,8 @@ This project is a modular, ATS-friendly resume generator that accepts structured
 
 ---
 
-### Phase 2: AI-Powered Resume Enhancer
-**Status:** To be implemented  
+### Phase 2: AI-Powered Resume Enhancer (Mock Implementation)
+**Status:** ✅ Implemented  
 **Timeline:** Post-MVP
 
 **Core Features:**
@@ -78,15 +78,126 @@ This project is a modular, ATS-friendly resume generator that accepts structured
 - `enhancedResume.md` - Human-readable markdown report with change details
 
 **Deliverables:**
-- Resume enhancement service (`resumeEnhancementService.ts`)
-- Mock implementation (rules-based, ready for AI replacement)
-- Markdown report generator (`mdGenerator.ts`)
-- Enhanced PDF generator integration
-- CLI `enhanceResume` command
-- REST API `/api/enhanceResume` endpoint
-- Job description parser utility
-- Comprehensive change tracking system
-- Type definitions for enhancement results
+- ✅ Resume enhancement service (`resumeEnhancementService.ts`)
+- ✅ Mock implementation (rules-based, ready for AI replacement)
+- ✅ Markdown report generator (`mdGenerator.ts`)
+- ✅ Enhanced PDF generator integration
+- ✅ CLI `enhanceResume` command
+- ✅ REST API `/api/enhanceResume` endpoint
+- ✅ Job description parser utility
+- ✅ Comprehensive change tracking system
+- ✅ Type definitions for enhancement results
+
+---
+
+### Phase 3: Real AI Model Integration
+**Status:** To be implemented  
+**Timeline:** Future enhancement
+
+**Core Features:**
+- 🧠 Google Gemini AI model integration
+- 🧠 Sequential two-step enhancement: Review → Modify
+- 🧠 Natural language resume modification using extracted job information
+- 🧠 Context-aware bullet point rewriting
+- 🧠 Intelligent skill prioritization and reordering
+- 🧠 Professional summary enhancement
+- 🧠 Fallback to mock service option
+- 🧠 Enhanced truthfulness validation
+- 🧠 Quality assurance checks
+- 🧠 Cost optimization and rate limiting
+- 🧠 Architecture extensible for future agent-based approach
+
+**Input:**
+- `resume.json` - Current resume (from Phase 1)
+- `jobDescription.txt` - Job description text
+- Extracted job information (keywords, requirements, preferred skills, experience level)
+
+**Output:**
+- `enhancedResume.json` - AI-enhanced resume with change tracking metadata
+- `enhancedResume.pdf` - ATS-friendly PDF of enhanced resume
+- `enhancedResume.md` - Human-readable markdown report with change details
+- AI reasoning/explanation for major changes (optional)
+
+**Enhancement Approach:**
+
+The AI enhancement process uses extracted information from the job description to make natural, contextually appropriate modifications:
+
+1. **Job Information Extraction:**
+   - Keywords and technical terms
+   - Required and preferred skills
+   - Experience level and years required
+   - Job responsibilities and expectations
+   - Company culture indicators (if available)
+
+2. **Natural Language Modification:**
+   - **Bullet Points:** AI rewrites bullet points to naturally incorporate relevant keywords while maintaining authenticity
+   - **Skills:** AI intelligently reorders and emphasizes skills based on job relevance
+   - **Summary:** AI enhances professional summary to align with job requirements
+   - **Context Preservation:** AI maintains the original meaning and context while optimizing for ATS
+
+3. **Truthfulness Guarantee:**
+   - AI never adds experiences, skills, or achievements not present in original resume
+   - All modifications are truthful enhancements of existing content
+   - Validation layer ensures no fabrication
+
+**Supported AI Model:**
+- **Google Gemini** - Via Google AI API (gemini-pro, gemini-1.5-pro, gemini-1.5-flash)
+
+**Deliverables:**
+- AI provider abstraction layer (`src/services/ai/`)
+- Google Gemini integration (`src/services/ai/gemini.ts`)
+- AI enhancement service implementation (`src/services/aiResumeEnhancementService.ts`)
+- Sequential review → modify workflow (designed for future agent upgrade)
+- Prompt engineering and optimization (review prompts + modification prompts)
+- Cost tracking and usage monitoring
+- Rate limiting and error handling
+- Configuration management for API keys
+- Quality assurance and validation layer
+- Fallback mechanism to Phase 2 mock service
+
+**Implementation Strategy:**
+
+1. **AI Provider Abstraction:**
+   - Create unified interface for AI providers (designed for Gemini, extensible for future)
+   - Support for streaming and non-streaming responses
+   - Error handling and retry logic
+   - Cost tracking per request
+
+2. **Prompt Engineering:**
+   - Structured prompts that include extracted job information
+   - Clear instructions for truthfulness and natural language
+   - Examples and few-shot learning
+   - Context window optimization
+
+3. **Enhancement Workflow (Sequential Review → Modify):**
+   - Extract job information using existing parser
+   - **Step 1: Review** - AI analyzes resume and job requirements, identifies strengths/weaknesses/opportunities
+   - **Step 2: Modify** - AI enhances resume based on review findings
+   - Parse and validate AI responses
+   - Track changes and generate reports
+   - Fallback to mock service if AI fails
+   - **Future:** Architecture supports upgrade to agent-based approach with tools
+
+4. **Quality Assurance:**
+   - Validate AI responses match expected format
+   - Verify truthfulness (no added content)
+   - Check for hallucinations or fabrication
+   - Ensure ATS compliance maintained
+   - Human-readable explanations for changes
+
+**Configuration:**
+```typescript
+{
+  aiProvider: 'gemini' | 'mock',
+  model: 'gemini-pro' | 'gemini-1.5-pro' | 'gemini-1.5-flash',
+  apiKey: string,
+  temperature: number, // 0-1 for creativity control
+  maxTokens: number,
+  enableStreaming: boolean,
+  fallbackToMock: boolean, // Fallback to Phase 2 if AI fails
+  enhancementMode: 'sequential' | 'agent' // Sequential (default) or agent-based (future)
+}
+```
 
 ---
 
@@ -103,7 +214,12 @@ resume-builder/
 │   │
 │   ├── services/               # Core business logic
 │   │   ├── resumeGenerator.ts  # Main generator service
-│   │   ├── resumeEnhancementService.ts  # AI service (Phase 2)
+│   │   ├── resumeEnhancementService.ts  # Mock AI service (Phase 2)
+│   │   ├── aiResumeEnhancementService.ts  # Real AI service (Phase 3)
+│   │   ├── ai/                 # AI provider integrations (Phase 3)
+│   │   │   ├── provider.types.ts  # AI provider interface
+│   │   │   ├── providerRegistry.ts  # Provider registry
+│   │   │   └── gemini.ts       # Google Gemini integration
 │   │   └── atsValidator.ts     # ATS compliance checker
 │   │
 │   ├── types/                  # TypeScript type definitions
@@ -422,17 +538,17 @@ curl -X POST http://localhost:3000/api/validate \
 
 ---
 
-## Phase 2 AI Integration
+## Phase 2 AI Integration (Mock Implementation)
 
 ### Overview
 
-Phase 2 implements a complete AI-powered resume enhancement system that takes a resume JSON and job description, then produces an enhanced resume with detailed change tracking, ATS-friendly PDF, and a comprehensive markdown report.
+Phase 2 implements a complete rules-based resume enhancement system that takes a resume JSON and job description, then produces an enhanced resume with detailed change tracking, ATS-friendly PDF, and a comprehensive markdown report. This serves as the foundation for Phase 3 real AI integration.
 
 ### Enhancement Pipeline
 
 1. **Input:** resume.json + jobDescription.txt
 2. **Job Description Parser:** Extract keywords and requirements
-3. **Resume Enhancement Service:** Rewrite bullet points, reorder skills, track changes
+3. **Resume Enhancement Service (Mock):** Rewrite bullet points, reorder skills, track changes using pattern matching
 4. **Output Generation:** Create enhanced JSON, PDF, and Markdown report
 
 ### Enhanced Resume Output
@@ -447,17 +563,64 @@ The enhanced resume JSON includes:
 
 ### Implementation Strategy
 
-**Phase 2.1: Mock Implementation (Rules-Based)**
+**Phase 2: Mock Implementation (Rules-Based) - ✅ Complete**
 - Pattern-based keyword extraction
 - Bullet point rewriting with keyword injection
 - Skill reordering based on job relevance
 - Comprehensive change tracking
 - Never adds content not in original resume
+- Architecture designed for easy AI replacement
 
-**Phase 2.2: AI Integration (Future)**
-- Architecture designed for easy AI integration
-- Support for OpenAI, Anthropic, or custom models
-- Multi-agent system support (Modifier + Reviewer agents)
+---
+
+## Phase 3 AI Integration (Real AI Models)
+
+### Overview
+
+Phase 3 replaces the mock enhancement service with Google Gemini AI model that uses extracted job description information to naturally modify resumes. The AI receives structured context about the job requirements and makes intelligent, contextually appropriate enhancements.
+
+### Enhancement Pipeline with AI
+
+1. **Input:** resume.json + jobDescription.txt
+2. **Job Description Parser:** Extract structured information:
+   - Keywords and technical terms
+   - Required and preferred skills
+   - Experience level and years required
+   - Job responsibilities and expectations
+3. **AI Enhancement Service (Two-Step Process):**
+   - **Step 1: Review Phase**
+     - AI analyzes resume against job requirements
+     - Identifies strengths, weaknesses, and opportunities
+     - Generates prioritized action plan
+   - **Step 2: Modify Phase**
+     - AI enhances resume based on review findings
+     - Naturally rewrites bullet points, reorders skills, enhances summary
+     - Maintains truthfulness and context
+4. **Quality Assurance:** Verify truthfulness and ATS compliance
+5. **Output Generation:** Create enhanced JSON, PDF, and Markdown report
+
+**Note:** Architecture is designed to support future upgrade to agent-based approach with tools for iterative refinement.
+
+### AI Enhancement Approach
+
+**Natural Language Modification:**
+The AI uses extracted job information to make natural, contextually appropriate modifications:
+
+- **Context-Aware Rewriting:** AI understands the relationship between job requirements and resume content
+- **Natural Integration:** Keywords and skills are integrated naturally, not mechanically inserted
+- **Professional Tone:** AI maintains professional tone while optimizing for ATS
+- **Meaning Preservation:** Original intent and achievements are preserved while enhancing relevance
+
+**Example Enhancement:**
+- **Original:** "Built scalable API services"
+- **Job Requires:** React, TypeScript, microservices
+- **AI Enhanced:** "Architected and developed scalable RESTful API services using TypeScript and microservices architecture, serving 1M+ requests daily"
+
+**Truthfulness Validation:**
+- AI responses are validated against original resume
+- No experiences, skills, or achievements can be added
+- Only truthful enhancements of existing content
+- Quality assurance layer ensures compliance
 
 ### Markdown Report
 
@@ -513,6 +676,7 @@ Accepts resume JSON and job description, returns enhanced resume with change tra
 - **API Server:** express/fastify, zod/joi for validation
 - **Utilities:** fs-extra, winston/pino for logging
 - **Development:** typescript, jest, eslint, prettier
+- **AI Integration (Phase 3):** @google/generative-ai
 
 ---
 
@@ -527,14 +691,24 @@ Accepts resume JSON and job description, returns enhanced resume with change tra
 - Add ATS validation and warnings
 - Create examples and documentation
 
-### Phase 2: AI Enhancement
-- Design enhancement service interface
-- Implement mock/rules-based enhancement service
-- Create job description parser
-- Build change tracking system
-- Generate Markdown reports
-- Add CLI and API endpoints for enhancement
-- Prepare architecture for AI integration
+### Phase 2: AI Enhancement (Mock Implementation) - ✅ Complete
+- ✅ Design enhancement service interface
+- ✅ Implement mock/rules-based enhancement service
+- ✅ Create job description parser
+- ✅ Build change tracking system
+- ✅ Generate Markdown reports
+- ✅ Add CLI and API endpoints for enhancement
+- ✅ Prepare architecture for AI integration
+
+### Phase 3: Real AI Model Integration (Gemini)
+- Design AI provider abstraction layer
+- Implement Google Gemini integration
+- Create prompt engineering system
+- Build quality assurance and validation layer
+- Add cost tracking and usage monitoring
+- Implement fallback mechanism
+- Add configuration management
+- Update CLI and API to support Gemini provider
 
 ---
 
@@ -550,11 +724,20 @@ Accepts resume JSON and job description, returns enhanced resume with change tra
 - ✅ Documentation is complete
 - ✅ Mock AI service demonstrates Phase 2 architecture
 
-### Phase 2 Ready When:
+### Phase 2 Complete When: ✅
 - ✅ AI service interface is defined
 - ✅ Mock implementation works end-to-end
 - ✅ Integration points are clear and documented
 - ✅ Enhancement workflow is testable
+
+### Phase 3 Ready When:
+- ✅ AI provider abstraction layer is implemented
+- ✅ Google Gemini provider is integrated
+- ✅ Natural language enhancement produces high-quality results
+- ✅ Truthfulness validation is robust
+- ✅ Cost tracking and monitoring are in place
+- ✅ Fallback to Phase 2 mock service works reliably
+- ✅ Configuration management supports Gemini provider
 
 ---
 

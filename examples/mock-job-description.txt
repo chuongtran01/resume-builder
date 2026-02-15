@@ -1,0 +1,33 @@
+Senior Full Stack Engineer Position
+
+Company: CloudTech Solutions
+Location: San Francisco, CA (Hybrid)
+
+We are seeking an experienced Senior Full Stack Engineer to join our growing team. The ideal candidate will have strong expertise in modern web technologies and cloud infrastructure.
+
+Requirements:
+- 5+ years of experience in full-stack development
+- Proficient in React, TypeScript, and Node.js
+- Strong experience with cloud platforms (AWS, Azure, or GCP)
+- Experience with microservices architecture
+- Knowledge of containerization technologies (Docker, Kubernetes)
+- Experience with CI/CD pipelines
+- Strong problem-solving and debugging skills
+- Excellent communication and collaboration abilities
+
+Preferred Qualifications:
+- Experience with GraphQL
+- Knowledge of serverless architectures
+- Experience with MongoDB and PostgreSQL
+- Familiarity with Agile/Scrum methodologies
+- Previous experience leading technical teams
+
+Responsibilities:
+- Design and develop scalable web applications
+- Build and maintain RESTful APIs and microservices
+- Collaborate with cross-functional teams to deliver high-quality software
+- Mentor junior developers and contribute to code reviews
+- Optimize application performance and ensure system reliability
+- Participate in architecture and design discussions
+
+We offer competitive compensation, comprehensive benefits, and opportunities for professional growth.
