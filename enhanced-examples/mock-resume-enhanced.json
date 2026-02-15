@@ -1,0 +1,167 @@
+{
+  "updatedResume": {
+    "personalInfo": {
+      "name": "Jane Smith",
+      "email": "jane.smith@email.com",
+      "phone": "+1 (555) 123-4567",
+      "location": "San Francisco, CA",
+      "linkedin": "linkedin.com/in/janesmith",
+      "github": "github.com/janesmith"
+    },
+    "summary": "Experienced software engineer with expertise in full-stack development and cloud technologies. Passionate about building scalable applications and leading technical teams.",
+    "experience": [
+      {
+        "company": "Tech Innovations Inc",
+        "role": "Senior Software Engineer",
+        "startDate": "2021-03",
+        "endDate": "Present",
+        "location": "San Francisco, CA",
+        "bulletPoints": [
+          "Developed using Agile and maintained web applications using JavaScript and Python",
+          "Led a team of 3 junior developers on multiple projects using Agile using 5+ years of experience in full using stack development",
+          "Improved application performance by optimizing database queries using Agile using 5+ years of experience in full using stack development",
+          "Collaborated with product managers to define feature requirements using Agile using 5+ years of experience in full using stack development"
+        ]
+      },
+      {
+        "company": "StartupXYZ",
+        "role": "Full Stack Developer",
+        "startDate": "2019-06",
+        "endDate": "2021-02",
+        "location": "Remote",
+        "bulletPoints": [
+          "Built using Agile RESTful APIs using Node.js and Express",
+          "Created using Agile responsive frontend interfaces with React",
+          "Implemented using Agile automated testing with Jest",
+          "Deployed applications to AWS cloud infrastructure using Agile using 5+ years of experience in full using stack development"
+        ]
+      }
+    ],
+    "education": {
+      "institution": "University of California, Berkeley",
+      "degree": "Bachelor of Science",
+      "field": "Computer Science",
+      "graduationDate": "2019-05"
+    },
+    "skills": {
+      "categories": [
+        {
+          "name": "Tools & Technologies",
+          "items": [
+            "MongoDB",
+            "PostgreSQL",
+            "Docker",
+            "AWS",
+            "Git"
+          ]
+        },
+        {
+          "name": "Frameworks & Libraries",
+          "items": [
+            "React",
+            "Node.js",
+            "Express",
+            "Django"
+          ]
+        },
+        {
+          "name": "Programming Languages",
+          "items": [
+            "TypeScript",
+            "JavaScript",
+            "Python",
+            "Java"
+          ]
+        }
+      ]
+    }
+  },
+  "suggestions": [
+    "Consider highlighting experience with: 5+ years of experience in full, Proficient in React, TypeScript, and Node.js, Experience with microservices architecture",
+    "Consider adding more job-relevant keywords throughout the resume"
+  ],
+  "highlightedSkills": [],
+  "changesSummary": "Enhanced resume with 13 total changes. 8 bullet points were enhanced, skills were reordered to prioritize job-relevant technologies.",
+  "changesDetail": [
+    {
+      "old": "Developed and maintained web applications using JavaScript and Python",
+      "new": "Developed using Agile and maintained web applications using JavaScript and Python",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Led a team of 3 junior developers on multiple projects",
+      "new": "Led a team of 3 junior developers on multiple projects using Agile using 5+ years of experience in full using stack development",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Improved application performance by optimizing database queries",
+      "new": "Improved application performance by optimizing database queries using Agile using 5+ years of experience in full using stack development",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Collaborated with product managers to define feature requirements",
+      "new": "Collaborated with product managers to define feature requirements using Agile using 5+ years of experience in full using stack development",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Built RESTful APIs using Node.js and Express",
+      "new": "Built using Agile RESTful APIs using Node.js and Express",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Created responsive frontend interfaces with React",
+      "new": "Created using Agile responsive frontend interfaces with React",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Implemented automated testing with Jest",
+      "new": "Implemented using Agile automated testing with Jest",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Deployed applications to AWS cloud infrastructure",
+      "new": "Deployed applications to AWS cloud infrastructure using Agile using 5+ years of experience in full using stack development",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Position 4 in Programming Languages",
+      "new": "Position 1 in Programming Languages",
+      "section": "skills.Programming Languages",
+      "type": "skill"
+    },
+    {
+      "old": "Position 1 in Tools & Technologies",
+      "new": "Position 5 in Tools & Technologies",
+      "section": "skills.Tools & Technologies",
+      "type": "skill"
+    },
+    {
+      "old": "Position 4 in Tools & Technologies",
+      "new": "Position 1 in Tools & Technologies",
+      "section": "skills.Tools & Technologies",
+      "type": "skill"
+    },
+    {
+      "old": "Position 5 in Tools & Technologies",
+      "new": "Position 2 in Tools & Technologies",
+      "section": "skills.Tools & Technologies",
+      "type": "skill"
+    },
+    {
+      "old": "Category order: Programming Languages, Frameworks & Libraries, Tools & Technologies",
+      "new": "Category order: Tools & Technologies, Frameworks & Libraries, Programming Languages",
+      "section": "skills",
+      "type": "skill"
+    }
+  ],
+  "pdfPath": "/Users/chuongtran/Desktop/Projects/resume-builder/enhanced-examples/mock-resume-enhanced.pdf",
+  "mdPath": "/Users/chuongtran/Desktop/Projects/resume-builder/enhanced-examples/mock-resume-enhanced.md"
+}

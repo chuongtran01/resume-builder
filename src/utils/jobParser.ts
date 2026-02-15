@@ -189,7 +189,7 @@ function extractRequiredSkills(text: string): string[] {
 
   // Find requirements section
   const requirementsPatterns = [
-    /(?:requirements?|must\s+have|required|qualifications?)[:\s]+(.*?)(?:\n\n|\n[A-Z][a-z]+\s*:|$)/is,
+    /(?:requirements?|must\s+have|required|qualifications?)[:\s]+(.*?)(?:\n\n|\n[A-Z][a-z]+\s*:|$)/gis,
     /(?:you\s+must|must|required\s+to)\s+(?:have|be|know|understand)\s+(.*?)(?:\.|$)/gi,
   ];
 
@@ -233,7 +233,7 @@ function extractPreferredSkills(text: string): string[] {
 
   // Find preferred section
   const preferredPatterns = [
-    /(?:preferred|nice\s+to\s+have|bonus|plus|advantage)[:\s]+(.*?)(?:\n\n|\n[A-Z][a-z]+\s*:|$)/is,
+    /(?:preferred|nice\s+to\s+have|bonus|plus|advantage)[:\s]+(.*?)(?:\n\n|\n[A-Z][a-z]+\s*:|$)/gis,
     /(?:would\s+be\s+great|it's\s+a\s+plus|bonus\s+points)\s+(?:if\s+you\s+)?(?:have|know|are)\s+(.*?)(?:\.|$)/gi,
   ];
 
