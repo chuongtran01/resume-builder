@@ -306,7 +306,7 @@ Constraints:
 ---
 
 ### Task 18.2: Implement Prompt Builder
-**Status:** ⬜  
+**Status:** ✅ Completed  
 **Priority:** High  
 **Estimated Time:** 3 hours
 
@@ -314,29 +314,29 @@ Constraints:
 Create a utility to build and customize prompts dynamically for both review and modification phases.
 
 **Subtasks:**
-- [ ] Create `src/services/ai/prompts/promptBuilder.ts`
-- [ ] Implement `buildReviewPrompt` function:
-  - [ ] Accept resume, job info, and options
-  - [ ] Select review prompt template
-  - [ ] Inject resume data
-  - [ ] Inject job information
-  - [ ] Return complete review prompt
-- [ ] Implement `buildModifyPrompt` function:
-  - [ ] Accept resume, job info, review result, and options
-  - [ ] Select modification prompt template
-  - [ ] Inject resume data
-  - [ ] Inject job information
-  - [ ] Inject review findings
-  - [ ] Apply focus areas filtering
-  - [ ] Apply tone adjustments
-  - [ ] Return complete modification prompt
-- [ ] Implement prompt validation:
-  - [ ] Check token limits
-  - [ ] Validate structure
-  - [ ] Ensure required sections present
-- [ ] Add prompt caching for similar requests
-- [ ] Add prompt versioning
-- [ ] Write unit tests
+- [x] Create `src/services/ai/prompts/promptBuilder.ts`
+- [x] Implement `buildReviewPrompt` function:
+  - [x] Accept resume, job info, and options
+  - [x] Select review prompt template
+  - [x] Inject resume data
+  - [x] Inject job information
+  - [x] Return complete review prompt
+- [x] Implement `buildModifyPrompt` function:
+  - [x] Accept resume, job info, review result, and options
+  - [x] Select modification prompt template
+  - [x] Inject resume data
+  - [x] Inject job information
+  - [x] Inject review findings
+  - [x] Apply focus areas filtering
+  - [x] Apply tone adjustments
+  - [x] Return complete modification prompt
+- [x] Implement prompt validation:
+  - [x] Check token limits
+  - [x] Validate structure
+  - [x] Ensure required sections present
+- [x] Add prompt caching for similar requests
+- [x] Add prompt versioning
+- [x] Write unit tests
 
 **Files to Create:**
 - `src/services/ai/prompts/promptBuilder.ts`
