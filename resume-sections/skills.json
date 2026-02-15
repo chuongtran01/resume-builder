@@ -1,42 +1,27 @@
 {
   "categories": [
     {
-      "name": "Programming Languages",
+      "name": "Skills",
       "items": [
         "Java",
         "C/C++",
         "JavaScript",
         "TypeScript",
         "Python",
-        "HTML/CSS"
-      ]
-    },
-    {
-      "name": "Frameworks & Libraries",
-      "items": [
+        "HTML/CSS",
         ".NET",
         "Spring Boot",
         "React.js",
         "Angular",
         "Node.js",
         "Ember.js",
-        "D3.js"
-      ]
-    },
-    {
-      "name": "Databases",
-      "items": [
         "MongoDB",
-        "MySQL"
-      ]
-    },
-    {
-      "name": "Tools & Technologies",
-      "items": [
+        "MySQL",
         "REST APIs",
         "Selenium",
         "Docker",
         "Git",
+        "D3.js",
         "Apache Kafka"
       ]
     }
