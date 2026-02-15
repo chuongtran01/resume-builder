@@ -524,11 +524,11 @@ function renderEducationItem(edu: {
   return `
     <div class="education-item">
       <div class="education-header">
-        <span class="education-title">${degreeLine}</span>
+        <span class="education-institution">${escapeHtml(edu.institution)}</span>
         <span class="education-dates">${formatDate(edu.graduationDate)}</span>
       </div>
       <div class="education-institution-gpa">
-        <span class="education-institution">${escapeHtml(edu.institution)}</span>
+        <span class="education-title">${degreeLine}</span>
         ${edu.gpa ? `<span class="education-gpa">GPA: ${escapeHtml(edu.gpa)}</span>` : ''}
       </div>
       ${edu.honors && edu.honors.length > 0 ? `<div style="margin-left: 8pt; margin-top: 1pt; font-size: 10pt; color: #666666;">Honors: ${edu.honors.map((h) => escapeHtml(h)).join(', ')}</div>` : ''}
