@@ -465,7 +465,7 @@ Create ATS compliance validator with checks and warnings.
 ## ⚙️ Task Group 7: Core Generator Service
 
 ### Task 7.1: Implement Resume Generator Service
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 3 hours
 
@@ -473,16 +473,16 @@ Create ATS compliance validator with checks and warnings.
 Create the main generator service that orchestrates all components.
 
 **Subtasks:**
-- [ ] Create `src/services/resumeGenerator.ts`
-- [ ] Integrate resume parser
-- [ ] Integrate template selection
-- [ ] Integrate HTML generation
-- [ ] Integrate PDF generation
-- [ ] Integrate ATS validator (optional)
-- [ ] Implement error handling
-- [ ] Add logging
-- [ ] Write unit tests
-- [ ] Write integration tests
+- [x] Create `src/services/resumeGenerator.ts`
+- [x] Integrate resume parser
+- [x] Integrate template selection
+- [x] Integrate HTML generation
+- [x] Integrate PDF generation
+- [x] Integrate ATS validator (optional)
+- [x] Implement error handling
+- [x] Add logging
+- [x] Write unit tests
+- [x] Write integration tests
 
 **Acceptance Criteria:**
 - Generates PDF from resume.json
