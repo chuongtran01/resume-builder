@@ -21,26 +21,48 @@ npm install
 
 ## Quick Start
 
+### Prerequisites
+
+Before using AI enhancement features, set up your `.env` file:
+
+```bash
+# Copy the example .env file
+cp .env.example .env
+
+# Edit .env and add your Gemini API key
+GEMINI_API_KEY=your-api-key-here
+```
+
+See [AI_CONFIG.md](./AI_CONFIG.md) for detailed configuration options.
+
 ### CLI Usage
+
+**Note:** For development, use `npm run dev` which handles TypeScript path aliases. For production, build first with `npm run build` then use `npm run cli`.
 
 Generate a PDF resume:
 ```bash
+npm run dev -- --input resume.json --output resume.pdf
+```
+
+Or after building:
+```bash
+npm run build
 npm run cli -- --input resume.json --output resume.pdf
 ```
 
 Generate an HTML resume:
 ```bash
-npm run cli -- --input resume.json --output resume.html --format html
+npm run dev -- --input resume.json --output resume.html --format html
 ```
 
 Specify a template:
 ```bash
-npm run cli -- --input resume.json --output resume.pdf --template modern
+npm run dev -- --input resume.json --output resume.pdf --template modern
 ```
 
 Run ATS validation:
 ```bash
-npm run cli -- --input resume.json --output resume.pdf --validate
+npm run dev -- --input resume.json --output resume.pdf --validate
 ```
 
 ### Enhance Resume with AI
@@ -49,6 +71,14 @@ Enhance your resume based on a job description using AI:
 
 **Basic usage (with defaults):**
 ```bash
+npm run dev -- enhanceResume \
+  --input resume.json \
+  --job job-description.txt
+```
+
+Or after building:
+```bash
+npm run build
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job-description.txt
@@ -64,7 +94,7 @@ This uses default settings:
 
 **With all options:**
 ```bash
-npm run cli -- enhanceResume \
+npm run dev -- enhanceResume \
   --input resume.json \
   --job job-description.txt \
   --output ./output \
@@ -96,14 +126,14 @@ npm run cli -- enhanceResume \
 
 Minimal usage (all defaults):
 ```bash
-npm run cli -- enhanceResume \
+npm run dev -- enhanceResume \
   --input examples/resume.json \
   --job examples/job-description.txt
 ```
 
-With custom AI model:
+With custom AI model (faster and cheaper):
 ```bash
-npm run cli -- enhanceResume \
+npm run dev -- enhanceResume \
   --input examples/resume.json \
   --job examples/job-description.txt \
   --ai-model gemini-3-flash-preview
@@ -111,7 +141,7 @@ npm run cli -- enhanceResume \
 
 With custom temperature:
 ```bash
-npm run cli -- enhanceResume \
+npm run dev -- enhanceResume \
   --input examples/resume.json \
   --job examples/job-description.txt \
   --ai-temperature 0.8
@@ -119,11 +149,13 @@ npm run cli -- enhanceResume \
 
 This will:
 1. Load and parse your resume
-2. Initialize AI provider (Gemini) with configured settings
+2. Initialize AI provider (Gemini) with configured settings from `.env` file
 3. Analyze the job description using AI
 4. Enhance resume with AI-powered improvements
 5. Generate enhanced JSON, PDF, and Markdown report
 6. Display ATS score improvement and change summary
+
+**Note:** Make sure you have set up your `.env` file with `GEMINI_API_KEY` before running enhancement commands. See [AI_CONFIG.md](./AI_CONFIG.md) for configuration details.
 
 ### API Usage
 
