@@ -196,6 +196,10 @@ export function registerRoutes(app: Express): void {
       const startTime = Date.now();
       const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+      // Temporary provider name for this request (will be cleaned up)
+      const tempProviderName = `gemini-${requestId}`;
+      let providerRegistered = false;
+
       try {
         logger.info(`[${requestId}] POST /api/enhanceResume - Starting resume enhancement`);
 
@@ -208,20 +212,79 @@ export function registerRoutes(app: Express): void {
             tone?: 'professional' | 'technical' | 'leadership';
             maxSuggestions?: number;
           };
+          aiProvider?: 'gemini';
+          aiModel?: 'gemini-2.5-pro' | 'gemini-3-flash-preview';
+          aiOptions?: {
+            temperature?: number;
+            maxTokens?: number;
+            timeout?: number;
+            maxRetries?: number;
+          };
         }>(req);
-        const { resume, jobDescription, options } = body;
+        const { resume, jobDescription, options, aiProvider, aiModel, aiOptions } = body;
 
         logger.debug(`[${requestId}] Enhancing resume with ${jobDescription.length} character job description`);
 
-        // Import enhancement service
-        const { resumeEnhancementService } = await import('../services/resumeEnhancementService');
+        // Load AI configuration and set up provider
+        const { loadAIConfig, getGeminiConfig } = await import('../services/ai/config');
+        const { GeminiProvider } = await import('../services/ai/gemini');
+        const { registerProvider, unregisterProvider } = await import('../services/ai/providerRegistry');
+
+        // Load base AI config
+        const aiConfig = await loadAIConfig({ loadFromEnv: true });
+        const baseGeminiConfig = getGeminiConfig(aiConfig);
+
+        if (!baseGeminiConfig || !baseGeminiConfig.apiKey) {
+          res.status(400).json({
+            success: false,
+            error: 'Configuration error',
+            message: 'Gemini API key not configured. Please set GEMINI_API_KEY in .env file.',
+          });
+          return;
+        }
+
+        // Determine provider to use (default to 'gemini' if not specified)
+        const providerToUse = aiProvider || 'gemini';
+
+        if (providerToUse !== 'gemini') {
+          res.status(400).json({
+            success: false,
+            error: 'Invalid provider',
+            message: `Provider "${providerToUse}" is not supported. Only "gemini" is currently supported.`,
+          });
+          return;
+        }
+
+        // Merge base config with request overrides
+        const finalGeminiConfig = {
+          ...baseGeminiConfig,
+          model: aiModel || baseGeminiConfig.model || 'gemini-2.5-pro',
+          temperature: aiOptions?.temperature !== undefined ? aiOptions.temperature : (baseGeminiConfig.temperature ?? 0.7),
+          maxTokens: aiOptions?.maxTokens !== undefined ? aiOptions.maxTokens : baseGeminiConfig.maxTokens,
+          timeout: aiOptions?.timeout !== undefined ? aiOptions.timeout : baseGeminiConfig.timeout,
+          maxRetries: aiOptions?.maxRetries !== undefined ? aiOptions.maxRetries : baseGeminiConfig.maxRetries,
+        };
+
+        // Create and register provider with request-specific config
+        const geminiProvider = new GeminiProvider(finalGeminiConfig);
+        registerProvider(tempProviderName, geminiProvider);
+        providerRegistered = true;
+
+        logger.info(`[${requestId}] Using AI provider: ${providerToUse}, model: ${finalGeminiConfig.model}, temperature: ${finalGeminiConfig.temperature}`);
+
+        // Create enhancement service with the temporary provider
+        const { AIResumeEnhancementService } = await import('../services/aiResumeEnhancementService');
+        const enhancementService = new AIResumeEnhancementService(tempProviderName);
         
         // Enhance resume
-        const enhancementResult = await resumeEnhancementService.enhanceResume(
+        const enhancementResult = await enhancementService.enhanceResume(
           resume,
           jobDescription,
           options
         );
+
+        // Get provider info for response
+        const providerInfo = geminiProvider.getProviderInfo();
 
         logger.info(`[${requestId}] Resume enhanced - ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
 
@@ -277,6 +340,12 @@ export function registerRoutes(app: Express): void {
             mdPath: undefined,
           },
           atsScore: enhancementResult.atsScore,
+          provider: {
+            name: providerInfo.name,
+            displayName: providerInfo.displayName,
+            model: finalGeminiConfig.model,
+            temperature: finalGeminiConfig.temperature,
+          },
           pdf: {
             base64: pdfBase64,
             contentType: 'application/pdf',
@@ -294,16 +363,37 @@ export function registerRoutes(app: Express): void {
           logger.warn(`[${requestId}] Failed to clean up temporary files: ${err.message}`);
         });
 
+        // Clean up temporary provider
+        if (providerRegistered) {
+          try {
+            unregisterProvider(tempProviderName);
+            logger.debug(`[${requestId}] Cleaned up temporary provider: ${tempProviderName}`);
+          } catch (cleanupError) {
+            logger.warn(`[${requestId}] Failed to clean up temporary provider: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+          }
+        }
+
         const duration = Date.now() - startTime;
         logger.info(`[${requestId}] Request completed in ${duration}ms`);
       } catch (error) {
         const duration = Date.now() - startTime;
         logger.error(`[${requestId}] Error enhancing resume (${duration}ms): ${error instanceof Error ? error.message : String(error)}`);
 
+        // Clean up temporary provider on error
+        if (providerRegistered) {
+          try {
+            const { unregisterProvider } = await import('../services/ai/providerRegistry');
+            unregisterProvider(tempProviderName);
+          } catch (cleanupError) {
+            logger.warn(`[${requestId}] Failed to clean up temporary provider on error: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
+          }
+        }
+
         // Import error types for proper error handling
         const { PdfGenerationError } = await import('../utils/pdfGenerator');
         const { JsonWriteError } = await import('../services/enhancedResumeGenerator');
         const { MarkdownWriteError } = await import('../services/mdGenerator');
+        const { AIProviderError, RateLimitError, NetworkError, TimeoutError } = await import('../services/ai/provider.types');
 
         if (error instanceof PdfGenerationError) {
           res.status(500).json({
@@ -317,6 +407,34 @@ export function registerRoutes(app: Express): void {
             error: 'File generation failed',
             message: error.message,
           });
+        } else if (error instanceof AIProviderError) {
+          // Handle AI provider errors
+          if (error instanceof RateLimitError) {
+            res.status(429).json({
+              success: false,
+              error: 'Rate limit exceeded',
+              message: error.message,
+              retryAfter: error.retryAfter,
+            });
+          } else if (error instanceof NetworkError) {
+            res.status(503).json({
+              success: false,
+              error: 'Network error',
+              message: error.message,
+            });
+          } else if (error instanceof TimeoutError) {
+            res.status(504).json({
+              success: false,
+              error: 'Request timeout',
+              message: error.message,
+            });
+          } else {
+            res.status(500).json({
+              success: false,
+              error: 'AI provider error',
+              message: error.message,
+            });
+          }
         } else {
           res.status(500).json({
             success: false,

@@ -457,6 +457,14 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
     "focusAreas": ["bulletPoints", "keywords"],
     "tone": "professional",
     "maxSuggestions": 10
+  },
+  "aiProvider": "gemini",
+  "aiModel": "gemini-2.5-pro",
+  "aiOptions": {
+    "temperature": 0.7,
+    "maxTokens": 2000,
+    "timeout": 30000,
+    "maxRetries": 3
   }
 }
 ```
@@ -468,6 +476,13 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
   - `focusAreas` - Array of focus areas: `["keywords", "bulletPoints", "skills", "summary"]`
   - `tone` - Enhancement tone: `"professional" | "technical" | "leadership"`
   - `maxSuggestions` - Maximum number of suggestions to return
+- `aiProvider` (optional) - AI provider to use: `"gemini"` (default: uses configured default provider)
+- `aiModel` (optional) - AI model to use: `"gemini-2.5-pro"` (default) or `"gemini-3-flash-preview"`
+- `aiOptions` (optional) - AI provider-specific options:
+  - `temperature` - Temperature (0-1) for creativity control (default: 0.7)
+  - `maxTokens` - Maximum tokens to generate (default: 2000)
+  - `timeout` - Request timeout in milliseconds (default: 30000)
+  - `maxRetries` - Maximum retry attempts (default: 3)
 
 **Response:**
 
@@ -502,6 +517,12 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
     "after": 85,
     "improvement": 10
   },
+  "provider": {
+    "name": "gemini",
+    "displayName": "Google Gemini",
+    "model": "gemini-2.5-pro",
+    "temperature": 0.7
+  },
   "pdf": {
     "base64": "JVBERi0xLjQKJeLjz9MKMy...",
     "contentType": "application/pdf",
@@ -527,6 +548,11 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
   - `before` - Score before enhancement (0-100)
   - `after` - Score after enhancement (0-100)
   - `improvement` - Improvement amount
+- `provider` - AI provider information:
+  - `name` - Provider name (e.g., "gemini")
+  - `displayName` - Human-readable provider name
+  - `model` - Model used for enhancement
+  - `temperature` - Temperature setting used
 - `pdf` - Enhanced PDF file:
   - `base64` - Base64-encoded PDF content
   - `contentType` - MIME type (`application/pdf`)
@@ -552,6 +578,52 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
 }
 ```
 
+**400 Bad Request** - Configuration error:
+```json
+{
+  "success": false,
+  "error": "Configuration error",
+  "message": "Gemini API key not configured. Please set GEMINI_API_KEY in .env file."
+}
+```
+
+**400 Bad Request** - Invalid provider:
+```json
+{
+  "success": false,
+  "error": "Invalid provider",
+  "message": "Provider \"openai\" is not supported. Only \"gemini\" is currently supported."
+}
+```
+
+**429 Too Many Requests** - Rate limit exceeded:
+```json
+{
+  "success": false,
+  "error": "Rate limit exceeded",
+  "message": "API rate limit exceeded. Please try again later.",
+  "retryAfter": 60
+}
+```
+
+**503 Service Unavailable** - Network error:
+```json
+{
+  "success": false,
+  "error": "Network error",
+  "message": "Failed to connect to AI provider. Please try again later."
+}
+```
+
+**504 Gateway Timeout** - Request timeout:
+```json
+{
+  "success": false,
+  "error": "Request timeout",
+  "message": "AI provider request timed out. Please try again with a longer timeout."
+}
+```
+
 **500 Internal Server Error:**
 ```json
 {
@@ -563,7 +635,7 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
 
 **Examples:**
 
-Enhance resume:
+Enhance resume (with defaults):
 ```bash
 curl -X POST http://localhost:3000/api/enhanceResume \
   -H "Content-Type: application/json" \
@@ -572,6 +644,22 @@ curl -X POST http://localhost:3000/api/enhanceResume \
     "jobDescription": "We are looking for a Senior Software Engineer..."
   }' \
   | jq '.enhancedResume.changesSummary'
+```
+
+Enhance resume with custom AI model:
+```bash
+curl -X POST http://localhost:3000/api/enhanceResume \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resume": { ... },
+    "jobDescription": "We are looking for a Senior Software Engineer...",
+    "aiProvider": "gemini",
+    "aiModel": "gemini-3-flash-preview",
+    "aiOptions": {
+      "temperature": 0.8
+    }
+  }' \
+  | jq '.provider'
 ```
 
 Using JavaScript (fetch):
@@ -593,6 +681,12 @@ const response = await fetch('http://localhost:3000/api/enhanceResume', {
     options: {
       focusAreas: ['bulletPoints', 'keywords'],
       tone: 'professional',
+    },
+    aiProvider: 'gemini',
+    aiModel: 'gemini-2.5-pro',
+    aiOptions: {
+      temperature: 0.7,
+      maxTokens: 2000,
     },
   }),
 });

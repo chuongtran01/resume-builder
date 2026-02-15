@@ -166,12 +166,25 @@ const enhancementOptionsSchema = z.object({
 });
 
 /**
+ * Zod schema for AI Options
+ */
+const aiOptionsSchema = z.object({
+  temperature: z.number().min(0).max(1).optional(),
+  maxTokens: z.number().int().positive().optional(),
+  timeout: z.number().int().positive().optional(),
+  maxRetries: z.number().int().nonnegative().optional(),
+});
+
+/**
  * Zod schema for EnhanceResume request body
  */
 export const enhanceResumeRequestSchema = z.object({
   resume: resumeSchema,
   jobDescription: z.string().min(1, 'Job description is required'),
   options: enhancementOptionsSchema.optional(),
+  aiProvider: z.enum(['gemini']).optional(),
+  aiModel: z.enum(['gemini-2.5-pro', 'gemini-3-flash-preview']).optional(),
+  aiOptions: aiOptionsSchema.optional(),
 });
 
 /**
