@@ -687,7 +687,7 @@ Create POST endpoint for resume validation.
 ---
 
 ### Task 9.5: Add API Documentation
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** Medium  
 **Estimated Time:** 1 hour
 
@@ -695,10 +695,10 @@ Create POST endpoint for resume validation.
 Document API endpoints.
 
 **Subtasks:**
-- [ ] Create API documentation (markdown or OpenAPI)
-- [ ] Document all endpoints
-- [ ] Include request/response examples
-- [ ] Add to README or separate API.md file
+- [x] Create API documentation (markdown or OpenAPI)
+- [x] Document all endpoints
+- [x] Include request/response examples
+- [x] Add to README or separate API.md file
 
 **Acceptance Criteria:**
 - All endpoints documented

@@ -49,18 +49,23 @@ Start the API server:
 npm run api
 ```
 
+For complete API documentation, see [API.md](./API.md).
+
+**Quick Examples:**
+
 Generate a resume via API:
 ```bash
 curl -X POST http://localhost:3000/api/generateResume \
   -H "Content-Type: application/json" \
-  -d '{
-    "resume": { ... },
-    "options": {
-      "format": "pdf",
-      "template": "modern"
-    }
-  }' \
+  -d @resume.json \
   --output resume.pdf
+```
+
+Validate a resume:
+```bash
+curl -X POST http://localhost:3000/api/validate \
+  -H "Content-Type: application/json" \
+  -d @resume.json
 ```
 
 ## Project Structure
