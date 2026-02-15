@@ -15,7 +15,9 @@ const SYSTEM_MESSAGE = `You are an expert resume reviewer and career advisor wit
 /**
  * Task description for review
  */
-const TASK_DESCRIPTION = `Analyze the provided resume against the job requirements. Identify strengths, weaknesses, opportunities for improvement, and prioritize specific actions that would enhance the resume's alignment with the job posting.`;
+const TASK_DESCRIPTION = `Analyze the provided resume against the job requirements. Identify strengths, weaknesses, opportunities for improvement, and prioritize specific actions that would enhance the resume's alignment with the job posting.
+
+IMPORTANT: Only suggest actions for sections that exist in the original resume. Do NOT suggest adding new sections (e.g., do not suggest adding a "summary" section if it doesn't exist in the original resume). You can only add items WITHIN existing sections (e.g., adding skills to the skills section, adding bullet points to experience entries).`;
 
 /**
  * Output format specification
@@ -28,7 +30,7 @@ const OUTPUT_FORMAT = `Provide your analysis as a JSON object with the following
   "prioritizedActions": [
     {
       "type": "enhance" | "reorder" | "add" | "remove" | "rewrite",
-      "section": "section identifier (e.g., 'experience[0]' for first experience, 'experience' for all experiences, 'skills', 'summary')",
+      "section": "section identifier (e.g., 'experience[0]' for first experience, 'experience' for all experiences, 'skills', 'summary' if it exists in original)",
       "priority": "high" | "medium" | "low",
       "reason": "explanation of why this action is needed",
       "suggestedChange": "optional specific suggestion"
@@ -36,7 +38,9 @@ const OUTPUT_FORMAT = `Provide your analysis as a JSON object with the following
   ],
   "confidence": 0.0-1.0,
   "reasoning": "overall analysis summary"
-}`;
+}
+
+IMPORTANT: Only use sections that exist in the original resume. The "add" type should only be used for adding items WITHIN existing sections (e.g., adding skills to the skills section), NOT for adding new sections to the resume.`;
 
 /**
  * Focus areas for review
@@ -50,6 +54,7 @@ const FOCUS_AREAS = [
   'Content quality and professional presentation',
   'Keyword density and relevance',
   'Experience alignment with job requirements',
+  'ONLY suggest improvements for sections that exist in the original resume - do not suggest adding new sections',
 ];
 
 /**

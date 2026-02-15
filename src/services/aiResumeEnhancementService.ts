@@ -218,6 +218,64 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   }
 
   /**
+   * Filter enhanced resume to only include sections that exist in the original resume
+   * 
+   * @param originalResume - Original resume
+   * @param enhancedResume - Enhanced resume from AI
+   * @returns Filtered enhanced resume with only original sections
+   */
+  private filterEnhancedResumeSections(
+    originalResume: Resume,
+    enhancedResume: Resume
+  ): Resume {
+    // Start with required fields
+    const filtered: Resume = {
+      personalInfo: enhancedResume.personalInfo, // Always required
+      experience: enhancedResume.experience, // Always required
+    };
+
+    // Only include optional sections that exist in the original resume
+    if ('summary' in originalResume && originalResume.summary !== undefined) {
+      filtered.summary = enhancedResume.summary;
+    }
+
+    if ('education' in originalResume && originalResume.education !== undefined) {
+      filtered.education = enhancedResume.education;
+    }
+
+    if ('skills' in originalResume && originalResume.skills !== undefined) {
+      filtered.skills = enhancedResume.skills;
+    }
+
+    if ('projects' in originalResume && originalResume.projects !== undefined) {
+      filtered.projects = enhancedResume.projects;
+    }
+
+    if ('certifications' in originalResume && originalResume.certifications !== undefined) {
+      filtered.certifications = enhancedResume.certifications;
+    }
+
+    if ('languages' in originalResume && originalResume.languages !== undefined) {
+      filtered.languages = enhancedResume.languages;
+    }
+
+    if ('awards' in originalResume && originalResume.awards !== undefined) {
+      filtered.awards = enhancedResume.awards;
+    }
+
+    // Log if any sections were filtered out
+    const originalSections = Object.keys(originalResume).filter(key => key !== 'personalInfo');
+    const enhancedSections = Object.keys(enhancedResume).filter(key => key !== 'personalInfo');
+    const filteredOut = enhancedSections.filter(section => !originalSections.includes(section));
+    
+    if (filteredOut.length > 0) {
+      logger.warn(`Filtered out sections that were not in original resume: ${filteredOut.join(', ')}`);
+    }
+
+    return filtered;
+  }
+
+  /**
    * Parse modification response from AI provider
    * 
    * @param originalResume - Original resume before enhancement
@@ -235,12 +293,15 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
       throw new Error('Invalid modification response structure');
     }
 
-    const enhancedResume = response.enhancedResume;
+    let enhancedResume = response.enhancedResume;
 
     // Validate resume structure
     if (!enhancedResume || !enhancedResume.personalInfo || !enhancedResume.experience) {
       throw new Error('Invalid enhanced resume structure');
     }
+
+    // Filter out sections that don't exist in the original resume
+    enhancedResume = this.filterEnhancedResumeSections(originalResume, enhancedResume);
 
     // Track changes
     const changes = this.trackChanges(originalResume, enhancedResume);

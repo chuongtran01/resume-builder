@@ -15,15 +15,17 @@ const SYSTEM_MESSAGE = `You are an expert resume writer specializing in ATS-opti
 /**
  * Task description for modification
  */
-const TASK_DESCRIPTION = `Enhance the provided resume based on the review findings and job requirements. Your goal is to improve the resume's alignment with the job posting while maintaining complete truthfulness and authenticity. You can intelligently infer and add related content based on what's already in the resume (e.g., if the resume mentions "Java", you can add "backend development" or "server-side programming" since Java is commonly associated with backend work).`;
+const TASK_DESCRIPTION = `Enhance the provided resume based on the review findings and job requirements. Your goal is to improve the resume's alignment with the job posting while maintaining complete truthfulness and authenticity. You can intelligently infer and add related content based on what's already in the resume (e.g., if the resume mentions "Java", you can add "backend development" or "server-side programming" since Java is commonly associated with backend work).
+
+CRITICAL: Only include sections that exist in the original resume. Do NOT add new sections (e.g., do not add a "summary" section if it doesn't exist in the original resume). You can only add items WITHIN existing sections (e.g., adding skills to the skills section, adding bullet points to experience entries).`;
 
 /**
  * Output format specification
  */
-const OUTPUT_FORMAT = `Provide the enhanced resume as a JSON object matching the original resume structure:
+const OUTPUT_FORMAT = `Provide the enhanced resume as a JSON object matching the original resume structure EXACTLY:
 {
   "personalInfo": { ... },
-  "summary": "enhanced summary text",
+  "summary": "enhanced summary text",  // ONLY include if "summary" exists in the original resume
   "experience": [
     {
       "company": "...",
@@ -32,20 +34,27 @@ const OUTPUT_FORMAT = `Provide the enhanced resume as a JSON object matching the
       ...
     }
   ],
-  "education": { ... },
-  "skills": { ... },
+  "education": { ... },  // ONLY include if "education" exists in the original
+  "skills": { ... },  // ONLY include if "skills" exists in the original
   ...
 }
 
-Ensure the JSON is valid and complete.`;
+CRITICAL RULES:
+- ONLY include sections that exist in the original resume
+- Do NOT add new sections (e.g., do not add "summary" if it wasn't in the original)
+- Match the exact structure and sections of the original resume
+- You can add items WITHIN existing sections (e.g., add skills to skills section, add bullet points to experience)
+- Ensure the JSON is valid and complete`;
 
 /**
  * Truthfulness requirements
  */
 const TRUTHFULNESS_RULES = [
   'NEVER add experiences, companies, roles, or dates not present in the original resume',
+  'NEVER add sections that do not exist in the original resume (e.g., do not add "summary" if it was not in the original)',
   'NEVER fabricate achievements, metrics, or accomplishments that cannot be reasonably inferred',
   'You CAN intelligently infer and add related content based on existing resume information',
+  'You CAN add items WITHIN existing sections (e.g., add skills to the skills section, add bullet points to experience entries)',
   'Examples of allowed intelligent inference:',
   '  - If resume mentions "Java" → can add "backend development", "server-side programming", "enterprise applications"',
   '  - If resume mentions "React" → can add "frontend development", "user interface", "client-side applications"',
@@ -57,6 +66,7 @@ const TRUTHFULNESS_RULES = [
   'Preserve the original meaning and context of all content',
   'Do not change dates, company names, or factual information',
   'Only enhance, reword, and intelligently expand - never invent completely unrelated content',
+  'Match the exact section structure of the original resume - include only sections that were present in the original',
 ];
 
 /**
@@ -65,12 +75,13 @@ const TRUTHFULNESS_RULES = [
 const ENHANCEMENT_AREAS = [
   'Rewriting bullet points to naturally incorporate job-relevant keywords',
   'Intelligently inferring and adding related content based on existing resume information',
-  'Reordering skills to prioritize job-relevant ones',
-  'Adding related skills that can be reasonably inferred (e.g., Java → backend, React → frontend)',
-  'Enhancing summary to align with job requirements',
+  'Reordering skills to prioritize job-relevant ones (only if skills section exists)',
+  'Adding related skills that can be reasonably inferred (e.g., Java → backend, React → frontend) - only within existing skills section',
+  'Enhancing summary to align with job requirements (only if summary section exists in original)',
   'Improving action verbs and impact language',
   'Maintaining professional tone and authenticity',
   'Ensuring ATS-friendly formatting and structure',
+  'ONLY enhancing sections that exist in the original resume - do not add new sections',
 ];
 
 /**
@@ -160,10 +171,11 @@ export function getEnhancementAreasForMode(
       ];
     case 'summary':
       return [
-        'Focus ONLY on enhancing the summary/professional summary section',
+        'Focus ONLY on enhancing the summary/professional summary section (only if it exists in the original resume)',
         'Align summary with job requirements',
         'Incorporate key skills and experience highlights',
         'Do not modify other sections',
+        'If summary does not exist in the original resume, do not add it',
       ];
     default:
       return ENHANCEMENT_AREAS;
