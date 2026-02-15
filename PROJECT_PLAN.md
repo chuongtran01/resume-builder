@@ -5,13 +5,10 @@
 2. [Project Phases](#project-phases)
 3. [Folder Structure](#folder-structure)
 4. [Resume JSON Schema](#resume-json-schema)
-5. [Template System Design](#template-system-design)
-6. [ATS Compliance Rules](#ats-compliance-rules)
-7. [CLI/API Usage Examples](#cliapi-usage-examples)
-8. [Phase 1 Implementation Details](#phase-1-implementation-details)
-9. [Phase 2 AI Integration Architecture](#phase-2-ai-integration-architecture)
-10. [Tech Stack](#tech-stack)
-11. [Development Roadmap](#development-roadmap)
+5. [ATS Compliance Rules](#ats-compliance-rules)
+6. [CLI/API Usage Examples](#cliapi-usage-examples)
+7. [Tech Stack](#tech-stack)
+8. [Development Roadmap](#development-roadmap)
 
 ---
 
@@ -53,24 +50,43 @@ This project is a modular, ATS-friendly resume generator that accepts structured
 
 ---
 
-### Phase 2: AI Integration (Future Enhancement)
-**Status:** Architecture preparation only  
+### Phase 2: AI-Powered Resume Enhancer
+**Status:** To be implemented  
 **Timeline:** Post-MVP
 
 **Core Features:**
-- 🤖 AI service interface for resume enhancement
+- 🤖 AI-powered resume enhancement service
 - 🤖 Job description analysis and matching
-- 🤖 Automated bullet point rewriting
-- 🤖 Keyword optimization suggestions
+- 🤖 Automated bullet point rewriting with change tracking
+- 🤖 Keyword optimization and skill highlighting
 - 🤖 Missing skills detection
 - 🤖 ATS score improvements
-- 🤖 Integration with Phase 1 generator
+- 🤖 Enhanced resume JSON output with detailed change tracking
+- 🤖 ATS-friendly PDF generation from enhanced resume
+- 🤖 Markdown report generation summarizing all changes
+- 🤖 CLI command for resume enhancement
+- 🤖 REST API endpoint for programmatic enhancement
+- 🤖 Modular architecture ready for real AI integration
+
+**Input:**
+- `resume.json` - Current resume (from Phase 1)
+- `jobDescription.txt` - Job description text (extensible to URL later)
+
+**Output:**
+- `enhancedResume.json` - Enhanced resume with change tracking metadata
+- `enhancedResume.pdf` - ATS-friendly PDF of enhanced resume
+- `enhancedResume.md` - Human-readable markdown report with change details
 
 **Deliverables:**
-- AI service interface (`resumeEnhancementService.ts`)
-- Mock implementation for testing
-- Enhancement result types
-- Integration hooks in generator
+- Resume enhancement service (`resumeEnhancementService.ts`)
+- Mock implementation (rules-based, ready for AI replacement)
+- Markdown report generator (`mdGenerator.ts`)
+- Enhanced PDF generator integration
+- CLI `enhanceResume` command
+- REST API `/api/enhanceResume` endpoint
+- Job description parser utility
+- Comprehensive change tracking system
+- Type definitions for enhancement results
 
 ---
 
@@ -141,23 +157,9 @@ resume-builder/
 
 ## Resume JSON Schema
 
-### Core Schema Structure
+### Core Structure
 
-```typescript
-interface Resume {
-  personalInfo: PersonalInfo;
-  summary?: string;
-  experience: Experience[];
-  education?: Education | Education[] | string;  // Can be object, array, or file reference
-  skills?: Skills | string;                      // Can be object or file reference
-  certifications?: Certification[] | string;    // Can be array or file reference
-  projects?: Project[] | string;                 // Can be array or file reference
-  languages?: Language[] | string;               // Can be array or file reference
-  awards?: Award[] | string;                     // Can be array or file reference
-}
-```
-
-### Detailed Type Definitions
+A resume JSON file contains the following main sections:
 
 #### PersonalInfo
 ```json
@@ -282,67 +284,6 @@ Any section that accepts an object or array can also accept a file reference str
 
 ---
 
-## Template System Design
-
-### Template Interface
-
-All templates must implement the following interface:
-
-```typescript
-interface ResumeTemplate {
-  name: string;
-  description: string;
-  render(resume: Resume): string;  // Returns HTML string
-  validate(resume: Resume): ValidationResult;
-}
-```
-
-### Template Requirements
-
-1. **ATS Compliance:**
-   - Single-column layout only
-   - Semantic HTML5 headings (`<h1>`, `<h2>`, etc.)
-   - No floating elements or absolute positioning
-   - No images used for text content
-   - Machine-readable text (no text in images)
-   - Standard font families (Arial, Times New Roman, Calibri)
-   - Adequate spacing and margins
-
-2. **Structure:**
-   - Header with personal information
-   - Summary section (if provided)
-   - Experience section (required)
-   - Education section (if provided)
-   - Skills section (if provided)
-   - Additional sections (certifications, projects, etc.)
-
-3. **Styling:**
-   - Print-friendly CSS
-   - Consistent typography
-   - Professional color scheme (black text on white)
-   - Responsive for PDF generation
-
-### Template Registration
-
-Templates are registered in a template registry:
-
-```typescript
-const templates = {
-  modern: ModernTemplate,
-  classic: ClassicTemplate,
-  minimal: MinimalTemplate
-};
-```
-
-### Adding New Templates
-
-1. Create a new template file in `src/templates/`
-2. Implement the `ResumeTemplate` interface
-3. Register in the template registry
-4. No changes needed to core generator logic
-
----
-
 ## ATS Compliance Rules
 
 ### Layout Requirements
@@ -372,25 +313,7 @@ const templates = {
 
 ### Validation Checks
 
-The ATS validator will check for:
-
-1. **Missing Sections:**
-   - Warn if required sections (experience) are missing
-   - Suggest adding summary if absent
-
-2. **Non-Standard Headings:**
-   - Flag headings that don't match common patterns
-   - Suggest alternatives (e.g., "Work History" → "Experience")
-
-3. **Content Quality:**
-   - Warn for bullet points exceeding 2 lines
-   - Flag missing dates in experience entries
-   - Check for proper date formatting (YYYY-MM or YYYY-MM-DD)
-
-4. **Technical Issues:**
-   - Verify PDF contains selectable text
-   - Check for proper encoding
-   - Validate file size
+The ATS validator checks for missing sections, non-standard headings, content quality issues, and technical problems like unselectable text or encoding issues.
 
 ---
 
@@ -499,199 +422,81 @@ curl -X POST http://localhost:3000/api/validate \
 
 ---
 
-## Phase 1 Implementation Details
+## Phase 2 AI Integration
 
-### Core Components
+### Overview
 
-#### 1. Resume Generator Service (`resumeGenerator.ts`)
-- **Responsibilities:**
-  - Load and parse `resume.json`
-  - Resolve `file:` references to reusable sections
-  - Merge all sections into complete resume object
-  - Select appropriate template
-  - Render resume to HTML
-  - Convert HTML to PDF (if needed)
-  - Handle errors and validation
+Phase 2 implements a complete AI-powered resume enhancement system that takes a resume JSON and job description, then produces an enhanced resume with detailed change tracking, ATS-friendly PDF, and a comprehensive markdown report.
 
-#### 2. File Loader (`fileLoader.ts`)
-- **Responsibilities:**
-  - Detect `file:` prefix in JSON values
-  - Resolve file paths (relative to resume.json location)
-  - Load and parse JSON files
-  - Recursively handle nested file references
-  - Cache loaded files to avoid duplicates
-  - Handle file not found errors
+### Enhancement Pipeline
 
-#### 3. PDF Generator (`pdfGenerator.ts`)
-- **Responsibilities:**
-  - Convert HTML to PDF using puppeteer or similar
-  - Configure PDF options (margins, format, etc.)
-  - Ensure text is selectable
-  - Optimize file size
-  - Handle PDF generation errors
+1. **Input:** resume.json + jobDescription.txt
+2. **Job Description Parser:** Extract keywords and requirements
+3. **Resume Enhancement Service:** Rewrite bullet points, reorder skills, track changes
+4. **Output Generation:** Create enhanced JSON, PDF, and Markdown report
 
-#### 4. HTML Generator (`htmlGenerator.ts`)
-- **Responsibilities:**
-  - Generate standalone HTML files
-  - Include embedded CSS
-  - Ensure print-friendly styling
-  - Validate HTML output
+### Enhanced Resume Output
 
-#### 5. ATS Validator (`atsValidator.ts`)
-- **Responsibilities:**
-  - Check for required sections
-  - Validate heading structure
-  - Check content quality (bullet length, dates, etc.)
-  - Generate warnings and suggestions
-  - Calculate ATS score (0-100)
+The enhanced resume JSON includes:
+- Updated resume with improvements
+- List of suggestions
+- Highlighted skills relevant to the job
+- Human-readable summary of changes
+- Detailed change tracking (old → new for each modification)
+- Paths to generated PDF and Markdown files
 
-#### 6. CLI Interface (`cli/index.ts`)
-- **Responsibilities:**
-  - Parse command-line arguments using commander
-  - Validate input/output paths
-  - Call generator service
-  - Display progress and results
-  - Handle errors gracefully
+### Implementation Strategy
 
-#### 7. API Server (`api/server.ts`)
-- **Responsibilities:**
-  - Set up Express/Fastify server
-  - Define REST endpoints
-  - Validate request payloads
-  - Call generator service
-  - Return appropriate responses
-  - Handle errors and return proper status codes
+**Phase 2.1: Mock Implementation (Rules-Based)**
+- Pattern-based keyword extraction
+- Bullet point rewriting with keyword injection
+- Skill reordering based on job relevance
+- Comprehensive change tracking
+- Never adds content not in original resume
 
-### Implementation Flow
+**Phase 2.2: AI Integration (Future)**
+- Architecture designed for easy AI integration
+- Support for OpenAI, Anthropic, or custom models
+- Multi-agent system support (Modifier + Reviewer agents)
 
-```
-1. User provides resume.json (CLI or API)
-   ↓
-2. FileLoader resolves file: references
-   ↓
-3. Resume object is fully constructed
-   ↓
-4. ATS Validator checks compliance (optional)
-   ↓
-5. Template selected and resume rendered to HTML
-   ↓
-6. HTML converted to PDF (if format=pdf)
-   ↓
-7. Output file written or returned via API
+### Markdown Report
+
+The generated Markdown report includes:
+- Contact information
+- Highlighted skills
+- Experience changes (original → enhanced)
+- Changes summary
+- Detailed changes table
+- Suggestions for improvement
+
+### CLI Command
+
+```bash
+enhanceResume \
+  --input ./examples/resume.json \
+  --job ./examples/jobDescription.txt \
+  --output ./output \
+  --template classic \
+  --format pdf
 ```
 
-### Error Handling
+**Output Files:**
+- `enhancedResume.json` - Enhanced resume with metadata
+- `enhancedResume.pdf` - ATS-friendly PDF
+- `enhancedResume.md` - Markdown report
 
-- **File Not Found:** Clear error message with file path
-- **Invalid JSON:** Parse error with line number
-- **Missing Required Fields:** Validation error listing missing fields
-- **Template Not Found:** Error with available templates list
-- **PDF Generation Failure:** Detailed error with troubleshooting tips
+### API Endpoint
 
----
+**POST `/api/enhanceResume`**
 
-## Phase 2 AI Integration Architecture
+Accepts resume JSON and job description, returns enhanced resume with change tracking, PDF path, and Markdown report path.
 
-### AI Service Interface
+### Key Requirements
 
-```typescript
-interface ResumeEnhancementService {
-  enhanceResume(
-    resume: Resume,
-    jobDescription: string,
-    options?: EnhancementOptions
-  ): Promise<EnhancementResult>;
-}
-
-interface EnhancementOptions {
-  focusAreas?: ('keywords' | 'bulletPoints' | 'skills' | 'summary')[];
-  tone?: 'professional' | 'technical' | 'leadership';
-  maxSuggestions?: number;
-}
-
-interface EnhancementResult {
-  originalResume: Resume;
-  enhancedResume: Resume;
-  improvements: Improvement[];
-  keywordSuggestions: KeywordSuggestion[];
-  missingSkills: string[];
-  atsScore: {
-    before: number;
-    after: number;
-    improvement: number;
-  };
-  recommendations: string[];
-}
-
-interface Improvement {
-  type: 'bulletPoint' | 'summary' | 'skill' | 'keyword';
-  section: string;
-  original: string;
-  suggested: string;
-  reason: string;
-  confidence: number;  // 0-1
-}
-
-interface KeywordSuggestion {
-  keyword: string;
-  category: string;
-  suggestedPlacement: string[];
-  importance: 'high' | 'medium' | 'low';
-}
-```
-
-### Mock Implementation (Phase 1)
-
-For Phase 1, a mock service will be implemented that:
-
-1. **Returns Example Enhancements:**
-   - Sample rewritten bullet points
-   - Keyword suggestions based on common tech stack
-   - Missing skills detection (basic pattern matching)
-   - ATS score improvements (simulated)
-
-2. **Demonstrates Architecture:**
-   - Shows how AI service integrates with generator
-   - Provides interface for future AI integration
-   - Allows testing of enhancement workflow
-
-3. **Placeholder Logic:**
-   - Pattern matching for common keywords
-   - Rule-based bullet point improvements
-   - Basic skill gap analysis
-
-### Future AI Integration Points
-
-1. **API Endpoint:** `POST /api/enhanceResume`
-   - Accepts resume + job description
-   - Returns enhancement suggestions
-   - Optionally generates enhanced resume
-
-2. **CLI Command:** `enhanceResume --input resume.json --job-description job.txt`
-   - Generates enhanced version
-   - Shows diff of changes
-   - Optionally applies enhancements
-
-3. **Integration with Generator:**
-   - Generator can accept enhancement results
-   - Apply suggestions automatically or with confirmation
-   - Generate enhanced resume PDF/HTML
-
-### AI Service Architecture
-
-```
-┌─────────────────┐
-│  AI Service     │
-│  Interface      │
-└────────┬────────┘
-         │
-         ├─── Mock Implementation (Phase 1)
-         │
-         └─── Real AI Implementation (Phase 2)
-              ├─── OpenAI GPT Integration
-              ├─── Anthropic Claude Integration
-              └─── Custom ML Model
-```
+- **Truthfulness:** Never add experience or skills not in original resume
+- **ATS Compliance:** Maintain all Phase 1 ATS compliance rules
+- **Change Tracking:** Track every modification with old → new mapping
+- **Modularity:** Easy to swap mock implementation with real AI
 
 ---
 
@@ -702,98 +507,34 @@ For Phase 1, a mock service will be implemented that:
 - **Language:** TypeScript (v5+)
 - **Package Manager:** npm or yarn
 
-### Dependencies
-
-#### PDF Generation
-- **Primary:** `puppeteer` - Headless Chrome for HTML-to-PDF
-- **Alternative:** `pdfkit` - Direct PDF generation (if needed)
-- **Fallback:** `html-pdf` - Simpler but less control
-
-#### CLI
-- **commander** - Command-line argument parsing
-- **chalk** - Terminal colors and styling
-- **ora** - Terminal spinners for progress
-
-#### API Server
-- **express** or **fastify** - Web framework
-- **zod** or **joi** - Request validation
-- **cors** - CORS support
-- **helmet** - Security headers
-
-#### Utilities
-- **fs-extra** - Enhanced file system operations
-- **path** - Path resolution utilities
-- **winston** or **pino** - Logging
-
-#### Development
-- **typescript** - TypeScript compiler
-- **ts-node** - TypeScript execution
-- **@types/node** - Node.js type definitions
-- **eslint** - Linting
-- **prettier** - Code formatting
-- **jest** - Testing framework
-
-### Package.json Scripts
-
-```json
-{
-  "scripts": {
-    "build": "tsc",
-    "dev": "ts-node src/cli/index.ts",
-    "cli": "node dist/cli/index.js",
-    "api": "node dist/api/server.js",
-    "test": "jest",
-    "lint": "eslint src/**/*.ts",
-    "format": "prettier --write src/**/*.ts"
-  }
-}
-```
+### Key Dependencies
+- **PDF Generation:** puppeteer (HTML-to-PDF conversion)
+- **CLI:** commander, chalk, ora
+- **API Server:** express/fastify, zod/joi for validation
+- **Utilities:** fs-extra, winston/pino for logging
+- **Development:** typescript, jest, eslint, prettier
 
 ---
 
 ## Development Roadmap
 
-### Week 1: Foundation
-- [ ] Set up TypeScript project structure
-- [ ] Define Resume JSON schema types
-- [ ] Implement file loader for reusable sections
-- [ ] Create basic template interface
-- [ ] Set up testing framework
+### Phase 1: MVP
+- Set up project structure and TypeScript configuration
+- Implement resume JSON parsing with file references
+- Create ATS-compliant templates (modern, classic, minimal)
+- Build PDF and HTML generation
+- Implement CLI and REST API interfaces
+- Add ATS validation and warnings
+- Create examples and documentation
 
-### Week 2: Core Generator
-- [ ] Implement resume generator service
-- [ ] Create first ATS-compliant template (modern)
-- [ ] Implement PDF generation with puppeteer
-- [ ] Implement HTML generation
-- [ ] Add error handling and logging
-
-### Week 3: CLI & API
-- [ ] Build CLI interface with commander
-- [ ] Create REST API server
-- [ ] Add request validation
-- [ ] Implement file upload/download handling
-- [ ] Add comprehensive error handling
-
-### Week 4: Templates & Validation
-- [ ] Create additional templates (classic, minimal)
-- [ ] Implement ATS validator
-- [ ] Add validation warnings and suggestions
-- [ ] Create example resume files
-- [ ] Write documentation
-
-### Week 5: Phase 2 Preparation
-- [ ] Design AI service interface
-- [ ] Implement mock AI service
-- [ ] Create enhancement result types
-- [ ] Add integration hooks
-- [ ] Test enhancement workflow
-
-### Week 6: Polish & Documentation
-- [ ] Comprehensive testing
-- [ ] Performance optimization
-- [ ] Update README with examples
-- [ ] Create API documentation
-- [ ] Prepare for Phase 2 AI integration
+### Phase 2: AI Enhancement
+- Design enhancement service interface
+- Implement mock/rules-based enhancement service
+- Create job description parser
+- Build change tracking system
+- Generate Markdown reports
+- Add CLI and API endpoints for enhancement
+- Prepare architecture for AI integration
 
 ---
 
@@ -819,45 +560,10 @@ For Phase 1, a mock service will be implemented that:
 
 ## Notes & Considerations
 
-### ATS Compatibility
-- Test generated PDFs with actual ATS systems when possible
-- Keep templates simple and standard
-- Avoid any experimental HTML/CSS features
-- Prioritize text readability over visual design
-
-### Extensibility
-- Template system allows adding new templates without core changes
-- Service architecture supports plugin-style additions
-- Type system ensures type safety across extensions
-
-### Performance
-- Cache loaded JSON files to avoid redundant reads
-- Optimize PDF generation for large resumes
-- Consider streaming for API responses
-
-### Security
-- Validate all file paths to prevent directory traversal
-- Sanitize user input in API endpoints
-- Limit file size for API uploads
-- Validate JSON structure before processing
-
----
-
-## Next Steps
-
-1. **Review and approve this plan**
-2. **Set up project structure** (folders, package.json, tsconfig.json)
-3. **Implement Phase 1 components** in order:
-   - Types and schemas
-   - File loader
-   - Template system
-   - Generator service
-   - CLI interface
-   - API server
-   - ATS validator
-4. **Create example files** and test end-to-end
-5. **Implement mock AI service** for Phase 2 preparation
-6. **Documentation and examples**
+- **ATS Compatibility:** Keep templates simple, test with actual ATS systems, prioritize text readability
+- **Extensibility:** Template system supports easy additions, modular architecture
+- **Performance:** Cache JSON files, optimize PDF generation
+- **Security:** Validate file paths, sanitize inputs, limit file sizes
 
 ---
 
