@@ -608,47 +608,90 @@ Validate that AI responses match the expected format and structure.
 ### Task 20.3: Implement Quality Scoring
 **Status:** ⬜  
 **Priority:** Medium  
-**Estimated Time:** 2.5 hours
+**Estimated Time:** 3.5 hours
 
 **Description:**
-Create a quality scoring system to evaluate AI enhancement quality.
+Create a hybrid quality scoring system to evaluate AI enhancement quality. Uses rule-based scoring first (fast, free), then optionally uses AI review for low-scoring enhancements to provide detailed feedback and enable iterative improvement.
 
 **Subtasks:**
 - [ ] Create `src/services/ai/qualityScorer.ts`
-- [ ] Implement quality metrics:
-  - [ ] Keyword relevance score
-  - [ ] Natural language score
-  - [ ] Truthfulness score
-  - [ ] ATS compliance score
-  - [ ] Overall quality score
+- [ ] Implement rule-based quality metrics (Phase 1 - Fast):
+  - [ ] Keyword relevance score (percentage of job keywords found)
+  - [ ] Natural language score (using existing validation)
+  - [ ] Truthfulness score (using truthfulness validator)
+  - [ ] ATS compliance score (using ATS validator)
+  - [ ] Overall quality score (weighted average)
 - [ ] Implement scoring algorithms:
   - [ ] Calculate keyword match percentage
   - [ ] Analyze language naturalness
   - [ ] Check truthfulness violations
   - [ ] Verify ATS compliance
+- [ ] Implement AI-based quality review (Phase 2 - Optional):
+  - [ ] Create AI quality review prompt template
+  - [ ] Trigger AI review when score < threshold (e.g., 70%)
+  - [ ] AI provides detailed feedback and recommendation
+  - [ ] AI returns "needs improvement" or "acceptable" verdict
 - [ ] Add quality thresholds:
   - [ ] Define minimum acceptable scores
+  - [ ] Define AI review trigger threshold
   - [ ] Add quality warnings
   - [ ] Add quality recommendations
+- [ ] Implement iterative enhancement support:
+  - [ ] Track enhancement iterations (max 2-3 to control cost)
+  - [ ] Provide feedback for next iteration
+  - [ ] Compare scores across iterations
 - [ ] Generate quality report
 - [ ] Write unit tests
 
 **Files to Create:**
 - `src/services/ai/qualityScorer.ts`
+- `src/services/ai/prompts/qualityReview.template.ts` (optional - for AI review)
 
 **Key Functions:**
-- `scoreEnhancement(original, enhanced, jobInfo): QualityScore`
+- `scoreEnhancement(original, enhanced, jobInfo, options?): QualityScore`
 - `calculateKeywordRelevance(enhanced, jobInfo): number`
 - `calculateNaturalness(enhanced): number`
+- `reviewQualityWithAI(original, enhanced, jobInfo, qualityScore): Promise<AIQualityReview>`
+- `shouldTriggerAIReview(qualityScore, threshold?): boolean`
+- `canIterateEnhancement(iterationCount, maxIterations?): boolean`
+
+**Quality Score Structure:**
+```typescript
+interface QualityScore {
+  overall: number; // 0-100
+  keywordRelevance: number; // 0-100
+  naturalLanguage: number; // 0-100
+  truthfulness: number; // 0-100
+  atsCompliance: number; // 0-100
+  aiReview?: AIQualityReview; // Optional AI review result
+  needsImprovement: boolean;
+  recommendations: string[];
+  iteration?: number; // Current iteration count
+}
+```
+
+**AI Review Structure:**
+```typescript
+interface AIQualityReview {
+  verdict: 'acceptable' | 'needs_improvement';
+  score: number; // 0-100
+  detailedFeedback: string[];
+  specificIssues: string[];
+  improvementSuggestions: string[];
+  confidence: number; // 0-1
+}
+```
 
 **Acceptance Criteria:**
-- Quality scoring is accurate
-- Scores are meaningful
+- Rule-based scoring is fast and accurate
+- AI review is triggered only when needed (score < threshold)
+- Scores are meaningful and actionable
 - Thresholds are appropriate
+- Iterative enhancement is controlled (max iterations)
 - Reports are useful
 - Unit tests pass
 
-**Dependencies:** Task 19.1, Task 20.1
+**Dependencies:** Task 19.1, Task 20.1, Task 17.1 (for AI review)
 
 ---
 
@@ -1112,14 +1155,14 @@ Update project documentation to include Phase 3 AI integration features.
 - Task Group 24: Testing (1 task)
 
 **Medium Priority (Should Have):**
-- Task Group 20: Quality Scoring (1 task)
+- Task Group 20: Quality Scoring (1 task - hybrid approach)
 - Task Group 21: Cost Tracking & Monitoring (2 tasks)
 - Task Group 24: Integration Tests & Documentation (2 tasks)
 
 ### Estimated Total Time
 - High Priority: ~22 hours
-- Medium Priority: ~9.5 hours
-- **Total: ~31.5 hours**
+- Medium Priority: ~10 hours (updated: Task 20.3 increased from 2.5h to 3.5h for hybrid approach)
+- **Total: ~32 hours**
 
 ### Task Dependencies Graph
 
