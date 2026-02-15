@@ -529,7 +529,7 @@ Set up commander.js for CLI argument parsing.
 Implement the main CLI command for generating resumes.
 
 **Subtasks:**
-- [x] Add `generateResume` command
+- [x] Add `generate` command
 - [x] Add `--input` argument (required)
 - [x] Add `--output` argument (required)
 - [x] Add `--template` argument (optional, default: modern)
@@ -543,7 +543,7 @@ Implement the main CLI command for generating resumes.
 - [x] Write integration tests
 
 **Acceptance Criteria:**
-- Command works: `generateResume --input resume.json --output resume.pdf`
+- Command works: `generate --input resume.json --output resume.pdf`
 - All arguments work correctly
 - Progress indicators show
 - Clear error messages

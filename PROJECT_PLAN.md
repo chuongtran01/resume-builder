@@ -400,32 +400,32 @@ The ATS validator will check for:
 
 #### Basic PDF Generation
 ```bash
-generateResume --input resume.json --output resume.pdf
+generate --input resume.json --output resume.pdf
 ```
 
 #### Specify Template
 ```bash
-generateResume --input resume.json --output resume.pdf --template modern
+generate --input resume.json --output resume.pdf --template modern
 ```
 
 #### Generate HTML
 ```bash
-generateResume --input resume.json --output resume.html --format html
+generate --input resume.json --output resume.html --format html
 ```
 
 #### Run ATS Validation
 ```bash
-generateResume --input resume.json --output resume.pdf --validate
+generate --input resume.json --output resume.pdf --validate
 ```
 
 #### Verbose Logging
 ```bash
-generateResume --input resume.json --output resume.pdf --verbose
+generate --input resume.json --output resume.pdf --verbose
 ```
 
 #### Full Example
 ```bash
-generateResume \
+generate \
   --input ./examples/resume.json \
   --output ./output/resume.pdf \
   --template classic \
