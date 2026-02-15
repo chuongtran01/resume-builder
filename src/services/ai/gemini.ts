@@ -22,6 +22,7 @@ import {
   NetworkError,
   TimeoutError,
 } from '@services/ai/provider.types';
+import { buildReviewPrompt, buildModifyPrompt } from '@services/ai/prompts';
 import { logger } from '@utils/logger';
 
 /**
@@ -268,86 +269,52 @@ export class GeminiProvider implements AIProvider {
   }
 
   /**
-   * Build review prompt
+   * Build review prompt using template
    */
   private buildReviewPrompt(request: ReviewRequest): string {
-    const resumeJson = JSON.stringify(request.resume, null, 2);
-    const jobInfoJson = JSON.stringify(request.jobInfo, null, 2);
-
-    return `You are an expert resume reviewer. Analyze the following resume against the job requirements and provide a structured review.
-
-RESUME:
-${resumeJson}
-
-JOB REQUIREMENTS:
-${jobInfoJson}
-
-Please provide a JSON response with the following structure:
-{
-  "strengths": ["strength1", "strength2", ...],
-  "weaknesses": ["weakness1", "weakness2", ...],
-  "opportunities": ["opportunity1", "opportunity2", ...],
-  "prioritizedActions": [
-    {
-      "type": "enhance" | "reorder" | "add" | "remove" | "rewrite",
-      "section": "section name",
-      "priority": "high" | "medium" | "low",
-      "reason": "explanation",
-      "suggestedChange": "optional suggestion"
-    }
-  ],
-  "confidence": 0.0-1.0,
-  "reasoning": "overall analysis"
-}
-
-Focus on:
-- How well the resume matches the job requirements
-- Missing keywords or skills
-- Areas for improvement
-- Prioritized actions to enhance the resume`;
+    return buildReviewPrompt(
+      {
+        resume: request.resume,
+        jobInfo: request.jobInfo,
+        options: request.options as Record<string, unknown> | undefined,
+      },
+      {
+        includeExamples: true,
+        maxContextLength: this.config.maxTokens ? this.config.maxTokens * 4 : undefined,
+        compress: false,
+      }
+    );
   }
 
   /**
-   * Build modify prompt
+   * Build modify prompt using template
    */
   private buildModifyPrompt(request: AIRequest): string {
-    const resumeJson = JSON.stringify(request.resume, null, 2);
-    const jobInfoJson = JSON.stringify(request.jobInfo, null, 2);
-    const reviewJson = JSON.stringify(request.reviewResult, null, 2);
+    if (!request.reviewResult) {
+      throw new InvalidResponseError(
+        'Review result is required for modifyResume',
+        'gemini'
+      );
+    }
 
-    return `You are an expert resume writer. Enhance the following resume based on the review findings and job requirements.
+    // Determine enhancement mode from options if available
+    const options = request.options as Record<string, unknown> | undefined;
+    const mode = (options?.enhancementMode as 'full' | 'bulletPoints' | 'skills' | 'summary') || 'full';
 
-ORIGINAL RESUME:
-${resumeJson}
-
-JOB REQUIREMENTS:
-${jobInfoJson}
-
-REVIEW FINDINGS:
-${reviewJson}
-
-CRITICAL RULES:
-1. NEVER add experiences, skills, or achievements not present in the original resume
-2. Only enhance and reword existing content
-3. Maintain truthfulness - all claims must be supported by original resume
-4. Use natural language - avoid mechanical keyword stuffing
-5. Preserve the original meaning and context
-
-Please provide a JSON response with the enhanced resume in the same structure as the original:
-{
-  "personalInfo": { ... },
-  "summary": "enhanced summary",
-  "experience": [ ... ],
-  "education": { ... },
-  "skills": { ... },
-  ...
-}
-
-Focus on:
-- Rewriting bullet points to naturally incorporate job-relevant keywords
-- Reordering skills to prioritize job-relevant ones
-- Enhancing summary to align with job requirements
-- Maintaining professional tone and authenticity`;
+    return buildModifyPrompt(
+      {
+        resume: request.resume,
+        jobInfo: request.jobInfo,
+        reviewResult: request.reviewResult,
+        options: options,
+      },
+      {
+        includeExamples: true,
+        maxContextLength: this.config.maxTokens ? this.config.maxTokens * 4 : undefined,
+        compress: false,
+        mode,
+      }
+    );
   }
 
   /**

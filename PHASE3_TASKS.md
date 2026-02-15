@@ -213,7 +213,7 @@ interface GeminiConfig {
 ---
 
 ### Task 18.1: Design Prompt Templates
-**Status:** ⬜  
+**Status:** ✅ Completed  
 **Priority:** High  
 **Estimated Time:** 4 hours
 
@@ -221,44 +221,44 @@ interface GeminiConfig {
 Create structured prompt templates for two-step enhancement process: Review prompts and Modification prompts. Templates include extracted job information and guide AI to make natural, truthful enhancements.
 
 **Subtasks:**
-- [ ] Create `src/services/ai/prompts/` directory
-- [ ] Create `src/services/ai/prompts/review.template.ts` (Step 1: Review)
-  - [ ] System message for resume analysis
-  - [ ] Context section (resume + job info)
-  - [ ] Analysis task description
-  - [ ] Output format for review (strengths, weaknesses, opportunities, actions)
-- [ ] Create `src/services/ai/prompts/modify.template.ts` (Step 2: Modify)
-  - [ ] System message with enhancement instructions
-  - [ ] Context section (resume + job info + review findings)
-  - [ ] Enhancement task description
-  - [ ] Output format specification (enhanced resume JSON)
-  - [ ] Truthfulness requirements
-- [ ] Design base prompt structure for both:
-  - [ ] System message with instructions
-  - [ ] Context section (resume + job info)
-  - [ ] Task description
-  - [ ] Output format specification
-  - [ ] Truthfulness requirements (for modify prompt)
-- [ ] Create prompt variants for modify:
-  - [ ] Full enhancement (bullet points + skills + summary)
-  - [ ] Bullet points only
-  - [ ] Skills reordering only
-  - [ ] Summary enhancement only
-- [ ] Add few-shot examples:
-  - [ ] Example of good review analysis
-  - [ ] Example of good enhancement
-  - [ ] Example of bad enhancement (to avoid)
-- [ ] Implement prompt variable substitution:
-  - [ ] Resume data injection
-  - [ ] Job information injection
-  - [ ] Review findings injection (for modify prompt)
-  - [ ] Options injection
-- [ ] Add prompt optimization:
-  - [ ] Token counting
-  - [ ] Context window management
-  - [ ] Prompt compression techniques
-- [ ] Write unit tests for prompt generation
-- [ ] Document prompt design decisions
+- [x] Create `src/services/ai/prompts/` directory
+- [x] Create `src/services/ai/prompts/review.template.ts` (Step 1: Review)
+  - [x] System message for resume analysis
+  - [x] Context section (resume + job info)
+  - [x] Analysis task description
+  - [x] Output format for review (strengths, weaknesses, opportunities, actions)
+- [x] Create `src/services/ai/prompts/modify.template.ts` (Step 2: Modify)
+  - [x] System message with enhancement instructions
+  - [x] Context section (resume + job info + review findings)
+  - [x] Enhancement task description
+  - [x] Output format specification (enhanced resume JSON)
+  - [x] Truthfulness requirements
+- [x] Design base prompt structure for both:
+  - [x] System message with instructions
+  - [x] Context section (resume + job info)
+  - [x] Task description
+  - [x] Output format specification
+  - [x] Truthfulness requirements (for modify prompt)
+- [x] Create prompt variants for modify:
+  - [x] Full enhancement (bullet points + skills + summary)
+  - [x] Bullet points only
+  - [x] Skills reordering only
+  - [x] Summary enhancement only
+- [x] Add few-shot examples:
+  - [x] Example of good review analysis
+  - [x] Example of good enhancement
+  - [x] Example of bad enhancement (to avoid)
+- [x] Implement prompt variable substitution:
+  - [x] Resume data injection
+  - [x] Job information injection
+  - [x] Review findings injection (for modify prompt)
+  - [x] Options injection
+- [x] Add prompt optimization:
+  - [x] Token counting
+  - [x] Context window management
+  - [x] Prompt compression techniques
+- [x] Write unit tests for prompt generation
+- [x] Document prompt design decisions
 
 **Files to Create:**
 - `src/services/ai/prompts/review.template.ts` - Review phase prompts
