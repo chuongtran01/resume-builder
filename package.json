@@ -43,6 +43,7 @@
   },
   "homepage": "",
   "dependencies": {
+    "@google/genai": "^1.41.0",
     "@google/generative-ai": "^0.24.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",

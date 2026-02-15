@@ -10,23 +10,22 @@ import {
 import type { Resume } from '../../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../../src/utils/jobParser';
 
-// Mock @google/generative-ai
+// Mock @google/genai (new SDK)
 const mockGenerateContent = jest.fn();
-const mockGetGenerativeModel = jest.fn(() => ({
+const mockModels = {
   generateContent: mockGenerateContent,
-}));
-const mockGoogleGenerativeAI = jest.fn(() => ({
-  getGenerativeModel: mockGetGenerativeModel,
-}));
+};
 
-jest.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: mockGoogleGenerativeAI,
+jest.mock('@google/genai', () => ({
+  GoogleGenAI: jest.fn(() => ({
+    models: mockModels,
+  })),
 }));
 
 describe('GeminiProvider', () => {
   const mockConfig: GeminiConfig = {
     apiKey: 'test-api-key',
-    model: 'gemini-pro',
+    model: 'gemini-2.5-pro',
     temperature: 0.7,
     maxTokens: 2000,
     timeout: 30000,
@@ -62,11 +61,9 @@ describe('GeminiProvider', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset mock to return default response
+    // Reset mock to return default response (new SDK structure)
     mockGenerateContent.mockResolvedValue({
-      response: {
-        text: jest.fn(() => '{"strengths":[],"weaknesses":[],"opportunities":[],"prioritizedActions":[],"confidence":0.8}'),
-      },
+      text: '{"strengths":[],"weaknesses":[],"opportunities":[],"prioritizedActions":[],"confidence":0.8}',
     });
     provider = new GeminiProvider(mockConfig);
   });
@@ -80,7 +77,7 @@ describe('GeminiProvider', () => {
       expect(() => {
         new GeminiProvider({
           apiKey: '',
-          model: 'gemini-pro',
+          model: 'gemini-2.5-pro',
         });
       }).toThrow();
     });
@@ -88,7 +85,7 @@ describe('GeminiProvider', () => {
     it('should use default config values', () => {
       const minimalConfig: GeminiConfig = {
         apiKey: 'test-key',
-        model: 'gemini-pro',
+        model: 'gemini-2.5-pro',
       };
       const p = new GeminiProvider(minimalConfig);
       expect(p).toBeInstanceOf(GeminiProvider);
@@ -100,9 +97,8 @@ describe('GeminiProvider', () => {
       const info = provider.getProviderInfo();
       expect(info.name).toBe('gemini');
       expect(info.displayName).toBe('Google Gemini');
-      expect(info.supportedModels).toContain('gemini-pro');
-      expect(info.supportedModels).toContain('gemini-1.5-pro');
-      expect(info.supportedModels).toContain('gemini-1.5-flash');
+      expect(info.supportedModels).toContain('gemini-2.5-pro');
+      expect(info.supportedModels).toContain('gemini-3-flash-preview');
     });
   });
 
@@ -188,26 +184,24 @@ describe('GeminiProvider', () => {
 
   describe('reviewResume', () => {
     it('should call Gemini API and parse response', async () => {
+      const reviewResult = {
+        strengths: ['Strong technical skills'],
+        weaknesses: ['Missing keywords'],
+        opportunities: ['Add metrics'],
+        prioritizedActions: [
+          {
+            type: 'enhance',
+            section: 'experience',
+            priority: 'high',
+            reason: 'Improve keyword matching',
+          },
+        ],
+        confidence: 0.85,
+        reasoning: 'Good overall fit',
+      };
+
       const mockResponse = {
-        response: {
-          text: jest.fn(() =>
-            JSON.stringify({
-              strengths: ['Strong technical skills'],
-              weaknesses: ['Missing keywords'],
-              opportunities: ['Add metrics'],
-              prioritizedActions: [
-                {
-                  type: 'enhance',
-                  section: 'experience',
-                  priority: 'high',
-                  reason: 'Improve keyword matching',
-                },
-              ],
-              confidence: 0.85,
-              reasoning: 'Good overall fit',
-            })
-          ),
-        },
+        text: JSON.stringify(reviewResult),
       };
 
       mockGenerateContent.mockResolvedValueOnce(mockResponse);
@@ -227,9 +221,7 @@ describe('GeminiProvider', () => {
 
     it('should handle empty response', async () => {
       const mockResponse = {
-        response: {
-          text: jest.fn(() => ''),
-        },
+        text: '',
       };
 
       mockGenerateContent.mockResolvedValueOnce(mockResponse);
@@ -244,9 +236,7 @@ describe('GeminiProvider', () => {
 
     it('should handle invalid JSON response', async () => {
       const mockResponse = {
-        response: {
-          text: jest.fn(() => 'Not valid JSON'),
-        },
+        text: 'Not valid JSON',
       };
 
       mockGenerateContent.mockResolvedValueOnce(mockResponse);
@@ -278,9 +268,7 @@ describe('GeminiProvider', () => {
       };
 
       const mockResponse = {
-        response: {
-          text: jest.fn(() => JSON.stringify(enhancedResume)),
-        },
+        text: JSON.stringify(enhancedResume),
       };
 
       mockGenerateContent.mockResolvedValueOnce(mockResponse);
@@ -310,24 +298,18 @@ describe('GeminiProvider', () => {
     it('should orchestrate review and modify', async () => {
       // Mock review response
       const reviewResponse = {
-        response: {
-          text: jest.fn(() =>
-            JSON.stringify({
-              strengths: ['Good'],
-              weaknesses: [],
-              opportunities: [],
-              prioritizedActions: [],
-              confidence: 0.8,
-            })
-          ),
-        },
+        text: JSON.stringify({
+          strengths: ['Good'],
+          weaknesses: [],
+          opportunities: [],
+          prioritizedActions: [],
+          confidence: 0.8,
+        }),
       };
 
       // Mock modify response
       const modifyResponse = {
-        response: {
-          text: jest.fn(() => JSON.stringify(sampleResume)),
-        },
+        text: JSON.stringify(sampleResume),
       };
 
       mockGenerateContent
@@ -349,6 +331,8 @@ describe('GeminiProvider', () => {
   describe('Error Handling', () => {
     it('should handle rate limit errors', async () => {
       const rateLimitError = new Error('429 Rate limit exceeded');
+      // Clear default mock and set error
+      mockGenerateContent.mockReset();
       mockGenerateContent.mockRejectedValueOnce(rateLimitError);
 
       const request = {
@@ -368,7 +352,7 @@ describe('GeminiProvider', () => {
 
       // Mock a slow response
       mockGenerateContent.mockImplementation(
-        () => new Promise((resolve) => setTimeout(() => resolve({ response: { text: () => '{}' } }), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve({ text: '{}' }), 100))
       );
 
       const request = {

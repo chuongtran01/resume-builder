@@ -17,6 +17,9 @@ build/
 .env.local
 .env.*.local
 
+# AI Configuration (may contain secrets)
+ai.config.json
+
 # IDE and editor files
 .vscode/
 .idea/

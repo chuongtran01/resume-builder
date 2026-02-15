@@ -3,9 +3,13 @@
  * 
  * Implements the AIProvider interface for Google Gemini models.
  * Supports sequential review → modify workflow for resume enhancement.
+ * 
+ * Based on official Gemini API documentation:
+ * https://ai.google.dev/gemini-api/docs/text-generation
+ * https://ai.google.dev/gemini-api/docs/quickstart
  */
 
-import { GoogleGenerativeAI, type GenerativeModel } from '@google/generative-ai';
+import { GoogleGenAI } from '@google/genai';
 import type {
   AIProvider,
   AIProviderConfig,
@@ -31,8 +35,8 @@ import { logger } from '@utils/logger';
 export interface GeminiConfig extends AIProviderConfig {
   /** API key for Google AI */
   apiKey: string;
-  /** Model to use */
-  model: 'gemini-pro' | 'gemini-1.5-pro' | 'gemini-1.5-flash';
+  /** Model to use - supports latest models from official docs */
+  model: 'gemini-2.5-pro' | 'gemini-3-flash-preview';
   /** Temperature (0-1) for creativity control */
   temperature?: number;
   /** Maximum tokens to generate */
@@ -57,30 +61,28 @@ const DEFAULT_CONFIG: Partial<GeminiConfig> = {
 };
 
 /**
- * Gemini pricing per 1M tokens (as of 2024)
+ * Gemini pricing per 1M tokens (as of 2025)
  * Note: These are approximate and should be updated based on actual pricing
  */
 const GEMINI_PRICING: Record<string, { input: number; output: number }> = {
-  'gemini-pro': {
-    input: 0.50, // $0.50 per 1M input tokens
-    output: 1.50, // $1.50 per 1M output tokens
+  'gemini-2.5-pro': {
+    input: 1.25, // $1.25 per 1M input tokens (approximate, update with actual pricing)
+    output: 5.00, // $5.00 per 1M output tokens (approximate, update with actual pricing)
   },
-  'gemini-1.5-pro': {
-    input: 1.25, // $1.25 per 1M input tokens
-    output: 5.00, // $5.00 per 1M output tokens
-  },
-  'gemini-1.5-flash': {
-    input: 0.075, // $0.075 per 1M input tokens
-    output: 0.30, // $0.30 per 1M output tokens
+  'gemini-3-flash-preview': {
+    input: 0.075, // $0.075 per 1M input tokens (approximate, update with actual pricing)
+    output: 0.30, // $0.30 per 1M output tokens (approximate, update with actual pricing)
   },
 };
 
 /**
  * Google Gemini AI Provider
+ * 
+ * Uses the official @google/genai SDK following the patterns from:
+ * https://ai.google.dev/gemini-api/docs/text-generation
  */
 export class GeminiProvider implements AIProvider {
-  private client: GoogleGenerativeAI;
-  private model: GenerativeModel;
+  private client: GoogleGenAI;
   private config: GeminiConfig;
 
   constructor(config: GeminiConfig) {
@@ -93,16 +95,10 @@ export class GeminiProvider implements AIProvider {
       ...config,
     } as GeminiConfig;
 
-    // Initialize Google AI client
-    this.client = new GoogleGenerativeAI(this.config.apiKey);
-
-    // Get the model
-    this.model = this.client.getGenerativeModel({
-      model: this.config.model,
-      generationConfig: {
-        temperature: this.config.temperature,
-        maxOutputTokens: this.config.maxTokens,
-      },
+    // Initialize Google AI client with API key
+    // The new SDK accepts apiKey in constructor options
+    this.client = new GoogleGenAI({
+      apiKey: this.config.apiKey,
     });
 
     logger.info(`Initialized Gemini provider with model: ${this.config.model}`);
@@ -244,9 +240,10 @@ export class GeminiProvider implements AIProvider {
    */
   estimateCost(request: AIRequest | ReviewRequest): number {
     // Rough estimation based on prompt size
-    const prompt = 'reviewResult' in request
-      ? this.buildReviewPrompt(request)
-      : this.buildModifyPrompt(request as AIRequest);
+    // If reviewResult exists, it's an AIRequest (modify), otherwise it's a ReviewRequest
+    const prompt = 'reviewResult' in request && request.reviewResult
+      ? this.buildModifyPrompt(request as AIRequest)
+      : this.buildReviewPrompt(request as ReviewRequest);
 
     // Estimate tokens (rough: 1 token ≈ 4 characters)
     const estimatedInputTokens = Math.ceil(prompt.length / 4);
@@ -262,9 +259,9 @@ export class GeminiProvider implements AIProvider {
     return {
       name: 'gemini',
       displayName: 'Google Gemini',
-      supportedModels: ['gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-      defaultModel: 'gemini-pro',
-      version: '1.0.0',
+      supportedModels: ['gemini-2.5-pro', 'gemini-3-flash-preview'],
+      defaultModel: 'gemini-2.5-pro',
+      version: '2.0.0', // Updated for new SDK
     };
   }
 
@@ -319,6 +316,9 @@ export class GeminiProvider implements AIProvider {
 
   /**
    * Call Gemini API with retry logic
+   * 
+   * Uses the new SDK pattern: client.models.generateContent()
+   * Based on: https://ai.google.dev/gemini-api/docs/text-generation
    */
   private async callGeminiWithRetry(prompt: string): Promise<string> {
     const maxRetries = this.config.maxRetries || 3;
@@ -326,14 +326,22 @@ export class GeminiProvider implements AIProvider {
 
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
-        const generatePromise = this.model.generateContent(prompt);
+        // Use the new SDK pattern: client.models.generateContent()
+        const generatePromise = this.client.models.generateContent({
+          model: this.config.model,
+          contents: prompt,
+          config: {
+            temperature: this.config.temperature,
+            maxOutputTokens: this.config.maxTokens,
+          },
+        });
         const timeoutPromise = this.createTimeoutPromise();
 
-        const result = await Promise.race([generatePromise, timeoutPromise]);
+        const response = await Promise.race([generatePromise, timeoutPromise]);
 
-        // If we get here, generatePromise resolved (timeout would have rejected)
-        const response = result.response;
-        const text = response.text();
+        // Extract text from response
+        // The new SDK returns response.text directly
+        const text = response.text;
 
         if (!text) {
           throw new InvalidResponseError('Empty response from Gemini', 'gemini');
@@ -520,8 +528,8 @@ export class GeminiProvider implements AIProvider {
   private calculateCost(inputTokens: number, outputTokens: number): number {
     const pricing = GEMINI_PRICING[this.config.model];
     if (!pricing) {
-      logger.warn(`Unknown pricing for model ${this.config.model}, using gemini-pro pricing`);
-      const defaultPricing = GEMINI_PRICING['gemini-pro'];
+      logger.warn(`Unknown pricing for model ${this.config.model}, using gemini-2.5-pro pricing`);
+      const defaultPricing = GEMINI_PRICING['gemini-2.5-pro'];
       if (!defaultPricing) {
         throw new Error('Default pricing not found');
       }

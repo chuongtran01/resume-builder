@@ -40,4 +40,8 @@ module.exports = {
     '^@cli/(.*)$': '<rootDir>/src/cli/$1',
     '^@api/(.*)$': '<rootDir>/src/api/$1',
   },
+  // Transform ES modules from @google/genai
+  transformIgnorePatterns: [
+    'node_modules/(?!(@google/genai)/)',
+  ],
 };
