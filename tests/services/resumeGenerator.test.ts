@@ -200,7 +200,7 @@ describe('ResumeGenerator', () => {
     });
 
     it('should support different templates', async () => {
-      const templates = ['modern', 'classic', 'minimal'];
+      const templates = ['modern', 'classic'];
 
       for (const template of templates) {
         const result = await generateResumeFromObject(testResume, testOutputPath, {
@@ -234,7 +234,7 @@ describe('ResumeGenerator', () => {
     });
 
     it('should support different templates', async () => {
-      const templates = ['modern', 'classic', 'minimal'];
+      const templates = ['modern', 'classic'];
 
       for (const template of templates) {
         const html = await generateResumeHtml(testResume, { template });

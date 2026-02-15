@@ -40,7 +40,7 @@ export interface TemplateOptions {
  * All templates must implement this interface
  */
 export interface ResumeTemplate {
-  /** Template name (e.g., "modern", "classic", "minimal") */
+  /** Template name (e.g., "modern", "classic") */
   name: string;
   /** Template description */
   description: string;
