@@ -4,6 +4,8 @@
  */
 
 import { Command } from 'commander';
+import * as fs from 'fs-extra';
+import * as path from 'path';
 import { logger } from '../utils/logger';
 import packageJson from '../../package.json';
 
@@ -45,31 +47,107 @@ program
       
       // Validate required options
       if (!options.input) {
-        logger.error('Error: --input is required');
+        logger.error('❌ Error: --input is required');
+        logger.info('💡 Tip: Use --input <path> to specify the resume JSON file');
+        logger.info('   Example: --input examples/resume.json');
         program.help();
         process.exit(1);
       }
 
       if (!options.output) {
-        logger.error('Error: --output is required');
+        logger.error('❌ Error: --output is required');
+        logger.info('💡 Tip: Use --output <path> to specify where to save the generated resume');
+        logger.info('   Example: --output resume.pdf');
         program.help();
         process.exit(1);
       }
 
+      // Validate input file
+      const inputPath = path.resolve(options.input);
+      const inputExists = await fs.pathExists(inputPath);
+      if (!inputExists) {
+        logger.error(`❌ Error: Input file not found: ${inputPath}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Check if the file path is correct`);
+        logger.info(`   - Ensure the file exists at: ${inputPath}`);
+        logger.info(`   - Use an absolute path or a path relative to the current directory`);
+        process.exit(1);
+      }
+
+      // Check if input is a file (not a directory)
+      const inputStats = await fs.stat(inputPath);
+      if (!inputStats.isFile()) {
+        logger.error(`❌ Error: Input path is not a file: ${inputPath}`);
+        logger.info('💡 Tip: The --input option must point to a JSON file, not a directory');
+        process.exit(1);
+      }
+
+      // Check if input file has .json extension (warning, not error)
+      if (!inputPath.toLowerCase().endsWith('.json')) {
+        logger.warn(`⚠️  Warning: Input file does not have .json extension: ${inputPath}`);
+        logger.info('💡 Tip: Resume files should typically have a .json extension');
+      }
+
+      // Validate output path
+      const outputPath = path.resolve(options.output);
+      const outputDir = path.dirname(outputPath);
+      const outputDirExists = await fs.pathExists(outputDir);
+      
+      if (!outputDirExists) {
+        logger.error(`❌ Error: Output directory does not exist: ${outputDir}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Create the directory: mkdir -p ${outputDir}`);
+        logger.info(`   - Use an existing directory for the output path`);
+        process.exit(1);
+      }
+
+      // Check if output directory is writable
+      try {
+        await fs.access(outputDir, fs.constants.W_OK);
+      } catch (error) {
+        logger.error(`❌ Error: Output directory is not writable: ${outputDir}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Check directory permissions`);
+        logger.info(`   - Ensure you have write access to: ${outputDir}`);
+        process.exit(1);
+      }
+
       // Validate format
-      if (!['pdf', 'html'].includes(options.format.toLowerCase())) {
-        logger.error(`Error: Invalid format "${options.format}". Must be "pdf" or "html"`);
+      const format = options.format.toLowerCase();
+      if (!['pdf', 'html'].includes(format)) {
+        logger.error(`❌ Error: Invalid format "${options.format}"`);
+        logger.info('💡 Valid formats are:');
+        logger.info('   - pdf (Portable Document Format)');
+        logger.info('   - html (HyperText Markup Language)');
+        logger.info(`   Example: --format pdf`);
         process.exit(1);
       }
 
       // Determine spacing mode
       let spacing: 'auto' | 'compact' | 'normal' = options.compact ? 'compact' : (options.spacing as 'auto' | 'compact' | 'normal' || 'auto');
       if (!['auto', 'compact', 'normal'].includes(spacing)) {
-        logger.error(`Error: Invalid spacing mode "${spacing}". Must be "auto", "compact", or "normal"`);
+        logger.error(`❌ Error: Invalid spacing mode "${spacing}"`);
+        logger.info('💡 Valid spacing modes are:');
+        logger.info('   - auto (automatically adjust based on content)');
+        logger.info('   - compact (minimal spacing for dense content)');
+        logger.info('   - normal (standard spacing)');
+        logger.info(`   Example: --spacing compact`);
         process.exit(1);
       }
 
-      // Validate template (will be checked by generator service)
+      // Validate template
+      const { getTemplateNames, hasTemplate } = await import('../templates/templateRegistry');
+      const availableTemplates = getTemplateNames();
+      
+      if (!hasTemplate(options.template)) {
+        logger.error(`❌ Error: Template "${options.template}" not found`);
+        logger.info('💡 Available templates:');
+        availableTemplates.forEach((template: string) => {
+          logger.info(`   - ${template}`);
+        });
+        logger.info(`   Example: --template ${availableTemplates[0] || 'classic'}`);
+        process.exit(1);
+      }
       
       logger.info('Starting resume generation...');
       
@@ -124,15 +202,69 @@ program
 
       process.exit(0);
     } catch (error) {
-      if (error instanceof Error) {
+      // Import error types for type checking
+      const { FileNotFoundError, InvalidJsonError } = await import('../utils/fileLoader');
+      const { ResumeValidationError, MissingRequiredFieldError } = await import('../utils/resumeParser');
+      const { TemplateNotFoundError } = await import('../services/resumeGenerator');
+      const { PdfGenerationError } = await import('../utils/pdfGenerator');
+
+      if (error instanceof FileNotFoundError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Check if the file path is correct');
+        logger.info('   - Ensure all referenced files exist');
+        logger.info('   - Verify file: references in your resume.json are valid');
+      } else if (error instanceof InvalidJsonError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Validate your JSON syntax using a JSON validator');
+        logger.info('   - Check for missing commas, brackets, or quotes');
+        logger.info('   - Ensure all strings are properly escaped');
+      } else if (error instanceof ResumeValidationError) {
+        logger.error(`\n❌ ${error.message}`);
+        if (error.errors.length > 0) {
+          logger.info('\n   Validation errors:');
+          error.errors.forEach((err) => {
+            logger.error(`   - ${err}`);
+          });
+        }
+        logger.info('\n💡 Suggestions:');
+        logger.info('   - Ensure all required fields are present in your resume.json');
+        logger.info('   - Check the resume schema documentation');
+        logger.info('   - Run with --validate to see detailed validation results');
+      } else if (error instanceof MissingRequiredFieldError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Tip: Check your resume.json file and ensure all required fields are included');
+      } else if (error instanceof TemplateNotFoundError) {
+        logger.error(`\n❌ ${error.message}`);
+        const { getTemplateNames } = await import('../templates/templateRegistry');
+        const availableTemplates = getTemplateNames();
+        logger.info('💡 Available templates:');
+        availableTemplates.forEach((template: string) => {
+          logger.info(`   - ${template}`);
+        });
+      } else if (error instanceof PdfGenerationError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Ensure Puppeteer dependencies are installed correctly');
+        logger.info('   - Check if you have sufficient disk space');
+        logger.info('   - Try generating HTML format instead: --format html');
+        if (error.originalError) {
+          logger.info(`   - Original error: ${error.originalError.message}`);
+        }
+      } else if (error instanceof Error) {
         logger.error(`\n❌ Error: ${error.message}`);
         if (logger.isVerbose()) {
           logger.error(`\nStack trace:\n${error.stack}`);
+        } else {
+          logger.info('💡 Tip: Use --verbose flag to see detailed error information');
         }
       } else {
         logger.error(`\n❌ Unknown error occurred`);
         if (logger.isVerbose()) {
           logger.error(String(error));
+        } else {
+          logger.info('💡 Tip: Use --verbose flag to see detailed error information');
         }
       }
       process.exit(1);
@@ -177,8 +309,30 @@ program
       }
 
       if (!options.input) {
-        logger.error('Error: --input is required');
+        logger.error('❌ Error: --input is required');
+        logger.info('💡 Tip: Use --input <path> to specify the resume JSON file');
+        logger.info('   Example: --input examples/resume.json');
         program.help();
+        process.exit(1);
+      }
+
+      // Validate input file
+      const inputPath = path.resolve(options.input);
+      const inputExists = await fs.pathExists(inputPath);
+      if (!inputExists) {
+        logger.error(`❌ Error: Input file not found: ${inputPath}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Check if the file path is correct`);
+        logger.info(`   - Ensure the file exists at: ${inputPath}`);
+        logger.info(`   - Use an absolute path or a path relative to the current directory`);
+        process.exit(1);
+      }
+
+      // Check if input is a file (not a directory)
+      const inputStats = await fs.stat(inputPath);
+      if (!inputStats.isFile()) {
+        logger.error(`❌ Error: Input path is not a file: ${inputPath}`);
+        logger.info('💡 Tip: The --input option must point to a JSON file, not a directory');
         process.exit(1);
       }
 
@@ -219,15 +373,49 @@ program
 
       process.exit(validation.isCompliant ? 0 : 1);
     } catch (error) {
-      if (error instanceof Error) {
+      // Import error types for type checking
+      const { FileNotFoundError, InvalidJsonError } = await import('../utils/fileLoader');
+      const { ResumeValidationError, MissingRequiredFieldError } = await import('../utils/resumeParser');
+
+      if (error instanceof FileNotFoundError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Check if the file path is correct');
+        logger.info('   - Ensure the file exists at the specified location');
+        logger.info('   - Use an absolute path or a path relative to the current directory');
+      } else if (error instanceof InvalidJsonError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Validate your JSON syntax using a JSON validator');
+        logger.info('   - Check for missing commas, brackets, or quotes');
+        logger.info('   - Ensure all strings are properly escaped');
+      } else if (error instanceof ResumeValidationError) {
+        logger.error(`\n❌ ${error.message}`);
+        if (error.errors.length > 0) {
+          logger.info('\n   Validation errors:');
+          error.errors.forEach((err) => {
+            logger.error(`   - ${err}`);
+          });
+        }
+        logger.info('\n💡 Suggestions:');
+        logger.info('   - Ensure all required fields are present in your resume.json');
+        logger.info('   - Check the resume schema documentation');
+      } else if (error instanceof MissingRequiredFieldError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Tip: Check your resume.json file and ensure all required fields are included');
+      } else if (error instanceof Error) {
         logger.error(`\n❌ Error: ${error.message}`);
         if (logger.isVerbose()) {
           logger.error(`\nStack trace:\n${error.stack}`);
+        } else {
+          logger.info('💡 Tip: Use --verbose flag to see detailed error information');
         }
       } else {
         logger.error(`\n❌ Unknown error occurred`);
         if (logger.isVerbose()) {
           logger.error(String(error));
+        } else {
+          logger.info('💡 Tip: Use --verbose flag to see detailed error information');
         }
       }
       process.exit(1);
