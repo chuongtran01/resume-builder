@@ -141,7 +141,7 @@ The AI enhancement process uses extracted information from the job description t
    - Validation layer ensures no fabrication
 
 **Supported AI Model:**
-- **Google Gemini** - Via Google AI API (gemini-pro, gemini-1.5-pro, gemini-1.5-flash)
+- **Google Gemini** - Via Google AI API (gemini-2.5-pro, gemini-3-flash-preview)
 
 **Deliverables:**
 - AI provider abstraction layer (`src/services/ai/`)
@@ -188,13 +188,13 @@ The AI enhancement process uses extracted information from the job description t
 **Configuration:**
 ```typescript
 {
-  aiProvider: 'gemini' | 'mock',
-  model: 'gemini-pro' | 'gemini-1.5-pro' | 'gemini-1.5-flash',
+  aiProvider: 'gemini',
+  model: 'gemini-2.5-pro' | 'gemini-3-flash-preview',
   apiKey: string,
   temperature: number, // 0-1 for creativity control
   maxTokens: number,
   enableStreaming: boolean,
-  fallbackToMock: boolean, // Fallback to Phase 2 if AI fails
+  // Note: Fallback to mock service removed - AI-only enhancement
   enhancementMode: 'sequential' | 'agent' // Sequential (default) or agent-based (future)
 }
 ```
@@ -676,7 +676,7 @@ Accepts resume JSON and job description, returns enhanced resume with change tra
 - **API Server:** express/fastify, zod/joi for validation
 - **Utilities:** fs-extra, winston/pino for logging
 - **Development:** typescript, jest, eslint, prettier
-- **AI Integration (Phase 3):** @google/generative-ai
+- **AI Integration (Phase 3):** @google/genai
 
 ---
 

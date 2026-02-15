@@ -589,6 +589,8 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
   - `displayName` - Human-readable provider name
   - `model` - Model used for enhancement
   - `temperature` - Temperature setting used
+
+**Note:** Cost tracking is currently disabled and will be improved in later phases. The response does not include cost information at this time.
 - `pdf` - Enhanced PDF file:
   - `base64` - Base64-encoded PDF content
   - `contentType` - MIME type (`application/pdf`)

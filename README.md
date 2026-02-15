@@ -243,6 +243,31 @@ resume-builder/
 
 See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for detailed schema documentation.
 
+## AI Enhancement Examples
+
+Example AI-enhanced resumes are available in the `enhanced-examples/` directory:
+
+- `mock-resume.json` - Original resume
+- `mock-resume-enhanced.json` - Enhanced resume with change tracking
+- `mock-resume-enhanced.pdf` - Enhanced resume PDF
+- `mock-resume-enhanced.md` - Detailed markdown report of all changes
+
+These examples demonstrate:
+- Natural keyword integration
+- Bullet point enhancements
+- Skills reordering based on job relevance
+- Summary improvements
+- Complete change tracking
+
+To generate your own enhanced examples:
+
+```bash
+npm run dev -- enhanceResume \
+  --input enhanced-examples/mock-resume.json \
+  --job enhanced-examples/mock-job-description.txt \
+  --output enhanced-examples
+```
+
 ## Development
 
 ```bash
@@ -271,6 +296,48 @@ npm run format
 **Available Commands:**
 - `generate` - Generate a resume from JSON
 - `enhanceResume` - Enhance a resume using AI based on job description
+
+## Troubleshooting
+
+### AI Enhancement Issues
+
+**Error: "Gemini API key not configured"**
+- Make sure you have created a `.env` file in the project root
+- Add `GEMINI_API_KEY=your-api-key-here` to the `.env` file
+- See [AI_CONFIG.md](./AI_CONFIG.md) for detailed configuration instructions
+
+**Error: "Rate limit exceeded"**
+- The Gemini API has rate limits. Wait a few minutes and try again
+- Consider using `gemini-3-flash-preview` model which has higher rate limits
+- Check your API quota in Google AI Studio
+
+**Error: "Request timeout"**
+- The default timeout is 30 seconds. For large resumes, increase `GEMINI_TIMEOUT` in `.env`
+- Try using `gemini-3-flash-preview` for faster responses
+- Check your network connection
+
+**Error: "Invalid response from Gemini"**
+- This usually indicates the AI response didn't match the expected format
+- Try running with `--verbose` flag to see detailed error messages
+- The system will automatically retry on retryable errors
+
+**AI enhancement produces unexpected results**
+- Try adjusting the `--ai-temperature` value (lower = more conservative, higher = more creative)
+- Use `gemini-2.5-pro` for better quality, `gemini-3-flash-preview` for faster/cheaper
+- Review the enhanced resume and markdown report to see all changes
+
+### General Issues
+
+**Error: "Cannot find module '@utils/logger'"**
+- Make sure you're using `npm run dev` for development (handles TypeScript path aliases)
+- Or build first with `npm run build` then use `npm run cli`
+
+**PDF generation fails**
+- Ensure Puppeteer dependencies are installed: `npm install`
+- Check that you have write permissions for the output directory
+- Try generating HTML first to isolate PDF-specific issues
+
+For more help, see [AI_CONFIG.md](./AI_CONFIG.md) or check the project issues on GitHub.
 
 ## License
 
