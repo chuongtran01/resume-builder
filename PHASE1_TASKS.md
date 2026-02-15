@@ -320,7 +320,7 @@ Create the first ATS-compliant template (modern style).
 ---
 
 ### Task 4.3: Implement Classic Template
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** Medium  
 **Estimated Time:** 2.5 hours
 
@@ -328,12 +328,12 @@ Create the first ATS-compliant template (modern style).
 Create second ATS-compliant template (classic professional style).
 
 **Subtasks:**
-- [ ] Create `src/templates/classic.ts`
-- [ ] Implement all sections (same as modern)
-- [ ] Apply classic styling (different from modern)
-- [ ] Ensure ATS compliance
-- [ ] Test PDF generation
-- [ ] Write unit tests
+- [x] Create `src/templates/classic.ts`
+- [x] Implement all sections (same as modern)
+- [x] Apply classic styling (different from modern)
+- [x] Ensure ATS compliance
+- [x] Test PDF generation
+- [x] Write unit tests
 
 **Acceptance Criteria:**
 - Template renders correctly
@@ -346,7 +346,7 @@ Create second ATS-compliant template (classic professional style).
 ---
 
 ### Task 4.4: Implement Minimal Template
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** Low  
 **Estimated Time:** 2 hours
 
@@ -354,11 +354,11 @@ Create second ATS-compliant template (classic professional style).
 Create third ATS-compliant template (minimalist style).
 
 **Subtasks:**
-- [ ] Create `src/templates/minimal.ts`
-- [ ] Implement all sections with minimal styling
-- [ ] Ensure ATS compliance
-- [ ] Test PDF generation
-- [ ] Write unit tests
+- [x] Create `src/templates/minimal.ts`
+- [x] Implement all sections with minimal styling
+- [x] Ensure ATS compliance
+- [x] Test PDF generation
+- [x] Write unit tests
 
 **Acceptance Criteria:**
 - Template renders correctly

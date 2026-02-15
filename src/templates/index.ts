@@ -7,3 +7,4 @@ export * from './templateHelpers';
 
 // Import templates to register them
 import './modern';
+import './classic';
