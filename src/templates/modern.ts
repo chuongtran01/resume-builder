@@ -288,6 +288,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     .education-dates {
       font-size: ${s.bodyFontSize};
       color: #000000;
+      font-weight: bold;
     }
 
     .bullet-points {

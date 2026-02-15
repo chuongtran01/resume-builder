@@ -304,7 +304,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       float: right;
       font-size: ${s.bodyFontSize};
       color: #666666;
-      font-weight: normal;
+      font-weight: bold;
     }
 
     .experience-location {
