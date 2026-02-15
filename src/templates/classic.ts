@@ -89,7 +89,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       headerH1MarginBottom: '2pt',
       headerContactFontSize: '9pt',
       headerContactLineHeight: '1.5',
-      headerContactSpanMarginRight: '10pt',
+      headerContactSpanMarginRight: '2pt',
       sectionMarginBottom: '8pt',
       sectionTitleFontSize: '12pt',
       sectionTitleMarginBottom: '4pt',
@@ -130,7 +130,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       headerH1MarginBottom: '3pt',
       headerContactFontSize: '10pt',
       headerContactLineHeight: '1.8',
-      headerContactSpanMarginRight: '12pt',
+      headerContactSpanMarginRight: '3pt',
       sectionMarginBottom: '14pt',
       sectionTitleFontSize: '13pt',
       sectionTitleMarginBottom: '8pt',
@@ -206,10 +206,24 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       font-size: ${s.headerContactFontSize};
       color: #000000;
       line-height: ${s.headerContactLineHeight};
+      padding: 0;
     }
 
     .header .contact-info span {
       margin-right: ${s.headerContactSpanMarginRight};
+    }
+
+    .header .contact-info span:first-child {
+      margin-left: 0;
+    }
+
+    .header .contact-info span:last-child {
+      margin-right: 0;
+    }
+
+    .header .contact-info .separator {
+      margin: 0 2pt;
+      color: #000000;
     }
 
     .section {
@@ -359,20 +373,20 @@ function renderHeader(resume: Resume): string {
   contactParts.push(escapeHtml(personalInfo.location));
 
   if (personalInfo.linkedin) {
-    contactParts.push(`<a href="${escapeHtml(personalInfo.linkedin)}">LinkedIn</a>`);
+    contactParts.push(escapeHtml(personalInfo.linkedin));
   }
   if (personalInfo.github) {
-    contactParts.push(`<a href="${escapeHtml(personalInfo.github)}">GitHub</a>`);
+    contactParts.push(escapeHtml(personalInfo.github));
   }
   if (personalInfo.website) {
-    contactParts.push(`<a href="${escapeHtml(personalInfo.website)}">Website</a>`);
+    contactParts.push(escapeHtml(personalInfo.website));
   }
 
   return `
     <div class="header">
       <h1>${escapeHtml(personalInfo.name)}</h1>
       <div class="contact-info">
-        ${contactParts.map((part) => `<span>${part}</span>`).join('')}
+        ${contactParts.map((part) => `<span>${part}</span>`).join(' <span class="separator">|</span> ')}
       </div>
     </div>
   `;
