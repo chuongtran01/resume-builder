@@ -103,7 +103,7 @@ interface AIResponse {
 ---
 
 ### Task 16.2: Implement AI Provider Registry
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 1.5 hours
 
@@ -111,15 +111,21 @@ interface AIResponse {
 Create a registry system to manage multiple AI providers and allow dynamic provider selection.
 
 **Subtasks:**
-- [ ] Create `src/services/ai/providerRegistry.ts`
-- [ ] Implement `registerProvider(name: string, provider: AIProvider): void`
-- [ ] Implement `getProvider(name: string): AIProvider | undefined`
-- [ ] Implement `listProviders(): string[]`
-- [ ] Implement `getDefaultProvider(): AIProvider`
-- [ ] Add provider validation on registration
-- [ ] Add error handling for missing providers
-- [ ] Add logging for provider operations
-- [ ] Write unit tests
+- [x] Create `src/services/ai/providerRegistry.ts`
+- [x] Implement `registerProvider(name: string, provider: AIProvider): void`
+- [x] Implement `getProvider(name: string): AIProvider | undefined`
+- [x] Implement `listProviders(): string[]`
+- [x] Implement `getDefaultProvider(): AIProvider`
+- [x] Add provider validation on registration
+- [x] Add error handling for missing providers
+- [x] Add logging for provider operations
+- [x] Write unit tests
+- [x] Add `getProviderOrThrow()` for error-throwing retrieval
+- [x] Add `hasProvider()` for existence checking
+- [x] Add `unregisterProvider()` for provider removal
+- [x] Add `clearRegistry()` for clearing all providers
+- [x] Add `getProviderCount()` for counting providers
+- [x] Add `setDefaultProvider()` for setting default
 
 **Files to Create:**
 - `src/services/ai/providerRegistry.ts`
