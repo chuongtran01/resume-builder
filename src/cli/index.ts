@@ -24,7 +24,7 @@ program
   .alias('gen')
   .option('-i, --input <path>', 'Path to resume.json file (required)')
   .option('-o, --output <path>', 'Path for output file (required)')
-  .option('-t, --template <name>', 'Template name (modern, classic)', 'modern')
+  .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
   .option('--validate', 'Run ATS validation', false)
   .option('--spacing <mode>', 'Spacing mode: auto (default), compact, normal', 'auto')
