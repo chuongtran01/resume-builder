@@ -82,7 +82,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
   const spacingPresets = {
     compact: {
       bodyPadding: '0.35in',
-      bodyFontSize: '10pt',
+      bodyFontSize: '9pt',
       lineHeight: '1.25',
       headerMarginBottom: '8pt',
       headerPaddingBottom: '2pt',

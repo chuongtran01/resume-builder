@@ -42,35 +42,7 @@
     }
   ],
   "education": "file:../resume-sections/education.json",
-  "skills": {
-    "categories": [
-      {
-        "name": "Skills",
-        "items": [
-          "Java",
-          "C/C++",
-          "JavaScript",
-          "TypeScript",
-          "Python",
-          "HTML/CSS",
-          ".NET",
-          "Spring Boot",
-          "React.js",
-          "Angular",
-          "Node.js",
-          "Ember.js",
-          "MongoDB",
-          "MySQL",
-          "REST APIs",
-          "Selenium",
-          "Docker",
-          "Git",
-          "D3.js",
-          "Apache Kafka"
-        ]
-      }
-    ]
-  },
+  "skills": "file:../resume-sections/skills.json",
   "projects": [
     {
       "name": "Brain Tumors Classification",
