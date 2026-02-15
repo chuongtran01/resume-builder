@@ -422,6 +422,261 @@ program
     }
   });
 
+// Enhance resume command
+program
+  .command('enhanceResume')
+  .description('Enhance a resume based on a job description')
+  .alias('enhance')
+  .option('-i, --input <path>', 'Path to resume.json file (required)')
+  .option('-j, --job <path>', 'Path to job description file (required)')
+  .option('-o, --output <path>', 'Output directory for enhanced files', './output')
+  .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
+  .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
+  .option('-v, --verbose', 'Enable verbose logging', false)
+  .action(async (options) => {
+    try {
+      // Set verbose mode if requested
+      if (options.verbose) {
+        logger.setVerbose(true);
+      }
+
+      // Import templates to ensure they are registered
+      await import('../templates');
+
+      // Validate required options
+      if (!options.input) {
+        logger.error('❌ Error: --input is required');
+        logger.info('💡 Tip: Use --input <path> to specify the resume JSON file');
+        logger.info('   Example: --input examples/resume.json');
+        program.help();
+        process.exit(1);
+      }
+
+      if (!options.job) {
+        logger.error('❌ Error: --job is required');
+        logger.info('💡 Tip: Use --job <path> to specify the job description file');
+        logger.info('   Example: --job examples/jobDescription.txt');
+        program.help();
+        process.exit(1);
+      }
+
+      // Validate input file
+      const inputPath = path.resolve(options.input);
+      const inputExists = await fs.pathExists(inputPath);
+      if (!inputExists) {
+        logger.error(`❌ Error: Input file not found: ${inputPath}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Check if the file path is correct`);
+        logger.info(`   - Ensure the file exists at: ${inputPath}`);
+        process.exit(1);
+      }
+
+      const inputStats = await fs.stat(inputPath);
+      if (!inputStats.isFile()) {
+        logger.error(`❌ Error: Input path is not a file: ${inputPath}`);
+        process.exit(1);
+      }
+
+      // Validate job description file
+      const jobPath = path.resolve(options.job);
+      const jobExists = await fs.pathExists(jobPath);
+      if (!jobExists) {
+        logger.error(`❌ Error: Job description file not found: ${jobPath}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Check if the file path is correct`);
+        logger.info(`   - Ensure the file exists at: ${jobPath}`);
+        process.exit(1);
+      }
+
+      const jobStats = await fs.stat(jobPath);
+      if (!jobStats.isFile()) {
+        logger.error(`❌ Error: Job description path is not a file: ${jobPath}`);
+        process.exit(1);
+      }
+
+      // Validate output directory
+      const outputDir = path.resolve(options.output);
+      try {
+        await fs.ensureDir(outputDir);
+        await fs.access(outputDir, fs.constants.W_OK);
+      } catch (error) {
+        logger.error(`❌ Error: Cannot write to output directory: ${outputDir}`);
+        logger.info('💡 Suggestions:');
+        logger.info(`   - Check directory permissions`);
+        logger.info(`   - Ensure you have write access to: ${outputDir}`);
+        process.exit(1);
+      }
+
+      // Validate format
+      const format = options.format.toLowerCase();
+      if (!['pdf', 'html'].includes(format)) {
+        logger.error(`❌ Error: Invalid format "${options.format}"`);
+        logger.info('💡 Valid formats are: pdf, html');
+        process.exit(1);
+      }
+
+      // Validate template
+      const { getTemplateNames, hasTemplate } = await import('../templates/templateRegistry');
+      const availableTemplates = getTemplateNames();
+      
+      if (!hasTemplate(options.template)) {
+        logger.error(`❌ Error: Template "${options.template}" not found`);
+        logger.info('💡 Available templates:');
+        availableTemplates.forEach((template: string) => {
+          logger.info(`   - ${template}`);
+        });
+        process.exit(1);
+      }
+
+      logger.info('🚀 Starting resume enhancement...\n');
+
+      // Step 1: Load and parse resume
+      logger.info('📄 Step 1: Loading resume...');
+      const { parseResume } = await import('../utils/resumeParser');
+      const resume = await parseResume({
+        resumePath: options.input,
+        validate: true,
+      });
+      logger.success('   ✅ Resume loaded successfully');
+
+      // Step 2: Load job description
+      logger.info('\n📋 Step 2: Loading job description...');
+      const jobDescription = await fs.readFile(jobPath, 'utf8');
+      if (!jobDescription.trim()) {
+        logger.error('❌ Error: Job description file is empty');
+        process.exit(1);
+      }
+      logger.success('   ✅ Job description loaded successfully');
+
+      // Step 3: Enhance resume
+      logger.info('\n🤖 Step 3: Enhancing resume...');
+      const { resumeEnhancementService } = await import('../services/resumeEnhancementService');
+      const enhancementResult = await resumeEnhancementService.enhanceResume(
+        resume,
+        jobDescription
+      );
+      logger.success('   ✅ Resume enhanced successfully');
+      logger.info(`   📊 ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
+      logger.info(`   📝 Changes: ${enhancementResult.improvements.length} improvements made`);
+
+      // Step 4: Generate enhanced JSON
+      logger.info('\n📦 Step 4: Generating enhanced resume JSON...');
+      const { generateAndWriteEnhancedResume } = await import('../services/enhancedResumeGenerator');
+      const baseName = path.basename(inputPath, path.extname(inputPath));
+      const jsonPath = await generateAndWriteEnhancedResume(enhancementResult, {
+        outputDir: options.output,
+        baseName: `${baseName}-enhanced`,
+      });
+      logger.success(`   ✅ Enhanced JSON written: ${jsonPath}`);
+
+      // Step 5: Generate PDF
+      logger.info(`\n📄 Step 5: Generating ${format.toUpperCase()}...`);
+      const { generateResumeFromObject } = await import('../services/resumeGenerator');
+      const pdfPath = path.join(outputDir, `${baseName}-enhanced.${format}`);
+      const pdfResult = await generateResumeFromObject(
+        enhancementResult.enhancedResume,
+        pdfPath,
+        {
+          template: options.template,
+          format: format as 'pdf' | 'html',
+          validate: false,
+        }
+      );
+      logger.success(`   ✅ ${format.toUpperCase()} generated: ${pdfResult.outputPath}`);
+
+      // Step 6: Generate Markdown report
+      logger.info('\n📝 Step 6: Generating Markdown report...');
+      const { generateEnhancedResumeOutput } = await import('../services/enhancedResumeGenerator');
+      const { generateAndWriteMarkdownReport } = await import('../services/mdGenerator');
+      const enhancedOutput = generateEnhancedResumeOutput(enhancementResult, {
+        outputDir: options.output,
+        baseName: `${baseName}-enhanced`,
+      });
+      const mdPath = path.join(outputDir, `${baseName}-enhanced.md`);
+      await generateAndWriteMarkdownReport(enhancedOutput, mdPath);
+      logger.success(`   ✅ Markdown report written: ${mdPath}`);
+
+      // Display summary
+      logger.success('\n✅ Resume enhancement completed successfully!\n');
+      logger.info('📁 Generated files:');
+      logger.info(`   📄 Enhanced JSON: ${jsonPath}`);
+      logger.info(`   📄 ${format.toUpperCase()}: ${pdfResult.outputPath}`);
+      logger.info(`   📄 Markdown Report: ${mdPath}`);
+      logger.info('\n📊 Enhancement Summary:');
+      logger.info(`   ATS Score Improvement: +${enhancementResult.atsScore.improvement} points`);
+      logger.info(`   Total Changes: ${enhancementResult.improvements.length}`);
+      logger.info(`   Suggestions: ${enhancementResult.recommendations.length}`);
+      if (enhancementResult.missingSkills.length > 0) {
+        logger.warn(`\n   Missing Skills: ${enhancementResult.missingSkills.slice(0, 5).join(', ')}${enhancementResult.missingSkills.length > 5 ? '...' : ''}`);
+      }
+
+      process.exit(0);
+    } catch (error) {
+      // Import error types for type checking
+      const { FileNotFoundError, InvalidJsonError } = await import('../utils/fileLoader');
+      const { ResumeValidationError, MissingRequiredFieldError } = await import('../utils/resumeParser');
+      const { TemplateNotFoundError } = await import('../services/resumeGenerator');
+      const { PdfGenerationError } = await import('../utils/pdfGenerator');
+      const { JsonWriteError } = await import('../services/enhancedResumeGenerator');
+      const { MarkdownWriteError } = await import('../services/mdGenerator');
+
+      if (error instanceof FileNotFoundError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Check if the file path is correct');
+        logger.info('   - Ensure all referenced files exist');
+      } else if (error instanceof InvalidJsonError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Validate your JSON syntax using a JSON validator');
+        logger.info('   - Check for missing commas, brackets, or quotes');
+      } else if (error instanceof ResumeValidationError) {
+        logger.error(`\n❌ ${error.message}`);
+        if (error.errors.length > 0) {
+          logger.info('\n   Validation errors:');
+          error.errors.forEach((err) => {
+            logger.error(`   - ${err}`);
+          });
+        }
+      } else if (error instanceof MissingRequiredFieldError) {
+        logger.error(`\n❌ ${error.message}`);
+      } else if (error instanceof TemplateNotFoundError) {
+        logger.error(`\n❌ ${error.message}`);
+        const { getTemplateNames } = await import('../templates/templateRegistry');
+        const availableTemplates = getTemplateNames();
+        logger.info('💡 Available templates:');
+        availableTemplates.forEach((template: string) => {
+          logger.info(`   - ${template}`);
+        });
+      } else if (error instanceof PdfGenerationError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Ensure Puppeteer dependencies are installed correctly');
+        logger.info('   - Try generating HTML format instead: --format html');
+      } else if (error instanceof JsonWriteError || error instanceof MarkdownWriteError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Check output directory permissions');
+        logger.info('   - Ensure you have write access to the output directory');
+      } else if (error instanceof Error) {
+        logger.error(`\n❌ Error: ${error.message}`);
+        if (logger.isVerbose()) {
+          logger.error(`\nStack trace:\n${error.stack}`);
+        } else {
+          logger.info('💡 Tip: Use --verbose flag to see detailed error information');
+        }
+      } else {
+        logger.error(`\n❌ Unknown error occurred`);
+        if (logger.isVerbose()) {
+          logger.error(String(error));
+        } else {
+          logger.info('💡 Tip: Use --verbose flag to see detailed error information');
+        }
+      }
+      process.exit(1);
+    }
+  });
+
 // Parse command line arguments
 if (require.main === module) {
   program.parse();

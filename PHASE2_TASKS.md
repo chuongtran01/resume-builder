@@ -308,7 +308,7 @@ Create a service that generates a human-readable Markdown report summarizing all
 ## 💻 Task Group 13: CLI Integration
 
 ### Task 13.1: Implement Enhance Resume CLI Command
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2.5 hours
 
@@ -316,23 +316,23 @@ Create a service that generates a human-readable Markdown report summarizing all
 Add a new CLI command `enhanceResume` that orchestrates the entire enhancement pipeline.
 
 **Subtasks:**
-- [ ] Add `enhanceResume` command to CLI
-- [ ] Add `--input` / `-i` argument (required) for resume JSON path
-- [ ] Add `--job` / `-j` argument (required) for job description file path
-- [ ] Add `--output` / `-o` argument (optional, default: `./output`) for output directory
-- [ ] Add `--template` argument (optional, default: `classic`) for PDF template
-- [ ] Add `--format` argument (optional, default: `pdf`) for output format
-- [ ] Implement input file validation
-- [ ] Implement job description file validation
-- [ ] Load and parse resume JSON
-- [ ] Load job description text
-- [ ] Call enhancement service
-- [ ] Generate enhanced JSON
-- [ ] Generate PDF using existing generator
-- [ ] Generate Markdown report
-- [ ] Display progress indicators
-- [ ] Display success/error messages
-- [ ] Handle errors gracefully
+- [x] Add `enhanceResume` command to CLI
+- [x] Add `--input` / `-i` argument (required) for resume JSON path
+- [x] Add `--job` / `-j` argument (required) for job description file path
+- [x] Add `--output` / `-o` argument (optional, default: `./output`) for output directory
+- [x] Add `--template` argument (optional, default: `classic`) for PDF template
+- [x] Add `--format` argument (optional, default: `pdf`) for output format
+- [x] Implement input file validation
+- [x] Implement job description file validation
+- [x] Load and parse resume JSON
+- [x] Load job description text
+- [x] Call enhancement service
+- [x] Generate enhanced JSON
+- [x] Generate PDF using existing generator
+- [x] Generate Markdown report
+- [x] Display progress indicators
+- [x] Display success/error messages
+- [x] Handle errors gracefully
 - [ ] Write integration tests
 
 **Files to Modify:**
