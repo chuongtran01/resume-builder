@@ -299,22 +299,22 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
 
     .skills-categories {
       margin-top: ${s.skillsCategoriesMarginTop};
+      line-height: 1.8;
     }
 
     .skill-category {
-      margin-bottom: ${s.skillCategoryMarginBottom};
+      display: block;
+      margin-bottom: 3pt;
     }
 
     .skill-category-name {
       font-weight: 600;
       font-size: ${s.skillCategoryNameFontSize};
-      margin-bottom: ${s.skillCategoryNameMarginBottom};
       color: #666666;
     }
 
     .skill-items {
       font-size: ${s.skillItemsFontSize};
-      margin-left: ${s.skillItemsMarginLeft};
       color: #333333;
     }
 
@@ -516,8 +516,8 @@ function renderSkills(skills: Resume['skills']): string {
       const items = category.items.map((item) => escapeHtml(item)).join(', ');
       return `
         <div class="skill-category">
-          <div class="skill-category-name">${escapeHtml(category.name)}</div>
-          <div class="skill-items">${items}</div>
+          <span class="skill-category-name">${escapeHtml(category.name)}: </span>
+          <span class="skill-items">${items}</span>
         </div>
       `;
     })
