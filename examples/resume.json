@@ -1,0 +1,90 @@
+{
+  "personalInfo": {
+    "name": "Chuong Tran",
+    "email": "chuong@example.com",
+    "phone": "+1 123-456-7890",
+    "location": "San Francisco, CA, USA",
+    "linkedin": "https://linkedin.com/in/chuongtran",
+    "github": "https://github.com/chuongtran",
+    "website": "https://chuongtran.dev"
+  },
+  "summary": "Software engineer with 5 years of experience in fullstack development, specializing in scalable web applications and cloud infrastructure. Proven track record of leading engineering teams and delivering high-quality software solutions.",
+  "experience": [
+    {
+      "company": "Awesome Corp",
+      "role": "Senior Software Engineer",
+      "startDate": "2023-01",
+      "endDate": "Present",
+      "location": "Remote",
+      "bulletPoints": [
+        "Built scalable API services with Node.js and TypeScript serving 1M+ requests/day",
+        "Led a team of 4 engineers to deliver features on time and within budget",
+        "Reduced API response time by 40% through optimization and caching strategies",
+        "Implemented CI/CD pipelines reducing deployment time from 2 hours to 15 minutes"
+      ]
+    },
+    {
+      "company": "StartupXYZ",
+      "role": "Full Stack Engineer",
+      "startDate": "2020-06",
+      "endDate": "2022-12",
+      "location": "San Francisco, CA",
+      "bulletPoints": [
+        "Developed React-based frontend with TypeScript and Redux for 50K+ active users",
+        "Implemented RESTful APIs using Express.js and PostgreSQL handling 100K+ requests/day",
+        "Designed and deployed microservices architecture on AWS reducing infrastructure costs by 30%",
+        "Collaborated with product team to define technical requirements and deliver MVP features"
+      ]
+    },
+    {
+      "company": "Tech Solutions Inc",
+      "role": "Software Engineer",
+      "startDate": "2019-01",
+      "endDate": "2020-05",
+      "location": "San Francisco, CA",
+      "bulletPoints": [
+        "Built responsive web applications using React, Node.js, and MongoDB",
+        "Participated in code reviews and maintained code quality standards",
+        "Fixed critical bugs improving system stability by 25%"
+      ]
+    }
+  ],
+  "education": "file:./resume-sections/education.json",
+  "skills": "file:./resume-sections/skills.json",
+  "certifications": "file:./resume-sections/certifications.json",
+  "projects": [
+    {
+      "name": "Resume Builder",
+      "description": "Open-source ATS-friendly resume generator built with TypeScript and Node.js",
+      "technologies": [
+        "TypeScript",
+        "Node.js",
+        "Puppeteer",
+        "Express"
+      ],
+      "github": "https://github.com/chuongtran/resume-builder",
+      "url": "https://resume-builder.example.com"
+    },
+    {
+      "name": "Task Management API",
+      "description": "RESTful API for task management with real-time collaboration features",
+      "technologies": [
+        "Node.js",
+        "PostgreSQL",
+        "WebSocket",
+        "Redis"
+      ],
+      "github": "https://github.com/chuongtran/task-api"
+    }
+  ],
+  "languages": [
+    {
+      "name": "English",
+      "proficiency": "Native"
+    },
+    {
+      "name": "Vietnamese",
+      "proficiency": "Fluent"
+    }
+  ]
+}

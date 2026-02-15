@@ -1,0 +1,53 @@
+{
+  "categories": [
+    {
+      "name": "Programming Languages",
+      "items": [
+        "TypeScript",
+        "JavaScript",
+        "Python",
+        "Go",
+        "Java"
+      ]
+    },
+    {
+      "name": "Frameworks & Libraries",
+      "items": [
+        "React",
+        "Node.js",
+        "Express",
+        "Next.js",
+        "Vue.js"
+      ]
+    },
+    {
+      "name": "Databases",
+      "items": [
+        "PostgreSQL",
+        "MongoDB",
+        "Redis",
+        "MySQL"
+      ]
+    },
+    {
+      "name": "Cloud & DevOps",
+      "items": [
+        "AWS",
+        "Docker",
+        "Kubernetes",
+        "CI/CD",
+        "Terraform"
+      ]
+    },
+    {
+      "name": "Tools & Technologies",
+      "items": [
+        "Git",
+        "Linux",
+        "REST APIs",
+        "GraphQL",
+        "Microservices"
+      ]
+    }
+  ]
+}

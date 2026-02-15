@@ -1,0 +1,23 @@
+[
+  {
+    "name": "AWS Certified Solutions Architect",
+    "issuer": "Amazon Web Services",
+    "date": "2023-06",
+    "expirationDate": "2026-06",
+    "credentialId": "ABC123XYZ"
+  },
+  {
+    "name": "Google Cloud Professional Cloud Architect",
+    "issuer": "Google Cloud",
+    "date": "2022-03",
+    "expirationDate": "2025-03",
+    "credentialId": "DEF456UVW"
+  },
+  {
+    "name": "Certified Kubernetes Administrator",
+    "issuer": "Cloud Native Computing Foundation",
+    "date": "2021-09",
+    "expirationDate": "2024-09",
+    "credentialId": "GHI789RST"
+  }
+]
