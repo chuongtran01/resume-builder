@@ -81,17 +81,17 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
   const spacingPresets = {
     compact: {
       bodyPadding: '0.4in',
-      bodyFontSize: '10pt',
+      bodyFontSize: '9pt',
       lineHeight: '1.3',
       headerMarginBottom: '8pt',
       headerPaddingBottom: '2pt',
-      headerH1FontSize: '16pt',
+      headerH1FontSize: '14pt',
       headerH1MarginBottom: '2pt',
-      headerContactFontSize: '9pt',
+      headerContactFontSize: '8pt',
       headerContactLineHeight: '1.5',
       headerContactSpanMarginRight: '2pt',
       sectionMarginBottom: '8pt',
-      sectionTitleFontSize: '12pt',
+      sectionTitleFontSize: '11pt',
       sectionTitleMarginBottom: '4pt',
       sectionTitlePaddingBottom: '2pt',
       summaryFontSize: '10pt',
@@ -203,7 +203,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     }
 
     .header .contact-info {
-      font-size: ${s.headerContactFontSize};
+      font-size: ${s.bodyFontSize};
       color: #000000;
       line-height: ${s.headerContactLineHeight};
       padding: 0;
