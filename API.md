@@ -6,6 +6,42 @@ The Resume Builder API provides REST endpoints for generating ATS-compliant resu
 
 **Base URL:** `http://localhost:3000` (default)
 
+## Getting Started
+
+### Prerequisites
+
+1. **Build the project:**
+   ```bash
+   npm run build
+   ```
+
+2. **Set up environment variables (optional):**
+   - Create a `.env` file if you plan to use AI enhancement features
+   - See [AI_CONFIG.md](./AI_CONFIG.md) for configuration details
+
+### Starting the Server
+
+Start the API server:
+```bash
+npm run api
+```
+
+The server will start on `http://localhost:3000` by default. You can verify it's running by checking the health endpoint:
+```bash
+curl http://localhost:3000/health
+```
+
+### Environment Variables
+
+- `PORT` - Server port (default: `3000`)
+- `CORS_ORIGIN` - CORS allowed origin (default: `*`)
+- `NODE_ENV` - Environment mode (default: `development`)
+
+Example with custom port:
+```bash
+PORT=8080 npm run api
+```
+
 ## Authentication
 
 Currently, the API does not require authentication. In production, you may want to add API keys or OAuth.

@@ -39,31 +39,48 @@ See [AI_CONFIG.md](./AI_CONFIG.md) for detailed configuration options.
 
 **Note:** For development, use `npm run dev` which handles TypeScript path aliases. For production, build first with `npm run build` then use `npm run cli`.
 
+#### Generate Resume
+
 Generate a PDF resume:
 ```bash
-npm run dev -- --input resume.json --output resume.pdf
+npm run dev -- generate --input resume.json --output resume.pdf
 ```
 
 Or after building:
 ```bash
 npm run build
-npm run cli -- --input resume.json --output resume.pdf
+npm run cli -- generate --input resume.json --output resume.pdf
 ```
 
 Generate an HTML resume:
 ```bash
-npm run dev -- --input resume.json --output resume.html --format html
+npm run dev -- generate --input resume.json --output resume.html --format html
 ```
 
 Specify a template:
 ```bash
-npm run dev -- --input resume.json --output resume.pdf --template modern
+npm run dev -- generate --input resume.json --output resume.pdf --template modern
+```
+
+Use compact spacing:
+```bash
+npm run dev -- generate --input resume.json --output resume.pdf --spacing compact
 ```
 
 Run ATS validation:
 ```bash
-npm run dev -- --input resume.json --output resume.pdf --validate
+npm run dev -- generate --input resume.json --output resume.pdf --validate
 ```
+
+**Generate Command Options:**
+- `--input, -i <path>` - Path to resume JSON file (required)
+- `--output, -o <path>` - Path for output file (required)
+- `--template, -t <name>` - Template name: `classic` or `modern` (default: `classic`)
+- `--format, -f <format>` - Output format: `pdf` or `html` (default: `pdf`)
+- `--spacing <mode>` - Spacing mode: `auto` (default), `compact`, or `normal`
+- `--compact` - Use compact spacing (shorthand for `--spacing compact`)
+- `--validate` - Run ATS validation
+- `--verbose, -v` - Enable verbose logging
 
 ### Enhance Resume with AI
 
@@ -159,10 +176,17 @@ This will:
 
 ### API Usage
 
+**Prerequisites:** Build the project first:
+```bash
+npm run build
+```
+
 Start the API server:
 ```bash
 npm run api
 ```
+
+The server will start on `http://localhost:3000` by default.
 
 For complete API documentation, see [API.md](./API.md).
 
@@ -225,8 +249,14 @@ See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for detailed schema documentation.
 # Build the project
 npm run build
 
-# Run in development mode
-npm run dev
+# Run CLI in development mode (with TypeScript path aliases)
+npm run dev -- <command> [options]
+
+# Run CLI in production mode (after building)
+npm run cli -- <command> [options]
+
+# Start API server
+npm run api
 
 # Run tests
 npm test
@@ -237,6 +267,10 @@ npm run lint
 # Format code
 npm run format
 ```
+
+**Available Commands:**
+- `generate` - Generate a resume from JSON
+- `enhanceResume` - Enhance a resume using AI based on job description
 
 ## License
 

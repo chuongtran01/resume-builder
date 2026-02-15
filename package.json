@@ -9,8 +9,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node src/cli/index.ts",
-    "cli": "node dist/cli/index.js",
+    "dev": "ts-node -r tsconfig-paths/register src/cli/index.ts",
+    "cli": "node -r tsconfig-paths/register dist/cli/index.js",
     "api": "node dist/api/server.js",
     "test": "jest",
     "test:watch": "jest --watch",
