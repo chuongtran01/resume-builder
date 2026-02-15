@@ -133,7 +133,7 @@ const templateOptionsSchema = z.object({
   pageBreaks: z.boolean().optional(),
   customCss: z.string().optional(),
   printStyles: z.boolean().optional(),
-  spacing: z.enum(['compact', 'normal', 'spacious', 'auto']).optional(),
+  spacing: z.enum(['compact', 'normal', 'auto']).optional(),
 });
 
 /**
