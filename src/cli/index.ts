@@ -594,7 +594,7 @@ program
           logger.error('❌ Error: Gemini API key not configured');
           logger.info('💡 Suggestions:');
           logger.info('   - Set GEMINI_API_KEY environment variable');
-          logger.info('   - Or configure in ai.config.json file');
+          logger.info('   - Or set GEMINI_API_KEY in .env file');
           logger.info('   - See AI_CONFIG.md for configuration details');
           process.exit(1);
         }
@@ -765,7 +765,7 @@ program
         logger.error(`\n❌ ${error.message}`);
         logger.info('💡 Suggestions:');
         logger.info('   - Ensure AI provider is properly configured');
-        logger.info('   - Check that GEMINI_API_KEY is set or configured in ai.config.json');
+        logger.info('   - Check that GEMINI_API_KEY is set in .env file or environment variables');
         logger.info('   - See AI_CONFIG.md for configuration details');
       } else if (error instanceof AIProviderError) {
         logger.error(`\n❌ AI Provider Error: ${error.message}`);

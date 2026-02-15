@@ -72,56 +72,36 @@ npm run cli -- enhanceResume \
 
 ---
 
-## Method 2: Config File
+## Method 2: Using .env File (Recommended)
 
-### Step 1: Copy the example config file
-
-```bash
-cp src/config/ai.config.example.json ai.config.json
-```
-
-### Step 2: Edit `ai.config.json` in the project root
-
-```json
-{
-  "defaultProvider": "gemini",
-  "providers": {
-    "gemini": {
-      "apiKey": "${GEMINI_API_KEY}",
-      "model": "gemini-2.5-pro",
-      "temperature": 0.7,
-      "maxTokens": 2000,
-      "timeout": 30000,
-      "maxRetries": 3,
-      "retryDelayBase": 1000
-    }
-  },
-  "enhancementMode": "sequential"
-}
-```
-
-### Step 3: Set the API key environment variable
-
-The config file uses `${GEMINI_API_KEY}` syntax to reference environment variables:
+### Step 1: Copy the example .env file
 
 ```bash
-export GEMINI_API_KEY="your-api-key-here"
+cp .env.example .env
 ```
 
-**Note:** You can also put the API key directly in the config file, but this is **not recommended** for security reasons. Always use environment variable references for secrets.
+### Step 2: Edit `.env` file and add your API key
 
-### Alternative: Direct API key in config (not recommended)
-
-```json
-{
-  "providers": {
-    "gemini": {
-      "apiKey": "your-api-key-directly-here",
-      "model": "gemini-2.5-pro"
-    }
-  }
-}
+```bash
+# Edit .env file
+GEMINI_API_KEY=your-api-key-here
 ```
+
+### Step 3: (Optional) Configure other settings
+
+You can customize other settings in `.env`:
+
+```env
+GEMINI_API_KEY=your-api-key-here
+GEMINI_MODEL=gemini-2.5-pro
+GEMINI_TEMPERATURE=0.7
+GEMINI_MAX_TOKENS=2000
+GEMINI_TIMEOUT=30000
+GEMINI_MAX_RETRIES=3
+ENHANCEMENT_MODE=sequential
+```
+
+**Note:** The `.env` file is automatically loaded by the application. It's already in `.gitignore` so your API key won't be committed.
 
 ⚠️ **Warning:** Never commit API keys to version control!
 
@@ -192,14 +172,14 @@ The configuration is loaded using the `loadAIConfig()` function:
 ```typescript
 import { loadAIConfig, getGeminiConfig, getDefaultProvider } from '@services/ai/config';
 
-// Load configuration (defaults to ./ai.config.json)
+// Load configuration (loads from .env file automatically)
 const config = await loadAIConfig();
 
-// Or specify a custom path
+// Or load from optional JSON config file (not recommended - use .env instead)
 const config = await loadAIConfig({
+  loadFromFile: true,
   configPath: './custom-config.json',
-  loadFromEnv: true,  // Also load from environment (default: true)
-  loadFromFile: true, // Also load from file (default: true)
+  loadFromEnv: true,  // Also load from .env (default: true)
   validate: true      // Validate configuration (default: true)
 });
 
@@ -214,16 +194,16 @@ const defaultProvider = getDefaultProvider(config);
 
 ## Configuration Priority
 
-When both environment variables and config file are present:
+Configuration is loaded from `.env` file automatically. Priority order:
 
-1. **Config file** settings take precedence
-2. **Environment variables** are used as fallback
-3. **Defaults** are used if neither is set
+1. **CLI options** (highest priority)
+2. **Environment variables** (from `.env` file or system environment)
+3. **Defaults** (if neither is set)
 
 **Example:**
-- Environment: `GEMINI_MODEL=gemini-2.5-pro`
-- Config file: `"model": "gemini-2.5-pro"`
-- **Result:** `gemini-2.5-pro` (config file wins)
+- `.env`: `GEMINI_MODEL=gemini-2.5-pro`
+- CLI: `--ai-model gemini-3-flash-preview`
+- **Result:** `gemini-3-flash-preview` (CLI option wins)
 
 ---
 
@@ -240,17 +220,14 @@ The configuration is automatically validated when loaded. Common validation erro
 
 ## Security Best Practices
 
-1. ✅ **Use environment variables for API keys**
-   ```json
-   "apiKey": "${GEMINI_API_KEY}"
+1. ✅ **Use `.env` file for API keys** (already in `.gitignore`)
+   ```env
+   GEMINI_API_KEY=your-api-key-here
    ```
 
-2. ✅ **Add `ai.config.json` to `.gitignore`** (if it contains secrets)
-   ```gitignore
-   ai.config.json
-   ```
+2. ✅ **The `.env` file is already in `.gitignore`** (so your API key won't be committed)
 
-3. ✅ **Keep `ai.config.example.json` in version control** (without secrets)
+3. ✅ **Keep `.env.example` in version control** (without secrets) - this is already done
 
 4. ✅ **Never commit API keys to version control**
 
@@ -272,11 +249,12 @@ The configuration is automatically validated when loaded. Common validation erro
 ## Troubleshooting
 
 ### "Configuration validation failed: Gemini API key is required"
-- Make sure `GEMINI_API_KEY` environment variable is set
-- Or provide `apiKey` in the config file
+- Make sure `GEMINI_API_KEY` is set in your `.env` file
+- Or set it as an environment variable: `export GEMINI_API_KEY="your-key"`
 
 ### "Environment variable GEMINI_API_KEY is not set"
-- The config file references `${GEMINI_API_KEY}` but the env var is not set
+- Make sure you have a `.env` file with `GEMINI_API_KEY=your-key-here`
+- Or set it as an environment variable: `export GEMINI_API_KEY="your-key"`
 - Set the environment variable or use a direct API key in the config
 
 ### "Config file not found"
@@ -315,9 +293,9 @@ npm run cli -- enhanceResume \
 
 ```bash
 # 1. Copy example config
-cp src/config/ai.config.example.json ai.config.json
+cp .env.example .env
 
-# 2. Edit ai.config.json (already has good defaults)
+# 2. Edit .env and add your API key
 
 # 3. Set API key
 export GEMINI_API_KEY="your-key-here"
@@ -333,30 +311,25 @@ npm run cli -- enhanceResume \
   --output ./custom-output
 ```
 
-### Option C: Both (Config File + Environment Variables)
+### Option C: .env File (All Settings)
 
 ```bash
-# 1. Set API key in environment
-export GEMINI_API_KEY="your-key-here"
+# 1. Copy example .env file
+cp .env.example .env
 
-# 2. Create config file with other settings
-cat > ai.config.json << EOF
-{
-  "defaultProvider": "gemini",
-  "providers": {
-    "gemini": {
-      "apiKey": "\${GEMINI_API_KEY}",
-      "model": "gemini-2.5-pro",
-      "temperature": 0.7
-    }
-  }
-}
-EOF
+# 2. Edit .env with all your settings
+# GEMINI_API_KEY=your-key-here
+# GEMINI_MODEL=gemini-2.5-pro
+# GEMINI_TEMPERATURE=0.7
+# GEMINI_MAX_TOKENS=2000
+# GEMINI_TIMEOUT=30000
+# GEMINI_MAX_RETRIES=3
+# ENHANCEMENT_MODE=sequential
 
-# 3. Basic usage (uses defaults from config and environment)
+# 3. Basic usage (uses all defaults from .env)
 npm run cli -- enhanceResume --input resume.json --job job.txt
 
-# 3b. With custom options
+# 3b. With custom options (overrides .env)
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job.txt \

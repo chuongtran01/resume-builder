@@ -7,7 +7,12 @@
 
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import { config as loadDotenv } from 'dotenv';
 import { logger } from '@utils/logger';
+
+// Load .env file and get parsed result (only from .env, not system env)
+const envResult = loadDotenv();
+const envVars = envResult.parsed || {};
 
 /**
  * Gemini provider configuration
@@ -57,20 +62,15 @@ export interface ConfigValidationResult {
  * Configuration loading options
  */
 export interface ConfigLoadOptions {
-  /** Config file path (default: './ai.config.json') */
+  /** Config file path (optional - only used if loadFromFile is true, .env is preferred) */
   configPath?: string;
-  /** Whether to load from environment variables (default: true) */
+  /** Whether to load from .env file (default: true) */
   loadFromEnv?: boolean;
-  /** Whether to load from config file (default: true) */
+  /** Whether to load from JSON config file (default: false - use .env instead) */
   loadFromFile?: boolean;
   /** Whether to validate configuration (default: true) */
   validate?: boolean;
 }
-
-/**
- * Default configuration file path
- */
-const DEFAULT_CONFIG_PATH = './ai.config.json';
 
 /**
  * Environment variable names
@@ -87,6 +87,13 @@ const ENV_VARS = {
 } as const;
 
 /**
+ * Get environment variable value from .env file only
+ */
+function getEnvVar(name: string): string | undefined {
+  return envVars[name];
+}
+
+/**
  * Resolve environment variable value (supports ${VAR} syntax)
  */
 function resolveEnvVar(value: string): string {
@@ -94,9 +101,9 @@ function resolveEnvVar(value: string): string {
   const envMatch = value.match(/^\$\{([^}]+)\}$/);
   if (envMatch && envMatch[1]) {
     const envVar = envMatch[1];
-    const envValue = process.env[envVar];
+    const envValue = getEnvVar(envVar);
     if (!envValue) {
-      throw new Error(`Environment variable ${envVar} is not set`);
+      throw new Error(`Environment variable ${envVar} is not set in .env file`);
     }
     return envValue;
   }
@@ -104,7 +111,7 @@ function resolveEnvVar(value: string): string {
 }
 
 /**
- * Load configuration from environment variables
+ * Load configuration from .env file only (not system environment variables)
  */
 function loadFromEnvironment(): Partial<AIConfig> {
   const config: Partial<AIConfig> = {
@@ -112,7 +119,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
   };
 
   // Default provider
-  const defaultProviderEnv = process.env[ENV_VARS.DEFAULT_AI_PROVIDER];
+  const defaultProviderEnv = getEnvVar(ENV_VARS.DEFAULT_AI_PROVIDER);
   if (defaultProviderEnv) {
     const provider = defaultProviderEnv as 'gemini';
     if (provider === 'gemini') {
@@ -121,15 +128,15 @@ function loadFromEnvironment(): Partial<AIConfig> {
   }
 
   // Gemini configuration
-  const geminiApiKey = process.env[ENV_VARS.GEMINI_API_KEY];
+  const geminiApiKey = getEnvVar(ENV_VARS.GEMINI_API_KEY);
   if (geminiApiKey) {
     config.providers!.gemini = {
       apiKey: geminiApiKey,
-      model: (process.env[ENV_VARS.GEMINI_MODEL] as 'gemini-2.5-pro' | 'gemini-3-flash-preview') || 'gemini-2.5-pro',
+      model: (getEnvVar(ENV_VARS.GEMINI_MODEL) as 'gemini-2.5-pro' | 'gemini-3-flash-preview') || 'gemini-2.5-pro',
     };
 
     // Optional Gemini settings
-    const tempEnv = process.env[ENV_VARS.GEMINI_TEMPERATURE];
+    const tempEnv = getEnvVar(ENV_VARS.GEMINI_TEMPERATURE);
     if (tempEnv && config.providers?.gemini) {
       const temp = parseFloat(tempEnv);
       if (!isNaN(temp) && temp >= 0 && temp <= 1) {
@@ -137,7 +144,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
       }
     }
 
-    const maxTokensEnv = process.env[ENV_VARS.GEMINI_MAX_TOKENS];
+    const maxTokensEnv = getEnvVar(ENV_VARS.GEMINI_MAX_TOKENS);
     if (maxTokensEnv && config.providers?.gemini) {
       const maxTokens = parseInt(maxTokensEnv, 10);
       if (!isNaN(maxTokens) && maxTokens > 0) {
@@ -145,7 +152,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
       }
     }
 
-    const timeoutEnv = process.env[ENV_VARS.GEMINI_TIMEOUT];
+    const timeoutEnv = getEnvVar(ENV_VARS.GEMINI_TIMEOUT);
     if (timeoutEnv && config.providers?.gemini) {
       const timeout = parseInt(timeoutEnv, 10);
       if (!isNaN(timeout) && timeout > 0) {
@@ -153,7 +160,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
       }
     }
 
-    const maxRetriesEnv = process.env[ENV_VARS.GEMINI_MAX_RETRIES];
+    const maxRetriesEnv = getEnvVar(ENV_VARS.GEMINI_MAX_RETRIES);
     if (maxRetriesEnv && config.providers?.gemini) {
       const maxRetries = parseInt(maxRetriesEnv, 10);
       if (!isNaN(maxRetries) && maxRetries >= 0) {
@@ -163,7 +170,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
   }
 
   // Enhancement mode
-  const enhancementModeEnv = process.env[ENV_VARS.ENHANCEMENT_MODE];
+  const enhancementModeEnv = getEnvVar(ENV_VARS.ENHANCEMENT_MODE);
   if (enhancementModeEnv) {
     const mode = enhancementModeEnv as 'sequential' | 'agent';
     if (mode === 'sequential' || mode === 'agent') {
@@ -337,9 +344,9 @@ export async function loadAIConfig(
   options: ConfigLoadOptions = {}
 ): Promise<AIConfig> {
   const {
-    configPath = DEFAULT_CONFIG_PATH,
+    configPath,
     loadFromEnv = true,
-    loadFromFile: shouldLoadFromFile = true,
+    loadFromFile: shouldLoadFromFile = false, // Default to false - prefer .env
     validate = true,
   } = options;
 
@@ -356,9 +363,12 @@ export async function loadAIConfig(
     }
   }
 
-  // Load from config file
+  // Load from config file (optional - only if explicitly enabled)
   let fileConfig: Partial<AIConfig> = {};
   if (shouldLoadFromFile) {
+    if (!configPath) {
+      throw new Error('configPath is required when loadFromFile is true');
+    }
     try {
       const loadedConfig = await loadFromFile(configPath);
       fileConfig = loadedConfig;

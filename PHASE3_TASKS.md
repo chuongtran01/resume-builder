@@ -831,7 +831,7 @@ Create a configuration system for managing AI provider settings, API keys, and o
 
 **Files Created:**
 - ✅ `src/services/ai/config.ts`
-- ✅ `src/config/ai.config.example.json`
+- ✅ `.env.example`
 
 **Configuration Format:**
 ```json
