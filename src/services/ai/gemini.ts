@@ -62,18 +62,12 @@ const DEFAULT_CONFIG: Partial<GeminiConfig> = {
 
 /**
  * Gemini pricing per 1M tokens (as of 2025)
- * Note: These are approximate and should be updated based on actual pricing
+ * Note: Cost calculation removed - will be improved in later phases
+ * @deprecated Pricing constants will be reimplemented in later phases
  */
-const GEMINI_PRICING: Record<string, { input: number; output: number }> = {
-  'gemini-2.5-pro': {
-    input: 1.25, // $1.25 per 1M input tokens (approximate, update with actual pricing)
-    output: 5.00, // $5.00 per 1M output tokens (approximate, update with actual pricing)
-  },
-  'gemini-3-flash-preview': {
-    input: 0.075, // $0.075 per 1M input tokens (approximate, update with actual pricing)
-    output: 0.30, // $0.30 per 1M output tokens (approximate, update with actual pricing)
-  },
-};
+// const GEMINI_PRICING: Record<string, { input: number; output: number }> = {
+//   // Removed - will be improved in later phases
+// };
 
 /**
  * Google Gemini AI Provider
@@ -115,16 +109,15 @@ export class GeminiProvider implements AIProvider {
       const response = await this.callGeminiWithRetry(prompt);
       const reviewResult = this.parseReviewResponse(response);
 
-      // Estimate tokens and cost
+      // Estimate tokens (cost calculation removed - will be improved in later phases)
       const tokensUsed = this.estimateTokens(prompt, response);
-      const cost = this.calculateCost(tokensUsed.input, tokensUsed.output);
 
-      logger.info(`Review completed. Tokens: ${tokensUsed.input + tokensUsed.output}, Cost: $${cost.toFixed(4)}`);
+      logger.info(`Review completed. Tokens: ${tokensUsed.input + tokensUsed.output}`);
 
       return {
         reviewResult,
         tokensUsed: tokensUsed.input + tokensUsed.output,
-        cost,
+        cost: 0, // Cost calculation removed - will be improved in later phases
       };
     } catch (error) {
       logger.error('Error in reviewResume:', error);
@@ -153,18 +146,17 @@ export class GeminiProvider implements AIProvider {
       // Generate improvements list from changes
       const improvements = this.generateImprovements(request.resume, enhancedResume);
 
-      // Estimate tokens and cost
+      // Estimate tokens (cost calculation removed - will be improved in later phases)
       const tokensUsed = this.estimateTokens(prompt, response);
-      const cost = this.calculateCost(tokensUsed.input, tokensUsed.output);
 
-      logger.info(`Modification completed. Tokens: ${tokensUsed.input + tokensUsed.output}, Cost: $${cost.toFixed(4)}`);
+      logger.info(`Modification completed. Tokens: ${tokensUsed.input + tokensUsed.output}`);
 
       return {
         enhancedResume,
         improvements,
         confidence: 0.85, // Default confidence
         tokensUsed: tokensUsed.input + tokensUsed.output,
-        cost,
+        cost: 0, // Cost calculation removed - will be improved in later phases
       };
     } catch (error) {
       logger.error('Error in modifyResume:', error);
@@ -195,9 +187,9 @@ export class GeminiProvider implements AIProvider {
 
     const modifyResponse = await this.modifyResume(modifyRequest);
 
-    // Combine costs
+    // Combine tokens (cost calculation removed - will be improved in later phases)
     const totalTokens = (reviewResponse.tokensUsed || 0) + (modifyResponse.tokensUsed || 0);
-    const totalCost = (reviewResponse.cost || 0) + (modifyResponse.cost || 0);
+    const totalCost = 0; // Cost calculation removed - will be improved in later phases
 
     return {
       ...modifyResponse,
@@ -237,19 +229,11 @@ export class GeminiProvider implements AIProvider {
 
   /**
    * Estimate cost for a request
+   * Note: Cost calculation removed - will be improved in later phases
    */
-  estimateCost(request: AIRequest | ReviewRequest): number {
-    // Rough estimation based on prompt size
-    // If reviewResult exists, it's an AIRequest (modify), otherwise it's a ReviewRequest
-    const prompt = 'reviewResult' in request && request.reviewResult
-      ? this.buildModifyPrompt(request as AIRequest)
-      : this.buildReviewPrompt(request as ReviewRequest);
-
-    // Estimate tokens (rough: 1 token ≈ 4 characters)
-    const estimatedInputTokens = Math.ceil(prompt.length / 4);
-    const estimatedOutputTokens = this.config.maxTokens || 2000;
-
-    return this.calculateCost(estimatedInputTokens, estimatedOutputTokens);
+  estimateCost(_request: AIRequest | ReviewRequest): number {
+    // Cost calculation removed - will be improved in later phases
+    return 0;
   }
 
   /**
@@ -524,33 +508,10 @@ export class GeminiProvider implements AIProvider {
 
   /**
    * Calculate cost based on tokens
+   * Note: Cost calculation removed - will be improved in later phases
+   * @deprecated Cost calculation will be reimplemented in later phases
    */
-  private calculateCost(inputTokens: number, outputTokens: number): number {
-    const pricing = GEMINI_PRICING[this.config.model];
-    if (!pricing) {
-      logger.warn(`Unknown pricing for model ${this.config.model}, using gemini-2.5-pro pricing`);
-      const defaultPricing = GEMINI_PRICING['gemini-2.5-pro'];
-      if (!defaultPricing) {
-        throw new Error('Default pricing not found');
-      }
-      return this.calculateCostWithPricing(inputTokens, outputTokens, defaultPricing);
-    }
-
-    return this.calculateCostWithPricing(inputTokens, outputTokens, pricing);
-  }
-
-  /**
-   * Calculate cost with specific pricing
-   */
-  private calculateCostWithPricing(
-    inputTokens: number,
-    outputTokens: number,
-    pricing: { input: number; output: number }
-  ): number {
-    const inputCost = (inputTokens / 1_000_000) * pricing.input;
-    const outputCost = (outputTokens / 1_000_000) * pricing.output;
-    return inputCost + outputCost;
-  }
+  // Removed - will be improved in later phases
 
   /**
    * Handle and transform errors
