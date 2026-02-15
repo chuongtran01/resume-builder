@@ -176,7 +176,7 @@ Create TypeScript types for AI enhancement service (for Phase 2 architecture).
 ## 🔧 Task Group 3: Core Utilities
 
 ### Task 3.1: Implement File Loader
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2 hours
 
@@ -184,16 +184,16 @@ Create TypeScript types for AI enhancement service (for Phase 2 architecture).
 Create utility to load and resolve `file:` references in resume JSON.
 
 **Subtasks:**
-- [ ] Create `src/utils/fileLoader.ts`
-- [ ] Implement function to detect `file:` prefix
-- [ ] Implement path resolution (relative to resume.json location)
-- [ ] Implement JSON file loading
-- [ ] Implement recursive file reference resolution
-- [ ] Add file caching to avoid duplicate loads
-- [ ] Add error handling for file not found
-- [ ] Add error handling for invalid JSON
-- [ ] Add logging for file resolution
-- [ ] Write unit tests
+- [x] Create `src/utils/fileLoader.ts`
+- [x] Implement function to detect `file:` prefix
+- [x] Implement path resolution (relative to resume.json location)
+- [x] Implement JSON file loading
+- [x] Implement recursive file reference resolution
+- [x] Add file caching to avoid duplicate loads
+- [x] Add error handling for file not found
+- [x] Add error handling for invalid JSON
+- [x] Add logging for file resolution
+- [x] Write unit tests
 
 **Acceptance Criteria:**
 - Can resolve `"education": "file:./resume-sections/education.json"`
@@ -207,7 +207,7 @@ Create utility to load and resolve `file:` references in resume JSON.
 ---
 
 ### Task 3.2: Implement Logger Utility
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** Medium  
 **Estimated Time:** 30 minutes
 
@@ -215,11 +215,11 @@ Create utility to load and resolve `file:` references in resume JSON.
 Create logging utility for CLI and API usage.
 
 **Subtasks:**
-- [ ] Create `src/utils/logger.ts`
-- [ ] Implement different log levels (info, warn, error, debug)
-- [ ] Add color support for CLI (using chalk)
-- [ ] Support verbose mode
-- [ ] Export logger instance
+- [x] Create `src/utils/logger.ts`
+- [x] Implement different log levels (info, warn, error, debug)
+- [x] Add color support for CLI (using chalk)
+- [x] Support verbose mode
+- [x] Export logger instance
 
 **Acceptance Criteria:**
 - Logger supports all log levels
@@ -232,7 +232,7 @@ Create logging utility for CLI and API usage.
 ---
 
 ### Task 3.3: Implement Resume Parser
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 1.5 hours
 
@@ -240,14 +240,14 @@ Create logging utility for CLI and API usage.
 Create utility to parse resume.json and resolve all file references.
 
 **Subtasks:**
-- [ ] Create `src/utils/resumeParser.ts`
-- [ ] Implement JSON parsing with validation
-- [ ] Integrate file loader for `file:` references
-- [ ] Implement recursive section resolution
-- [ ] Validate required fields (personalInfo, experience)
-- [ ] Return fully resolved Resume object
-- [ ] Add error handling and validation errors
-- [ ] Write unit tests
+- [x] Create `src/utils/resumeParser.ts`
+- [x] Implement JSON parsing with validation
+- [x] Integrate file loader for `file:` references
+- [x] Implement recursive section resolution
+- [x] Validate required fields (personalInfo, experience)
+- [x] Return fully resolved Resume object
+- [x] Add error handling and validation errors
+- [x] Write unit tests
 
 **Acceptance Criteria:**
 - Parses resume.json correctly
