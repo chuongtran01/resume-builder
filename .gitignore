@@ -12,13 +12,10 @@ dist/
 build/
 *.tsbuildinfo
 
-# Environment variables
+# Environment variables (may contain secrets)
 .env
 .env.local
 .env.*.local
-
-# AI Configuration (may contain secrets)
-ai.config.json
 
 # IDE and editor files
 .vscode/
