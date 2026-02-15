@@ -310,6 +310,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     .experience-location {
       font-size: ${s.bodyFontSize};
       color: #000000;
+      font-style: italic;
     }
 
     .bullet-points {

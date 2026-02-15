@@ -248,8 +248,9 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
 
     .experience-title,
     .education-title {
-      font-weight: bold;
+      font-weight: normal;
       font-size: ${s.bodyFontSize};
+      font-style: italic;
     }
 
     .experience-company,
@@ -281,6 +282,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     .experience-location {
       font-size: ${s.bodyFontSize};
       color: #000000;
+      font-style: italic;
     }
 
     .education-location,
