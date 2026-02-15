@@ -599,13 +599,17 @@ function renderProjects(projects: Resume['projects']): string {
       }
       const linksHtml = links.length > 0 ? ` | ${links.join(' | ')}` : '';
 
+      const technologiesBullet = project.technologies && project.technologies.length > 0
+        ? `<li>Technologies: ${project.technologies.map((t) => escapeHtml(t)).join(', ')}</li>`
+        : '';
+
       return `
         <div class="project-item">
           <div class="project-name">${escapeHtml(project.name)}${linksHtml}</div>
-          <div class="project-description">${escapeHtml(project.description)}</div>
-          ${project.technologies && project.technologies.length > 0
-            ? `<div style="margin-left: 12pt; margin-top: 2pt;">Technologies: ${project.technologies.map((t) => escapeHtml(t)).join(', ')}</div>`
-            : ''}
+          <ul class="bullet-points">
+            <li>${escapeHtml(project.description)}</li>
+            ${technologiesBullet}
+          </ul>
         </div>
       `;
     })
