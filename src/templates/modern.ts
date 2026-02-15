@@ -258,6 +258,18 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       font-size: ${s.bodyFontSize};
     }
 
+    .education-institution-gpa {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: ${s.experienceHeaderMarginBottom};
+    }
+
+    .education-gpa {
+      font-size: ${s.bodyFontSize};
+      color: #000000;
+    }
+
     .experience-company-location {
       font-size: ${s.bodyFontSize};
       display: flex;
@@ -473,13 +485,13 @@ function renderEducationItem(edu: {
   return `
     <div class="education-item">
       <div class="education-header">
-        <div>
-          <div class="education-title">${degreeLine}</div>
-          <div class="education-institution">${escapeHtml(edu.institution)}</div>
-        </div>
+        <div class="education-title">${degreeLine}</div>
         <div class="education-dates">${formatDate(edu.graduationDate)}</div>
       </div>
-      ${edu.gpa ? `<div>GPA: ${escapeHtml(edu.gpa)}</div>` : ''}
+      <div class="education-institution-gpa">
+        <span class="education-institution">${escapeHtml(edu.institution)}</span>
+        ${edu.gpa ? `<span class="education-gpa">GPA: ${escapeHtml(edu.gpa)}</span>` : ''}
+      </div>
       ${edu.honors && edu.honors.length > 0 ? `<div>Honors: ${edu.honors.map((h) => escapeHtml(h)).join(', ')}</div>` : ''}
     </div>
   `;
