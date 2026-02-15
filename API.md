@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Resume Builder API provides REST endpoints for generating ATS-compliant resumes and validating resume content. The API accepts structured JSON input and returns PDF or HTML resumes, or validation results.
+The Resume Builder API provides REST endpoints for generating ATS-compliant resumes, validating resume content, and enhancing resumes based on job descriptions. The API accepts structured JSON input and returns PDF or HTML resumes, validation results, or enhanced resumes with detailed change tracking.
 
 **Base URL:** `http://localhost:3000` (default)
 
@@ -49,7 +49,8 @@ Get API information and available endpoints.
   "endpoints": {
     "health": "/health",
     "generate": "/api/generateResume",
-    "validate": "/api/validate"
+    "validate": "/api/validate",
+    "enhance": "/api/enhanceResume"
   }
 }
 ```
@@ -396,6 +397,270 @@ const response = await fetch('http://localhost:3000/api/validate', {
     },
   }),
 });
+
+const result = await response.json();
+console.log('ATS Score:', result.score);
+console.log('Compliant:', result.isCompliant);
+```
+
+---
+
+### Enhance Resume
+
+Enhance a resume based on a job description. This endpoint analyzes the job description, enhances the resume with relevant keywords, reorders skills, and provides detailed change tracking.
+
+**Endpoint:** `POST /api/enhanceResume`
+
+**Content-Type:** `application/json`
+
+**Request Body:**
+```json
+{
+  "resume": {
+    "personalInfo": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+1 123-456-7890",
+      "location": "San Francisco, CA, USA"
+    },
+    "summary": "Experienced software engineer...",
+    "experience": [
+      {
+        "company": "Tech Corp",
+        "role": "Senior Software Engineer",
+        "startDate": "2023-01",
+        "endDate": "Present",
+        "location": "Remote",
+        "bulletPoints": [
+          "Built scalable API services",
+          "Led team of 4 engineers"
+        ]
+      }
+    ],
+    "education": {
+      "institution": "University of California",
+      "degree": "Bachelor of Science",
+      "field": "Computer Science",
+      "graduationDate": "2020-05"
+    },
+    "skills": {
+      "categories": [
+        {
+          "name": "Programming Languages",
+          "items": ["JavaScript", "TypeScript", "Python"]
+        }
+      ]
+    }
+  },
+  "jobDescription": "We are looking for a Senior Software Engineer with 5+ years of experience. Requirements: Proficient in React, TypeScript, and Node.js. Experience with AWS and cloud infrastructure. Strong problem-solving skills.",
+  "options": {
+    "focusAreas": ["bulletPoints", "keywords"],
+    "tone": "professional",
+    "maxSuggestions": 10
+  }
+}
+```
+
+**Request Fields:**
+- `resume` (required) - Complete resume object (see Resume JSON Schema)
+- `jobDescription` (required) - Full job description text
+- `options` (optional) - Enhancement options:
+  - `focusAreas` - Array of focus areas: `["keywords", "bulletPoints", "skills", "summary"]`
+  - `tone` - Enhancement tone: `"professional" | "technical" | "leadership"`
+  - `maxSuggestions` - Maximum number of suggestions to return
+
+**Response:**
+
+**200 OK** - Success:
+```json
+{
+  "success": true,
+  "enhancedResume": {
+    "updatedResume": {
+      "personalInfo": { ... },
+      "summary": "Enhanced summary...",
+      "experience": [ ... ],
+      "skills": { ... }
+    },
+    "suggestions": [
+      "Consider adding more job-relevant keywords",
+      "Add a professional summary to improve ATS score"
+    ],
+    "highlightedSkills": ["React", "TypeScript", "Node.js"],
+    "changesSummary": "Enhanced resume with 5 total changes. 3 bullet points were enhanced, skills were reordered to prioritize job-relevant technologies.",
+    "changesDetail": [
+      {
+        "old": "Built scalable API services",
+        "new": "Built scalable API services using React and TypeScript",
+        "section": "experience[0]",
+        "type": "bulletPoint"
+      }
+    ]
+  },
+  "atsScore": {
+    "before": 75,
+    "after": 85,
+    "improvement": 10
+  },
+  "pdf": {
+    "base64": "JVBERi0xLjQKJeLjz9MKMy...",
+    "contentType": "application/pdf",
+    "filename": "enhanced-resume.pdf",
+    "size": 122880
+  },
+  "markdown": {
+    "content": "# John Doe — Enhanced Resume Report\n\n## Contact\n...",
+    "filename": "enhanced-resume.md"
+  }
+}
+```
+
+**Response Fields:**
+- `success` - Boolean indicating success
+- `enhancedResume` - Enhanced resume output with change tracking:
+  - `updatedResume` - The enhanced resume object
+  - `suggestions` - Array of improvement suggestions
+  - `highlightedSkills` - Skills highlighted as important for the job
+  - `changesSummary` - Human-readable summary of all changes
+  - `changesDetail` - Detailed list of all changes (old → new)
+- `atsScore` - ATS score comparison:
+  - `before` - Score before enhancement (0-100)
+  - `after` - Score after enhancement (0-100)
+  - `improvement` - Improvement amount
+- `pdf` - Enhanced PDF file:
+  - `base64` - Base64-encoded PDF content
+  - `contentType` - MIME type (`application/pdf`)
+  - `filename` - Suggested filename
+  - `size` - File size in bytes
+- `markdown` - Markdown report:
+  - `content` - Full markdown report content
+  - `filename` - Suggested filename
+
+**Error Responses:**
+
+**400 Bad Request** - Validation error:
+```json
+{
+  "error": "Validation Error",
+  "message": "Request validation failed",
+  "details": [
+    {
+      "path": "jobDescription",
+      "message": "Job description is required"
+    }
+  ]
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+  "success": false,
+  "error": "Internal server error",
+  "message": "An error occurred while enhancing the resume"
+}
+```
+
+**Examples:**
+
+Enhance resume:
+```bash
+curl -X POST http://localhost:3000/api/enhanceResume \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resume": { ... },
+    "jobDescription": "We are looking for a Senior Software Engineer..."
+  }' \
+  | jq '.enhancedResume.changesSummary'
+```
+
+Using JavaScript (fetch):
+```javascript
+const response = await fetch('http://localhost:3000/api/enhanceResume', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    resume: {
+      personalInfo: {
+        name: 'John Doe',
+        email: 'john@example.com',
+        // ... rest of resume
+      },
+    },
+    jobDescription: 'We are looking for a Senior Software Engineer...',
+    options: {
+      focusAreas: ['bulletPoints', 'keywords'],
+      tone: 'professional',
+    },
+  }),
+});
+
+const result = await response.json();
+
+if (result.success) {
+  console.log('ATS Score Improvement:', result.atsScore.improvement);
+  console.log('Changes:', result.enhancedResume.changesDetail.length);
+  
+  // Decode and save PDF
+  const pdfBuffer = Buffer.from(result.pdf.base64, 'base64');
+  fs.writeFileSync('enhanced-resume.pdf', pdfBuffer);
+  
+  // Save Markdown report
+  fs.writeFileSync('enhanced-resume.md', result.markdown.content);
+}
+```
+
+---
+
+## Change Tracking Format
+
+The enhancement service tracks all changes made to the resume. Each change in `changesDetail` has the following structure:
+
+```typescript
+{
+  "old": "Original text/content before enhancement",
+  "new": "Enhanced/replaced text/content after enhancement",
+  "section": "experience[0]" | "skills.Programming Languages" | "summary",
+  "type": "bulletPoint" | "skill" | "summary" | "keyword"
+}
+```
+
+**Change Types:**
+- `bulletPoint` - Changes to experience bullet points
+- `skill` - Changes to skill ordering or categorization
+- `summary` - Changes to professional summary
+- `keyword` - Keyword additions or modifications
+
+**Truthfulness Guarantee:**
+The enhancement service never adds new experiences, skills, or content that wasn't in the original resume. All enhancements are truthful modifications of existing content.
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Enhancement returns no changes:**
+- Ensure the job description contains relevant keywords
+- Check that the resume has content that can be enhanced
+- Verify the job description is not empty
+
+**PDF generation fails:**
+- Ensure Puppeteer dependencies are installed correctly
+- Check available disk space
+- Try generating HTML format instead
+
+**Validation errors:**
+- Verify resume JSON structure matches the schema
+- Check that all required fields are present
+- Ensure date formats are correct (YYYY-MM)
+
+**API timeout:**
+- Enhancement can take 10-30 seconds depending on resume size
+- Consider increasing timeout settings for your HTTP client
+- Check server logs for detailed error information
 
 const result = await response.json();
 console.log('ATS Score:', result.score);
