@@ -43,16 +43,37 @@ Run ATS validation:
 npm run cli -- --input resume.json --output resume.pdf --validate
 ```
 
-### Enhance Resume (Phase 2)
+### Enhance Resume with AI
 
-Enhance your resume based on a job description:
+Enhance your resume based on a job description using AI:
+
+**Basic usage (with defaults):**
+```bash
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job-description.txt
+```
+
+This uses default settings:
+- AI Provider: `gemini` (default)
+- AI Model: `gemini-2.5-pro` (default)
+- AI Temperature: `0.7` (default)
+- Output directory: `./output` (default)
+- Template: `classic` (default)
+- Format: `pdf` (default)
+
+**With all options:**
 ```bash
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job-description.txt \
   --output ./output \
   --template classic \
-  --format pdf
+  --format pdf \
+  --ai-provider gemini \
+  --ai-model gemini-2.5-pro \
+  --ai-temperature 0.7 \
+  --verbose
 ```
 
 **Options:**
@@ -61,6 +82,9 @@ npm run cli -- enhanceResume \
 - `--output, -o` - Output directory for enhanced files (default: `./output`)
 - `--template, -t` - Template name: `classic` or `modern` (default: `classic`)
 - `--format, -f` - Output format: `pdf` or `html` (default: `pdf`)
+- `--ai-provider <provider>` - AI provider to use (default: `gemini`)
+- `--ai-model <model>` - AI model to use: `gemini-2.5-pro` (default) or `gemini-3-flash-preview`
+- `--ai-temperature <temp>` - AI temperature 0-1 (default: `0.7`)
 - `--verbose, -v` - Enable verbose logging
 
 **Output Files:**
@@ -68,20 +92,36 @@ npm run cli -- enhanceResume \
 - `{name}-enhanced.pdf` - Enhanced resume PDF
 - `{name}-enhanced.md` - Markdown report showing all changes made
 
-**Example:**
+**Examples:**
+
+Minimal usage (all defaults):
+```bash
+npm run cli -- enhanceResume \
+  --input examples/resume.json \
+  --job examples/job-description.txt
+```
+
+With custom AI model:
 ```bash
 npm run cli -- enhanceResume \
   --input examples/resume.json \
   --job examples/job-description.txt \
-  --output ./output \
-  --template classic
+  --ai-model gemini-3-flash-preview
+```
+
+With custom temperature:
+```bash
+npm run cli -- enhanceResume \
+  --input examples/resume.json \
+  --job examples/job-description.txt \
+  --ai-temperature 0.8
 ```
 
 This will:
 1. Load and parse your resume
-2. Analyze the job description
-3. Enhance bullet points with relevant keywords
-4. Reorder skills to prioritize job-relevant technologies
+2. Initialize AI provider (Gemini) with configured settings
+3. Analyze the job description using AI
+4. Enhance resume with AI-powered improvements
 5. Generate enhanced JSON, PDF, and Markdown report
 6. Display ATS score improvement and change summary
 

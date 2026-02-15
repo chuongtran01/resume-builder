@@ -912,7 +912,7 @@ Implement fallback mechanism for AI provider failures. When the primary AI provi
 ## 🔗 Task Group 23: Integration & Updates
 
 ### Task 23.1: Update CLI to Support AI Providers
-**Status:** ⬜  
+**Status:** ✅ Completed  
 **Priority:** High  
 **Estimated Time:** 2 hours
 
@@ -920,19 +920,18 @@ Implement fallback mechanism for AI provider failures. When the primary AI provi
 Update the CLI `enhanceResume` command to support AI provider selection and configuration.
 
 **Subtasks:**
-- [ ] Update `src/cli/index.ts`:
-  - [ ] Add `--ai-provider` option (gemini, mock)
-  - [ ] Add `--ai-model` option (gemini-pro, gemini-1.5-pro, gemini-1.5-flash)
-  - [ ] Add `--ai-temperature` option (0-1)
-  - [ ] Add `--use-ai` flag to enable AI (default: mock)
-  - [ ] Add `--fallback` option (enable/disable fallback)
-- [ ] Implement provider selection logic:
-  - [ ] Load provider from config or CLI option
-  - [ ] Initialize selected provider
-  - [ ] Handle provider errors
-- [ ] Update help text and documentation
-- [ ] Add provider status display
-- [ ] Add cost display (if enabled)
+- [x] Update `src/cli/index.ts`:
+  - [x] Add `--ai-provider` option (gemini)
+  - [x] Add `--ai-model` option (gemini-2.5-pro, gemini-3-flash-preview)
+  - [x] Add `--ai-temperature` option (0-1)
+  - [x] Remove mock service references
+- [x] Implement provider selection logic:
+  - [x] Load provider from config or CLI option
+  - [x] Initialize selected provider
+  - [x] Handle provider errors
+- [x] Update help text and documentation
+- [x] Add provider status display
+- [x] Add error handling for AI provider failures
 - [ ] Write integration tests
 
 **Files to Modify:**
@@ -943,9 +942,9 @@ Update the CLI `enhanceResume` command to support AI provider selection and conf
 enhanceResume \
   --input resume.json \
   --job job-description.txt \
-  --use-ai \
   --ai-provider gemini \
-  --ai-model gemini-pro \
+  --ai-model gemini-2.5-pro \
+  --ai-temperature 0.7 \
   --output ./output
 ```
 

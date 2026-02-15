@@ -425,13 +425,16 @@ program
 // Enhance resume command
 program
   .command('enhanceResume')
-  .description('Enhance a resume based on a job description')
+  .description('Enhance a resume based on a job description using AI')
   .alias('enhance')
   .option('-i, --input <path>', 'Path to resume.json file (required)')
   .option('-j, --job <path>', 'Path to job description file (required)')
   .option('-o, --output <path>', 'Output directory for enhanced files', './output')
   .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
+  .option('--ai-provider <provider>', 'AI provider to use (default: gemini)', 'gemini')
+  .option('--ai-model <model>', 'AI model to use: gemini-2.5-pro (default) or gemini-3-flash-preview')
+  .option('--ai-temperature <temp>', 'AI temperature 0-1 (default: 0.7)', parseFloat)
   .option('-v, --verbose', 'Enable verbose logging', false)
   .action(async (options) => {
     try {
@@ -515,6 +518,29 @@ program
         process.exit(1);
       }
 
+      // Validate AI provider
+      if (options.aiProvider && options.aiProvider !== 'gemini') {
+        logger.error(`❌ Error: Invalid AI provider "${options.aiProvider}"`);
+        logger.info('💡 Valid providers are: gemini');
+        process.exit(1);
+      }
+
+      // Validate AI model if provided
+      if (options.aiModel && !['gemini-2.5-pro', 'gemini-3-flash-preview'].includes(options.aiModel)) {
+        logger.error(`❌ Error: Invalid AI model "${options.aiModel}"`);
+        logger.info('💡 Valid models are: gemini-2.5-pro, gemini-3-flash-preview');
+        process.exit(1);
+      }
+
+      // Validate AI temperature if provided
+      if (options.aiTemperature !== undefined) {
+        if (isNaN(options.aiTemperature) || options.aiTemperature < 0 || options.aiTemperature > 1) {
+          logger.error(`❌ Error: Invalid AI temperature "${options.aiTemperature}"`);
+          logger.info('💡 Temperature must be a number between 0 and 1');
+          process.exit(1);
+        }
+      }
+
       // Validate template
       const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
       const availableTemplates = getTemplateNames();
@@ -548,10 +574,71 @@ program
       }
       logger.success('   ✅ Job description loaded successfully');
 
-      // Step 3: Enhance resume
-      logger.info('\n🤖 Step 3: Enhancing resume...');
-      const { resumeEnhancementService } = await import('@services/resumeEnhancementService');
-      const enhancementResult = await resumeEnhancementService.enhanceResume(
+      // Step 3: Initialize AI provider and enhance resume
+      logger.info('\n🤖 Step 3: Initializing AI provider...');
+      
+      // Load AI configuration
+      const { loadAIConfig, getGeminiConfig } = await import('@services/ai/config');
+      const aiConfig = await loadAIConfig();
+      
+      // Get provider name from CLI option or config (default: gemini)
+      const providerName = options.aiProvider || aiConfig.defaultProvider || 'gemini';
+      
+      // Initialize and register Gemini provider if needed
+      const { registerProvider, hasProvider } = await import('@services/ai/providerRegistry');
+      const { GeminiProvider } = await import('@services/ai/gemini');
+      
+      if (!hasProvider('gemini')) {
+        const geminiConfig = getGeminiConfig(aiConfig);
+        if (!geminiConfig || !geminiConfig.apiKey) {
+          logger.error('❌ Error: Gemini API key not configured');
+          logger.info('💡 Suggestions:');
+          logger.info('   - Set GEMINI_API_KEY environment variable');
+          logger.info('   - Or configure in ai.config.json file');
+          logger.info('   - See AI_CONFIG.md for configuration details');
+          process.exit(1);
+        }
+        
+        // Use defaults: model from config (default: gemini-2.5-pro), temperature from config (default: 0.7)
+        // Override with CLI options if provided
+        const DEFAULT_MODEL: 'gemini-2.5-pro' | 'gemini-3-flash-preview' = 'gemini-2.5-pro';
+        const DEFAULT_TEMPERATURE = 0.7;
+        
+        const finalConfig = {
+          ...geminiConfig,
+          model: (options.aiModel as 'gemini-2.5-pro' | 'gemini-3-flash-preview') || geminiConfig.model || DEFAULT_MODEL,
+          temperature: options.aiTemperature !== undefined ? options.aiTemperature : (geminiConfig.temperature ?? DEFAULT_TEMPERATURE),
+        };
+        
+        const geminiProvider = new GeminiProvider(finalConfig);
+        registerProvider('gemini', geminiProvider);
+        logger.success(`   ✅ AI provider initialized: ${providerName}`);
+        logger.info(`   📊 Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
+        logger.info(`   🌡️  Temperature: ${finalConfig.temperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
+      } else {
+        logger.success(`   ✅ Using existing AI provider: ${providerName}`);
+      }
+      
+      // Enhance resume using AI
+      logger.info('\n🤖 Step 4: Enhancing resume with AI...');
+      const { AIResumeEnhancementService } = await import('@services/aiResumeEnhancementService');
+      const { getProvider } = await import('@services/ai/providerRegistry');
+      
+      let provider = getProvider(providerName);
+      if (provider) {
+        const providerInfo = provider.getProviderInfo();
+        logger.info(`   Using: ${providerInfo.displayName} (${providerInfo.name})`);
+        // Get the actual model being used (from CLI option, config, or default)
+        const geminiConfig = getGeminiConfig(aiConfig);
+        const actualModel = options.aiModel || geminiConfig?.model || providerInfo.defaultModel;
+        logger.info(`   Model: ${actualModel}${!options.aiModel ? ' (default)' : ''}`);
+      }
+      
+      const aiEnhancementService = new AIResumeEnhancementService(providerName);
+      
+      // Get provider again after service initialization (in case it was set as default)
+      provider = getProvider(providerName);
+      const enhancementResult = await aiEnhancementService.enhanceResume(
         resume,
         jobDescription
       );
@@ -559,8 +646,8 @@ program
       logger.info(`   📊 ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
       logger.info(`   📝 Changes: ${enhancementResult.improvements.length} improvements made`);
 
-      // Step 4: Generate enhanced JSON
-      logger.info('\n📦 Step 4: Generating enhanced resume JSON...');
+      // Step 5: Generate enhanced JSON
+      logger.info('\n📦 Step 5: Generating enhanced resume JSON...');
       const { generateAndWriteEnhancedResume } = await import('@services/enhancedResumeGenerator');
       const baseName = path.basename(inputPath, path.extname(inputPath));
       const jsonPath = await generateAndWriteEnhancedResume(enhancementResult, {
@@ -569,8 +656,8 @@ program
       });
       logger.success(`   ✅ Enhanced JSON written: ${jsonPath}`);
 
-      // Step 5: Generate PDF
-      logger.info(`\n📄 Step 5: Generating ${format.toUpperCase()}...`);
+      // Step 6: Generate PDF
+      logger.info(`\n📄 Step 6: Generating ${format.toUpperCase()}...`);
       const { generateResumeFromObject } = await import('@services/resumeGenerator');
       const pdfPath = path.join(outputDir, `${baseName}-enhanced.${format}`);
       const pdfResult = await generateResumeFromObject(
@@ -584,8 +671,8 @@ program
       );
       logger.success(`   ✅ ${format.toUpperCase()} generated: ${pdfResult.outputPath}`);
 
-      // Step 6: Generate Markdown report
-      logger.info('\n📝 Step 6: Generating Markdown report...');
+      // Step 7: Generate Markdown report
+      logger.info('\n📝 Step 7: Generating Markdown report...');
       const { generateEnhancedResumeOutput } = await import('@services/enhancedResumeGenerator');
       const { generateAndWriteMarkdownReport } = await import('@services/mdGenerator');
       const enhancedOutput = generateEnhancedResumeOutput(enhancementResult, {
@@ -609,6 +696,20 @@ program
       if (enhancementResult.missingSkills.length > 0) {
         logger.warn(`\n   Missing Skills: ${enhancementResult.missingSkills.slice(0, 5).join(', ')}${enhancementResult.missingSkills.length > 5 ? '...' : ''}`);
       }
+      
+      // Display provider information
+      if (provider) {
+        const providerInfo = provider.getProviderInfo();
+        const geminiConfig = getGeminiConfig(aiConfig);
+        const actualModel = options.aiModel || geminiConfig?.model || providerInfo.defaultModel;
+        const actualTemperature = options.aiTemperature !== undefined 
+          ? options.aiTemperature 
+          : (geminiConfig?.temperature ?? 0.7);
+        
+        logger.info(`\n🤖 AI Provider: ${providerInfo.displayName}`);
+        logger.info(`   Model: ${actualModel}${!options.aiModel ? ' (default)' : ''}`);
+        logger.info(`   Temperature: ${actualTemperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
+      }
 
       process.exit(0);
     } catch (error) {
@@ -619,6 +720,8 @@ program
       const { PdfGenerationError } = await import('@utils/pdfGenerator');
       const { JsonWriteError } = await import('@services/enhancedResumeGenerator');
       const { MarkdownWriteError } = await import('@services/mdGenerator');
+      const { AIProviderError, RateLimitError, NetworkError, TimeoutError } = await import('@services/ai/provider.types');
+      const { ProviderNotFoundError } = await import('@services/ai/providerRegistry');
 
       if (error instanceof FileNotFoundError) {
         logger.error(`\n❌ ${error.message}`);
@@ -658,6 +761,29 @@ program
         logger.info('💡 Suggestions:');
         logger.info('   - Check output directory permissions');
         logger.info('   - Ensure you have write access to the output directory');
+      } else if (error instanceof ProviderNotFoundError) {
+        logger.error(`\n❌ ${error.message}`);
+        logger.info('💡 Suggestions:');
+        logger.info('   - Ensure AI provider is properly configured');
+        logger.info('   - Check that GEMINI_API_KEY is set or configured in ai.config.json');
+        logger.info('   - See AI_CONFIG.md for configuration details');
+      } else if (error instanceof AIProviderError) {
+        logger.error(`\n❌ AI Provider Error: ${error.message}`);
+        if (error instanceof RateLimitError) {
+          logger.info('💡 Rate limit exceeded. Please wait before retrying.');
+          if (error.retryAfter) {
+            logger.info(`   Retry after: ${error.retryAfter} seconds`);
+          }
+        } else if (error instanceof NetworkError) {
+          logger.info('💡 Network error. Please check your internet connection.');
+        } else if (error instanceof TimeoutError) {
+          logger.info('💡 Request timeout. The AI provider took too long to respond.');
+        } else {
+          logger.info('💡 Suggestions:');
+          logger.info('   - Check your API key is valid');
+          logger.info('   - Verify your internet connection');
+          logger.info('   - Try again later if the service is temporarily unavailable');
+        }
       } else if (error instanceof Error) {
         logger.error(`\n❌ Error: ${error.message}`);
         if (logger.isVerbose()) {

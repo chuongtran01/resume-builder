@@ -43,7 +43,7 @@ class ProviderRegistry {
   /**
    * Register an AI provider
    * 
-   * @param name - Provider name (e.g., "gemini", "openai", "mock")
+   * @param name - Provider name (e.g., "gemini")
    * @param provider - AI provider instance
    * @throws {InvalidProviderError} If provider is invalid or name is already registered
    */

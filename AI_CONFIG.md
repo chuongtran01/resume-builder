@@ -49,11 +49,25 @@ export GEMINI_MODEL="gemini-2.5-pro"
 ```
 
 ### Example: Using in a script
+
+**Basic usage (with defaults):**
 ```bash
 #!/bin/bash
 export GEMINI_API_KEY="your-api-key-here"
 export DEFAULT_AI_PROVIDER="gemini"
 npm run cli -- enhanceResume --input resume.json --job job.txt
+```
+
+**With custom options:**
+```bash
+#!/bin/bash
+export GEMINI_API_KEY="your-api-key-here"
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job.txt \
+  --ai-model gemini-3-flash-preview \
+  --ai-temperature 0.8 \
+  --output ./enhanced-resumes
 ```
 
 ---
@@ -286,8 +300,15 @@ export GEMINI_API_KEY="your-key-here"
 export DEFAULT_AI_PROVIDER="gemini"
 export GEMINI_MODEL="gemini-2.5-pro"
 
-# Use the application
+# Basic usage (uses defaults from environment)
 npm run cli -- enhanceResume --input resume.json --job job.txt
+
+# With custom options
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job.txt \
+  --ai-model gemini-3-flash-preview \
+  --ai-temperature 0.8
 ```
 
 ### Option B: Config File
@@ -301,8 +322,15 @@ cp src/config/ai.config.example.json ai.config.json
 # 3. Set API key
 export GEMINI_API_KEY="your-key-here"
 
-# 4. Use the application
+# 4. Basic usage (uses defaults from config file)
 npm run cli -- enhanceResume --input resume.json --job job.txt
+
+# 4b. With custom options (overrides config)
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job.txt \
+  --ai-model gemini-3-flash-preview \
+  --output ./custom-output
 ```
 
 ### Option C: Both (Config File + Environment Variables)
@@ -325,11 +353,59 @@ cat > ai.config.json << EOF
 }
 EOF
 
-# 3. Use the application
+# 3. Basic usage (uses defaults from config and environment)
 npm run cli -- enhanceResume --input resume.json --job job.txt
+
+# 3b. With custom options
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job.txt \
+  --ai-temperature 0.9 \
+  --template modern
 ```
 
 ---
+
+## CLI Command Examples
+
+### Basic Usage (All Defaults)
+
+Uses default AI provider (`gemini`), model (`gemini-2.5-pro`), and temperature (`0.7`):
+
+```bash
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job-description.txt
+```
+
+### With Custom AI Settings
+
+Override AI model and temperature:
+
+```bash
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job-description.txt \
+  --ai-model gemini-3-flash-preview \
+  --ai-temperature 0.8
+```
+
+### With All Options
+
+Specify all options explicitly:
+
+```bash
+npm run cli -- enhanceResume \
+  --input resume.json \
+  --job job-description.txt \
+  --output ./output \
+  --template classic \
+  --format pdf \
+  --ai-provider gemini \
+  --ai-model gemini-2.5-pro \
+  --ai-temperature 0.7 \
+  --verbose
+```
 
 ## Next Steps
 
@@ -338,4 +414,4 @@ Once configuration is set up, the AI enhancement service will automatically use 
 - The service initializes and looks for the default provider
 - The Gemini provider is registered with the configuration
 
-**Note:** The configuration system is implemented but not yet fully integrated into the CLI/API. Integration will happen in future tasks.
+**Note:** The configuration system is fully integrated into the CLI. You can use environment variables, config files, or CLI options to configure AI settings.
