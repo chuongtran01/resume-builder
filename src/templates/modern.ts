@@ -244,7 +244,19 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       font-size: ${s.experienceCompanyFontSize};
     }
 
-    .experience-location,
+    .experience-company-location {
+      font-size: ${s.experienceCompanyFontSize};
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: ${s.experienceHeaderMarginBottom};
+    }
+
+    .experience-location {
+      font-size: ${s.experienceDatesFontSize};
+      color: #000000;
+    }
+
     .education-location,
     .experience-dates,
     .education-dates {
@@ -378,13 +390,13 @@ function renderExperience(experience: Resume['experience']): string {
       return `
         <div class="experience-item">
           <div class="experience-header">
-            <div>
-              <div class="experience-title">${escapeHtml(exp.role)}</div>
-              <div class="experience-company">${escapeHtml(exp.company)}</div>
-            </div>
+            <div class="experience-title">${escapeHtml(exp.role)}</div>
             <div class="experience-dates">${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}</div>
           </div>
-          <div class="experience-location">${escapeHtml(exp.location)}</div>
+          <div class="experience-company-location">
+            <span class="experience-company">${escapeHtml(exp.company)}</span>
+            <span class="experience-location">${escapeHtml(exp.location)}</span>
+          </div>
           <ul class="bullet-points">
             ${bulletPoints}
           </ul>
