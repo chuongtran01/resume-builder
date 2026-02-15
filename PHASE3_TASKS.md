@@ -6,6 +6,8 @@ This document breaks down Phase 3 into detailed, actionable tasks organized by c
 
 Phase 3 replaces the mock enhancement service (Phase 2) with Google Gemini AI model that uses extracted job description information to naturally modify resumes. The enhancement process follows a sequential two-step approach: **Review** (analyze resume against job requirements) → **Modify** (enhance resume based on review findings). The architecture is designed to support future upgrade to agent-based approach with tools for iterative refinement.
 
+**Intelligent Content Inference:** The AI can intelligently add related content based on what's already in the original resume. For example, if a resume mentions "Java", the AI can infer and add related terms like "backend development" or "server-side programming" since Java is commonly associated with backend work. This allows for natural enhancement while maintaining truthfulness - the AI only adds content that can be reasonably inferred from existing resume information.
+
 **Status Legend:**
 - ⬜ Not Started
 - 🔄 In Progress
@@ -18,7 +20,8 @@ Phase 3 replaces the mock enhancement service (Phase 2) with Google Gemini AI mo
 
 - Integrate Google Gemini AI model for resume enhancement
 - Use extracted job description information for natural language modifications
-- Maintain truthfulness guarantee (no fabrication)
+- Enable intelligent content inference - AI can add related content based on existing resume information (e.g., Java → backend development)
+- Maintain truthfulness guarantee (no fabrication, but allows reasonable inference from existing content)
 - Implement cost tracking and usage monitoring
 - Provide quality assurance and validation
 - Maintain backward compatibility with Phase 2 mock service with fallback mechanism
@@ -366,7 +369,7 @@ Create a utility to build and customize prompts dynamically for both review and 
 **Estimated Time:** 6 hours
 
 **Description:**
-Create the main AI enhancement service that uses real AI models to enhance resumes using extracted job information. Implements sequential two-step process: Review → Modify.
+Create the main AI enhancement service that uses real AI models to enhance resumes using extracted job information. Implements sequential two-step process: Review → Modify. The AI can intelligently add related content based on existing resume information (e.g., if resume mentions Java, it can add "backend development" or related terms that can be reasonably inferred).
 
 **Subtasks:**
 - [x] Create `src/services/aiResumeEnhancementService.ts`
@@ -449,7 +452,7 @@ Create the main AI enhancement service that uses real AI models to enhance resum
 **Estimated Time:** 3 hours
 
 **Description:**
-Implement logic to ensure AI makes natural, contextually appropriate modifications using extracted job information.
+Implement logic to ensure AI makes natural, contextually appropriate modifications using extracted job information. The AI can intelligently infer and add related content based on existing resume information (e.g., Java → backend, React → frontend, Python → data science/automation). This allows for natural enhancement while maintaining truthfulness through reasonable inference.
 
 **Subtasks:**
 - [x] Create enhancement context builder:
@@ -461,6 +464,7 @@ Implement logic to ensure AI makes natural, contextually appropriate modificatio
   - [x] Maintain original meaning
   - [x] Preserve achievements and metrics
   - [x] Avoid mechanical keyword insertion
+  - [x] Enable intelligent inference (e.g., Java → backend, React → frontend)
 - [x] Implement skill reordering:
   - [x] Prioritize job-relevant skills
   - [x] Maintain skill categories
@@ -503,7 +507,7 @@ Implement logic to ensure AI makes natural, contextually appropriate modificatio
 **Estimated Time:** 3 hours
 
 **Description:**
-Create a validator that ensures AI enhancements never add content not present in the original resume.
+Create a validator that ensures AI enhancements maintain truthfulness while allowing intelligent inference. The validator should allow the AI to add related content that can be reasonably inferred from existing resume information (e.g., Java → backend development, React → frontend development, Python → data science). However, it should prevent fabrication of completely unrelated content.
 
 **Subtasks:**
 - [ ] Create `src/services/ai/truthfulnessValidator.ts`
@@ -513,9 +517,10 @@ Create a validator that ensures AI enhancements never add content not present in
   - [ ] Verify dates match
   - [ ] Verify roles match
 - [ ] Implement skills validation:
-  - [ ] Verify all skills exist in original
-  - [ ] Verify no new skills added
-  - [ ] Allow reordering only
+  - [ ] Allow skills that can be reasonably inferred from existing skills (e.g., Java → backend, React → frontend)
+  - [ ] Verify inferred skills are logically related to original skills
+  - [ ] Prevent completely unrelated skills from being added
+  - [ ] Allow reordering and intelligent expansion
 - [ ] Implement education validation:
   - [ ] Verify institutions match
   - [ ] Verify degrees match
@@ -523,7 +528,8 @@ Create a validator that ensures AI enhancements never add content not present in
 - [ ] Implement bullet point validation:
   - [ ] Verify achievements are truthful
   - [ ] Verify metrics are not fabricated
-  - [ ] Verify technologies mentioned are in skills
+  - [ ] Verify technologies mentioned are in skills or can be reasonably inferred
+  - [ ] Allow related terms to be added (e.g., "Java" → can add "backend development", "server-side")
 - [ ] Implement summary validation:
   - [ ] Verify claims match experience
   - [ ] Verify years of experience match
