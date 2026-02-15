@@ -365,7 +365,7 @@ enhanceResume \
 ## 🌐 Task Group 14: API Integration
 
 ### Task 14.1: Implement Enhance Resume API Endpoint
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 3 hours
 
@@ -373,24 +373,24 @@ enhanceResume \
 Add a REST API endpoint `/api/enhanceResume` that accepts resume and job description, then returns enhanced resume with all outputs.
 
 **Subtasks:**
-- [ ] Create `POST /api/enhanceResume` endpoint
-- [ ] Define request body schema using Zod:
-  - [ ] `resume: Resume` (required)
-  - [ ] `jobDescription: string` (required)
-  - [ ] `options?: EnhancementOptions` (optional)
-- [ ] Add validation middleware for request body
-- [ ] Call enhancement service
-- [ ] Generate enhanced JSON
-- [ ] Generate PDF (if format is pdf)
-- [ ] Generate Markdown report
-- [ ] Return JSON response with:
-  - [ ] `success: boolean`
-  - [ ] `enhancedResume: EnhancedResumeOutput`
-  - [ ] `atsScore: AtsScore` (optional)
-- [ ] Handle errors appropriately
-- [ ] Set appropriate HTTP status codes
-- [ ] Include PDF in response if requested (as base64 or file download)
-- [ ] Add request logging
+- [x] Create `POST /api/enhanceResume` endpoint
+- [x] Define request body schema using Zod:
+  - [x] `resume: Resume` (required)
+  - [x] `jobDescription: string` (required)
+  - [x] `options?: EnhancementOptions` (optional)
+- [x] Add validation middleware for request body
+- [x] Call enhancement service
+- [x] Generate enhanced JSON
+- [x] Generate PDF (if format is pdf)
+- [x] Generate Markdown report
+- [x] Return JSON response with:
+  - [x] `success: boolean`
+  - [x] `enhancedResume: EnhancedResumeOutput`
+  - [x] `atsScore: AtsScore`
+- [x] Handle errors appropriately
+- [x] Set appropriate HTTP status codes
+- [x] Include PDF in response (as base64)
+- [x] Add request logging
 - [ ] Write integration tests
 
 **Files to Modify:**

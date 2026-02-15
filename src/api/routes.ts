@@ -13,6 +13,7 @@ import {
   validateRequest,
   generateResumeRequestSchema,
   validateResumeRequestSchema,
+  enhanceResumeRequestSchema,
   getValidatedBody,
 } from './middleware';
 import { validateAtsCompliance } from '../services/atsValidator';
@@ -183,6 +184,146 @@ export function registerRoutes(app: Express): void {
           error: 'Internal server error',
           message: error instanceof Error ? error.message : 'An error occurred while validating the resume',
         });
+      }
+    }
+  );
+
+  // POST /api/enhanceResume - Enhance resume based on job description
+  app.post(
+    '/api/enhanceResume',
+    validateRequest(enhanceResumeRequestSchema),
+    async (req: Request, res: Response) => {
+      const startTime = Date.now();
+      const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      try {
+        logger.info(`[${requestId}] POST /api/enhanceResume - Starting resume enhancement`);
+
+        // Get validated request body
+        const body = getValidatedBody<{
+          resume: Resume;
+          jobDescription: string;
+          options?: {
+            focusAreas?: Array<'keywords' | 'bulletPoints' | 'skills' | 'summary'>;
+            tone?: 'professional' | 'technical' | 'leadership';
+            maxSuggestions?: number;
+          };
+        }>(req);
+        const { resume, jobDescription, options } = body;
+
+        logger.debug(`[${requestId}] Enhancing resume with ${jobDescription.length} character job description`);
+
+        // Import enhancement service
+        const { resumeEnhancementService } = await import('../services/resumeEnhancementService');
+        
+        // Enhance resume
+        const enhancementResult = await resumeEnhancementService.enhanceResume(
+          resume,
+          jobDescription,
+          options
+        );
+
+        logger.info(`[${requestId}] Resume enhanced - ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
+
+        // Create temporary output directory
+        const tempDir = os.tmpdir();
+        const outputDir = path.join(tempDir, `enhanced-${requestId}`);
+        await fs.ensureDir(outputDir);
+
+        // Generate enhanced JSON
+        const { generateEnhancedResumeOutput, generateAndWriteEnhancedResume } = await import('../services/enhancedResumeGenerator');
+        const baseName = 'enhanced-resume';
+        await generateAndWriteEnhancedResume(enhancementResult, {
+          outputDir,
+          baseName,
+        });
+
+        // Generate PDF
+        const pdfPath = path.join(outputDir, `${baseName}.pdf`);
+        await generateResumeFromObject(
+          enhancementResult.enhancedResume,
+          pdfPath,
+          {
+            template: 'classic',
+            format: 'pdf',
+            validate: false,
+          }
+        );
+
+        // Generate Markdown report
+        const { generateAndWriteMarkdownReport } = await import('../services/mdGenerator');
+        const enhancedOutput = generateEnhancedResumeOutput(enhancementResult, {
+          outputDir,
+          baseName,
+        });
+        const mdPath = path.join(outputDir, `${baseName}.md`);
+        await generateAndWriteMarkdownReport(enhancedOutput, mdPath);
+
+        logger.info(`[${requestId}] All outputs generated successfully`);
+
+        // Read PDF file for base64 encoding
+        const pdfBuffer = await fs.readFile(pdfPath);
+        const pdfBase64 = pdfBuffer.toString('base64');
+
+        // Read Markdown file
+        const mdContent = await fs.readFile(mdPath, 'utf8');
+
+        // Return enhanced resume output with all metadata
+        res.status(200).json({
+          success: true,
+          enhancedResume: {
+            ...enhancedOutput,
+            pdfPath: undefined, // Don't include file paths in response
+            mdPath: undefined,
+          },
+          atsScore: enhancementResult.atsScore,
+          pdf: {
+            base64: pdfBase64,
+            contentType: 'application/pdf',
+            filename: 'enhanced-resume.pdf',
+            size: pdfBuffer.length,
+          },
+          markdown: {
+            content: mdContent,
+            filename: 'enhanced-resume.md',
+          },
+        });
+
+        // Clean up temporary files after sending response
+        fs.remove(outputDir).catch((err) => {
+          logger.warn(`[${requestId}] Failed to clean up temporary files: ${err.message}`);
+        });
+
+        const duration = Date.now() - startTime;
+        logger.info(`[${requestId}] Request completed in ${duration}ms`);
+      } catch (error) {
+        const duration = Date.now() - startTime;
+        logger.error(`[${requestId}] Error enhancing resume (${duration}ms): ${error instanceof Error ? error.message : String(error)}`);
+
+        // Import error types for proper error handling
+        const { PdfGenerationError } = await import('../utils/pdfGenerator');
+        const { JsonWriteError } = await import('../services/enhancedResumeGenerator');
+        const { MarkdownWriteError } = await import('../services/mdGenerator');
+
+        if (error instanceof PdfGenerationError) {
+          res.status(500).json({
+            success: false,
+            error: 'PDF generation failed',
+            message: error.message,
+          });
+        } else if (error instanceof JsonWriteError || error instanceof MarkdownWriteError) {
+          res.status(500).json({
+            success: false,
+            error: 'File generation failed',
+            message: error.message,
+          });
+        } else {
+          res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+            message: error instanceof Error ? error.message : 'An error occurred while enhancing the resume',
+          });
+        }
       }
     }
   );

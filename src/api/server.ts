@@ -56,6 +56,7 @@ function createApp(): Express {
         health: '/health',
         generate: '/api/generateResume',
         validate: '/api/validate',
+        enhance: '/api/enhanceResume',
       },
     });
   });

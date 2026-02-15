@@ -157,6 +157,24 @@ export const validateResumeRequestSchema = z.object({
 });
 
 /**
+ * Zod schema for EnhancementOptions
+ */
+const enhancementOptionsSchema = z.object({
+  focusAreas: z.array(z.enum(['keywords', 'bulletPoints', 'skills', 'summary'])).optional(),
+  tone: z.enum(['professional', 'technical', 'leadership']).optional(),
+  maxSuggestions: z.number().int().positive().optional(),
+});
+
+/**
+ * Zod schema for EnhanceResume request body
+ */
+export const enhanceResumeRequestSchema = z.object({
+  resume: resumeSchema,
+  jobDescription: z.string().min(1, 'Job description is required'),
+  options: enhancementOptionsSchema.optional(),
+});
+
+/**
  * Format Zod error for API response
  */
 function formatZodError(error: ZodError): ValidationErrorResponse {
