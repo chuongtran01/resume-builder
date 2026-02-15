@@ -1,11 +1,7 @@
 {
-  "institution": "University of California, Berkeley",
-  "degree": "Bachelor of Science",
+  "institution": "University of Houston",
+  "degree": "Bachelor's",
   "field": "Computer Science",
-  "graduationDate": "2018-05",
-  "gpa": "3.8/4.0",
-  "honors": [
-    "Summa Cum Laude",
-    "Dean's List"
-  ]
+  "graduationDate": "2023-12",
+  "gpa": "3.9"
 }

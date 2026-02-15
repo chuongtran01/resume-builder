@@ -1,50 +1,50 @@
 {
   "personalInfo": {
     "name": "Chuong Tran",
-    "email": "chuong@example.com",
-    "phone": "+1 123-456-7890",
-    "location": "San Francisco, CA, USA",
-    "linkedin": "https://linkedin.com/in/chuongtran",
-    "github": "https://github.com/chuongtran",
-    "website": "https://chuongtran.dev"
+    "email": "chuongtran2001@gmail.com",
+    "phone": "+1 (346) 401-8929",
+    "location": "Houston, TX, USA",
+    "linkedin": "https://linkedin.com/in/chuongtran2001/",
+    "website": "https://www.chuongtr.com/"
   },
   "experience": [
     {
-      "company": "Awesome Corp",
-      "role": "Senior Software Engineer",
-      "startDate": "2023-01",
+      "company": "Infodat",
+      "role": "Software Developer",
+      "startDate": "2024-01",
       "endDate": "Present",
-      "location": "Remote",
+      "location": "Houston, TX, USA",
       "bulletPoints": [
-        "Built scalable API services with Node.js and TypeScript serving 1M+ requests/day",
-        "Led a team of 4 engineers to deliver features on time and within budget",
-        "Reduced API response time by 40% through optimization and caching strategies",
-        "Implemented CI/CD pipelines reducing deployment time from 2 hours to 15 minutes"
+        "Developed and maintained a full-stack application using TypeScript and Java (Spring Boot), streamlining the onboarding of 100+ new facilities and increasing operational capacity by 15% since the start of the fiscal year.",
+        "Enhanced backend performance and scalability through service and query optimization, supporting a 15% year-over-year increase in order volume and 8% projected annual revenue growth.",
+        "Enhanced front-end workflows and user experience through responsive UI and caching improvements, enabling 20% year-over-year growth in unique users.",
+        "Developed reusable D3.js visualization components, cutting chart development time by 70% and promoting UI consistency across internal analytics tools.",
+        "Designed and implemented RESTful APIs for RFID-integrated systems, delivering real-time inventory synchronization and improving stock accuracy.",
+        "Built event-driven microservices leveraging Google Cloud Pub/Sub, boosting item processing efficiency by 50% and ensuring reliable asynchronous workflows.",
+        "Accelerated development speed by 20% through AI-assisted coding tools such as GitHub Copilot, improving productivity and code quality.",
+        "Collaborated cross-functionally in an Agile environment, contributing to design discussions, conducting PR reviews, and ensuring high-quality production releases."
       ]
     },
     {
-      "company": "StartupXYZ",
-      "role": "Full Stack Engineer",
-      "startDate": "2020-06",
-      "endDate": "2022-12",
-      "location": "San Francisco, CA",
+      "company": "Infodat",
+      "role": "Software Developer Intern",
+      "startDate": "2023-05",
+      "endDate": "2023-12",
+      "location": "Houston, TX, USA",
       "bulletPoints": [
-        "Developed React-based frontend with TypeScript and Redux for 50K+ active users",
-        "Implemented RESTful APIs using Express.js and PostgreSQL handling 100K+ requests/day",
-        "Designed and deployed microservices architecture on AWS reducing infrastructure costs by 30%",
-        "Collaborated with product team to define technical requirements and deliver MVP features"
+        "Delivered 5 production-ready features using React and Spring Boot within 10 weeks, directly enhancing user experience and product adoption.",
+        "Implemented a CI/CD pipeline with GitHub Actions and AWS EC2, reducing release time and enabling continuous delivery.",
+        "Maintained 80% test coverage through unit and integration testing, improving reliability and minimizing bugs."
       ]
     },
     {
-      "company": "Tech Solutions Inc",
-      "role": "Software Engineer",
-      "startDate": "2019-01",
-      "endDate": "2020-05",
-      "location": "San Francisco, CA",
+      "company": "University of Houston",
+      "role": "Teaching Assistant",
+      "startDate": "2022-08",
+      "endDate": "2023-05",
+      "location": "Houston, TX, USA",
       "bulletPoints": [
-        "Built responsive web applications using React, Node.js, and MongoDB",
-        "Participated in code reviews and maintained code quality standards",
-        "Fixed critical bugs improving system stability by 25%"
+        "Led weekly lab sessions for 50+ students and designed 20+ hands-on coding challenges in C++, reinforcing key data structures and algorithms concepts."
       ]
     }
   ],
@@ -52,27 +52,30 @@
   "skills": "file:../resume-sections/skills.json",
   "projects": [
     {
-      "name": "Resume Builder",
-      "description": "Open-source ATS-friendly resume generator built with TypeScript and Node.js",
+      "name": "Brain Tumors Classification",
+      "description": "Achieved 91% accuracy in categorizing brain tumors by developing and training a ResNet-50 model on 3,000+ MRI images.",
       "technologies": [
-        "TypeScript",
-        "Node.js",
-        "Puppeteer",
-        "Express"
-      ],
-      "github": "https://github.com/chuongtran/resume-builder",
-      "url": "https://resume-builder.example.com"
+        "Python",
+        "Tensorflow",
+        "NumPy"
+      ]
     },
     {
-      "name": "Task Management API",
-      "description": "RESTful API for task management with real-time collaboration features",
+      "name": "Job Scheduler",
+      "description": "Designed and implemented a database-driven cron scheduler in Spring Boot, allowing dynamic task registration and rescheduling at runtime via RESTful APIs.",
       "technologies": [
-        "Node.js",
-        "PostgreSQL",
-        "WebSocket",
-        "Redis"
-      ],
-      "github": "https://github.com/chuongtran/task-api"
+        "Spring Boot"
+      ]
+    },
+    {
+      "name": "Internship Recommender",
+      "description": "Implemented a content-based recommendation system to match resumes with relevant job opportunities, and developed a Python/Selenium web-scraping pipeline to ingest 600+ internship listings, enabling large-scale data analysis.",
+      "technologies": [
+        "Python",
+        "NLTK",
+        "Selenium",
+        "BeautifulSoup"
+      ]
     }
   ]
 }

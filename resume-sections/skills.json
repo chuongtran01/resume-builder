@@ -3,50 +3,41 @@
     {
       "name": "Programming Languages",
       "items": [
-        "TypeScript",
+        "Java",
+        "C/C++",
         "JavaScript",
+        "TypeScript",
         "Python",
-        "Go",
-        "Java"
+        "HTML/CSS"
       ]
     },
     {
       "name": "Frameworks & Libraries",
       "items": [
-        "React",
+        ".NET",
+        "Spring Boot",
+        "React.js",
+        "Angular",
         "Node.js",
-        "Express",
-        "Next.js",
-        "Vue.js"
+        "Ember.js",
+        "D3.js"
       ]
     },
     {
       "name": "Databases",
       "items": [
-        "PostgreSQL",
         "MongoDB",
-        "Redis",
         "MySQL"
-      ]
-    },
-    {
-      "name": "Cloud & DevOps",
-      "items": [
-        "AWS",
-        "Docker",
-        "Kubernetes",
-        "CI/CD",
-        "Terraform"
       ]
     },
     {
       "name": "Tools & Technologies",
       "items": [
-        "Git",
-        "Linux",
         "REST APIs",
-        "GraphQL",
-        "Microservices"
+        "Selenium",
+        "Docker",
+        "Git",
+        "Apache Kafka"
       ]
     }
   ]
