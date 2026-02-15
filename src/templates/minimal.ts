@@ -245,7 +245,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     }
 
     .summary {
-      font-size: ${s.summaryFontSize};
+      font-size: ${s.bodyFontSize};
       line-height: ${s.summaryLineHeight};
       margin-bottom: ${s.summaryMarginBottom};
       text-align: left;
@@ -269,11 +269,11 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     .experience-title,
     .education-title {
       font-weight: 600;
-      font-size: ${s.experienceTitleFontSize};
+      font-size: ${s.bodyFontSize};
     }
 
     .experience-company-location {
-      font-size: ${s.experienceCompanyFontSize};
+      font-size: ${s.bodyFontSize};
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -283,20 +283,20 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     .experience-company,
     .education-institution {
       font-weight: normal;
-      font-size: ${s.experienceCompanyFontSize};
+      font-size: ${s.bodyFontSize};
       color: #666666;
     }
 
     .experience-dates,
     .education-dates {
       float: right;
-      font-size: ${s.experienceDatesFontSize};
+      font-size: ${s.bodyFontSize};
       color: #666666;
       font-weight: normal;
     }
 
     .experience-location {
-      font-size: ${s.experienceLocationFontSize};
+      font-size: ${s.bodyFontSize};
       color: #000000;
     }
 
@@ -308,7 +308,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
 
     .bullet-points li {
       margin-bottom: ${s.bulletMarginBottom};
-      font-size: ${s.bulletFontSize};
+      font-size: ${s.bodyFontSize};
       line-height: ${s.bulletLineHeight};
     }
 
@@ -325,12 +325,12 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
 
     .skill-category-name {
       font-weight: 600;
-      font-size: ${s.skillCategoryNameFontSize};
+      font-size: ${s.bodyFontSize};
       color: #666666;
     }
 
     .skill-items {
-      font-size: ${s.skillItemsFontSize};
+      font-size: ${s.bodyFontSize};
       color: #333333;
     }
 
@@ -345,14 +345,14 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
     .project-name,
     .award-name {
       font-weight: 600;
-      font-size: ${s.certificationNameFontSize};
+      font-size: ${s.bodyFontSize};
       display: inline;
     }
 
     .certification-issuer,
     .project-description,
     .award-issuer {
-      font-size: ${s.certificationIssuerFontSize};
+      font-size: ${s.bodyFontSize};
       margin-top: ${s.certificationIssuerMarginTop};
       margin-left: ${s.certificationIssuerMarginLeft};
       color: #666666;
@@ -439,11 +439,11 @@ function renderExperience(experience: Resume['experience']): string {
       return `
         <div class="experience-item">
           <div class="experience-header">
-            <div class="experience-title">${escapeHtml(exp.role)}</div>
+            <div class="experience-company">${escapeHtml(exp.company)}</div>
             <div class="experience-dates">${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}</div>
           </div>
           <div class="experience-company-location">
-            <span class="experience-company">${escapeHtml(exp.company)}</span>
+            <span class="experience-title">${escapeHtml(exp.role)}</span>
             <span class="experience-location">${escapeHtml(exp.location)}</span>
           </div>
           <ul class="bullet-points">
