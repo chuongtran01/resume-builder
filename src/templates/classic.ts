@@ -109,7 +109,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       bulletMarginBottom: '0.5pt',
       bulletFontSize: '10pt',
       skillsCategoriesMarginTop: '4pt',
-      skillCategoryMarginBottom: '6pt',
+      skillCategoryMarginBottom: '0.5pt',
       skillCategoryNameFontSize: '10pt',
       skillCategoryNameMarginBottom: '2pt',
       skillItemsFontSize: '10pt',
@@ -150,7 +150,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       bulletMarginBottom: '1.5pt',
       bulletFontSize: '11pt',
       skillsCategoriesMarginTop: '6pt',
-      skillCategoryMarginBottom: '8pt',
+      skillCategoryMarginBottom: '1.5pt',
       skillCategoryNameFontSize: '11pt',
       skillCategoryNameMarginBottom: '3pt',
       skillItemsFontSize: '11pt',
@@ -292,12 +292,13 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
 
     .skills-categories {
       margin-top: ${s.skillsCategoriesMarginTop};
-      line-height: 1.8;
+      line-height: 1;
     }
 
     .skill-category {
       display: block;
-      margin-bottom: 3pt;
+      margin-bottom: ${s.skillCategoryMarginBottom};
+      line-height: 1.2;
     }
 
     .skill-category-name {
