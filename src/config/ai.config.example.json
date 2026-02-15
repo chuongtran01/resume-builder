@@ -11,7 +11,6 @@
       "retryDelayBase": 1000
     }
   },
-  "fallbackToMock": true,
   "enhancementMode": "sequential",
   "_comment": "Supported models: gemini-2.5-pro, gemini-3-flash-preview"
 }

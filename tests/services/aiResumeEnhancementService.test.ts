@@ -27,14 +27,9 @@ jest.mock('../../src/services/atsValidator', () => ({
   validateAtsCompliance: jest.fn(),
 }));
 
-jest.mock('../../src/services/resumeEnhancementService', () => ({
-  MockResumeEnhancementService: jest.fn(),
-}));
-
 import { parseJobDescription } from '../../src/utils/jobParser';
 import { getProvider, getDefaultProvider } from '../../src/services/ai/providerRegistry';
 import { validateAtsCompliance } from '../../src/services/atsValidator';
-import { MockResumeEnhancementService } from '../../src/services/resumeEnhancementService';
 
 describe('AIResumeEnhancementService', () => {
   const sampleResume: Resume = {
@@ -135,7 +130,6 @@ describe('AIResumeEnhancementService', () => {
   };
 
   let mockAIProvider: jest.Mocked<AIProvider>;
-  let mockFallbackService: jest.Mocked<MockResumeEnhancementService>;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -155,19 +149,6 @@ describe('AIResumeEnhancementService', () => {
       })),
     } as unknown as jest.Mocked<AIProvider>;
 
-    // Mock Fallback Service
-    mockFallbackService = {
-      enhanceResume: jest.fn().mockResolvedValue({
-        originalResume: sampleResume,
-        enhancedResume: sampleResume,
-        improvements: [],
-        keywordSuggestions: [],
-        missingSkills: [],
-        atsScore: { before: 70, after: 75, improvement: 5 },
-        recommendations: [],
-      }),
-    } as unknown as jest.Mocked<MockResumeEnhancementService>;
-
     // Mock job parser
     (parseJobDescription as jest.Mock).mockReturnValue(sampleParsedJob);
 
@@ -177,9 +158,6 @@ describe('AIResumeEnhancementService', () => {
 
     // Mock ATS validator
     (validateAtsCompliance as jest.Mock).mockReturnValue({ score: 75 });
-
-    // Mock MockResumeEnhancementService constructor
-    (MockResumeEnhancementService as jest.Mock).mockImplementation(() => mockFallbackService);
   });
 
   describe('Constructor', () => {
@@ -195,25 +173,18 @@ describe('AIResumeEnhancementService', () => {
       expect(getDefaultProvider).toHaveBeenCalled();
     });
 
-    it('should fallback to mock service when provider not found', () => {
-      (getProvider as jest.Mock).mockReturnValue(undefined);
-      const service = new AIResumeEnhancementService('nonexistent');
-      expect(service).toBeInstanceOf(AIResumeEnhancementService);
-    });
-
-    it('should throw error when provider not found and fallback disabled', () => {
+    it('should throw error when provider not found', () => {
       (getProvider as jest.Mock).mockReturnValue(undefined);
       expect(() => {
-        new AIResumeEnhancementService('nonexistent', false);
-      }).toThrow();
+        new AIResumeEnhancementService('nonexistent');
+      }).toThrow('Provider "nonexistent" not found');
     });
 
-    it('should fallback to mock service when default provider not available', () => {
-      (getDefaultProvider as jest.Mock).mockImplementation(() => {
-        throw new Error('No default provider');
-      });
-      const service = new AIResumeEnhancementService();
-      expect(service).toBeInstanceOf(AIResumeEnhancementService);
+    it('should throw error when default provider not available', () => {
+      (getDefaultProvider as jest.Mock).mockReturnValue(null);
+      expect(() => {
+        new AIResumeEnhancementService();
+      }).toThrow('No default AI provider available');
     });
   });
 
@@ -235,36 +206,13 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.modifyResume).toHaveBeenCalled();
     });
 
-    it('should fallback to mock service when AI provider fails', async () => {
+    it('should throw error when AI provider fails', async () => {
       mockAIProvider.reviewResume.mockRejectedValue(new Error('API Error'));
 
       const service = new AIResumeEnhancementService('gemini');
-      const result = await service.enhanceResume(sampleResume, sampleJobDescription);
-
-      expect(result).toBeDefined();
-      expect(mockFallbackService.enhanceResume).toHaveBeenCalledWith(
-        sampleResume,
-        sampleJobDescription,
-        undefined
-      );
-    });
-
-    it('should throw error when AI provider fails and fallback disabled', async () => {
-      mockAIProvider.reviewResume.mockRejectedValue(new Error('API Error'));
-
-      const service = new AIResumeEnhancementService('gemini', false);
       await expect(
         service.enhanceResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('API Error');
-    });
-
-    it('should fallback to mock service when no AI provider available', async () => {
-      (getProvider as jest.Mock).mockReturnValue(undefined);
-      const service = new AIResumeEnhancementService('nonexistent');
-      const result = await service.enhanceResume(sampleResume, sampleJobDescription);
-
-      expect(result).toBeDefined();
-      expect(mockFallbackService.enhanceResume).toHaveBeenCalled();
     });
 
     it('should pass options to enhancement process', async () => {

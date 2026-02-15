@@ -7,7 +7,6 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import type { EnhancementResult, EnhancedResumeOutput, ChangeDetail } from '@resume-types/enhancement.types';
 import { logger } from '@utils/logger';
-import { MockResumeEnhancementService } from '@services/resumeEnhancementService';
 
 /**
  * Error thrown when output directory cannot be created
@@ -75,8 +74,7 @@ export function generateEnhancedResumeOutput(
   }));
 
   // Generate changes summary
-  const enhancementService = new MockResumeEnhancementService();
-  const changesSummary = enhancementService.generateChangesSummary(changesDetail);
+  const changesSummary = generateChangesSummary(changesDetail);
 
   // Generate suggestions from recommendations
   const suggestions = result.recommendations;
@@ -98,6 +96,35 @@ export function generateEnhancedResumeOutput(
     pdfPath,
     mdPath,
   };
+}
+
+/**
+ * Generate human-readable summary of changes
+ */
+function generateChangesSummary(changes: ChangeDetail[]): string {
+  if (changes.length === 0) {
+    return 'No changes were made to the resume.';
+  }
+
+  const bulletPointChanges = changes.filter(c => c.type === 'bulletPoint').length;
+  const skillChanges = changes.filter(c => c.type === 'skill').length;
+  const summaryChanges = changes.filter(c => c.type === 'summary').length;
+
+  const parts: string[] = [];
+
+  if (bulletPointChanges > 0) {
+    parts.push(`${bulletPointChanges} bullet point${bulletPointChanges > 1 ? 's' : ''} ${bulletPointChanges > 1 ? 'were' : 'was'} enhanced`);
+  }
+
+  if (skillChanges > 0) {
+    parts.push(`skills were reordered to prioritize job-relevant technologies`);
+  }
+
+  if (summaryChanges > 0) {
+    parts.push(`summary was updated to include relevant keywords`);
+  }
+
+  return `Enhanced resume with ${changes.length} total change${changes.length > 1 ? 's' : ''}. ${parts.join(', ')}.`;
 }
 
 /**

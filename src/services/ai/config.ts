@@ -34,14 +34,12 @@ export interface GeminiProviderConfig {
  */
 export interface AIConfig {
   /** Default provider to use */
-  defaultProvider?: 'gemini' | 'mock';
+  defaultProvider?: 'gemini';
   /** Provider-specific configurations */
   providers?: {
     gemini?: GeminiProviderConfig;
     // Future: other providers can be added here
   };
-  /** Whether to enable fallback to mock service */
-  fallbackToMock?: boolean;
   /** Enhancement mode */
   enhancementMode?: 'sequential' | 'agent';
 }
@@ -85,7 +83,6 @@ const ENV_VARS = {
   GEMINI_MAX_TOKENS: 'GEMINI_MAX_TOKENS',
   GEMINI_TIMEOUT: 'GEMINI_TIMEOUT',
   GEMINI_MAX_RETRIES: 'GEMINI_MAX_RETRIES',
-  FALLBACK_TO_MOCK: 'FALLBACK_TO_MOCK',
   ENHANCEMENT_MODE: 'ENHANCEMENT_MODE',
 } as const;
 
@@ -117,8 +114,8 @@ function loadFromEnvironment(): Partial<AIConfig> {
   // Default provider
   const defaultProviderEnv = process.env[ENV_VARS.DEFAULT_AI_PROVIDER];
   if (defaultProviderEnv) {
-    const provider = defaultProviderEnv as 'gemini' | 'mock';
-    if (provider === 'gemini' || provider === 'mock') {
+    const provider = defaultProviderEnv as 'gemini';
+    if (provider === 'gemini') {
       config.defaultProvider = provider;
     }
   }
@@ -163,12 +160,6 @@ function loadFromEnvironment(): Partial<AIConfig> {
         config.providers.gemini.maxRetries = maxRetries;
       }
     }
-  }
-
-  // Fallback to mock
-  const fallbackEnv = process.env[ENV_VARS.FALLBACK_TO_MOCK];
-  if (fallbackEnv) {
-    config.fallbackToMock = fallbackEnv.toLowerCase() === 'true';
   }
 
   // Enhancement mode
@@ -246,13 +237,12 @@ function mergeConfigs(
   }
 
   const merged: AIConfig = {
-    defaultProvider: fileConfig.defaultProvider ?? envConfig.defaultProvider ?? 'mock',
+    defaultProvider: fileConfig.defaultProvider ?? envConfig.defaultProvider ?? 'gemini',
     providers: {
       ...envConfig.providers,
       ...fileConfig.providers,
       gemini: geminiConfig,
     },
-    fallbackToMock: fileConfig.fallbackToMock ?? envConfig.fallbackToMock ?? true,
     enhancementMode: fileConfig.enhancementMode ?? envConfig.enhancementMode ?? 'sequential',
   };
 
@@ -267,8 +257,8 @@ function validateConfig(config: AIConfig): ConfigValidationResult {
   const warnings: string[] = [];
 
   // Validate default provider
-  if (config.defaultProvider && config.defaultProvider !== 'gemini' && config.defaultProvider !== 'mock') {
-    errors.push(`Invalid defaultProvider: ${config.defaultProvider}. Must be 'gemini' or 'mock'`);
+  if (config.defaultProvider && config.defaultProvider !== 'gemini') {
+    errors.push(`Invalid defaultProvider: ${config.defaultProvider}. Must be 'gemini'`);
   }
 
   // Validate Gemini configuration if provider is gemini
@@ -419,8 +409,8 @@ export function getGeminiConfig(config: AIConfig): GeminiProviderConfig | undefi
  * @param config - AI configuration
  * @returns Default provider name
  */
-export function getDefaultProvider(config: AIConfig): 'gemini' | 'mock' {
-  return config.defaultProvider || 'mock';
+export function getDefaultProvider(config: AIConfig): 'gemini' {
+  return config.defaultProvider || 'gemini';
 }
 
 /**
@@ -465,9 +455,8 @@ export function getProviderConfig(
  */
 export function createDefaultConfig(): AIConfig {
   return {
-    defaultProvider: 'mock',
+    defaultProvider: 'gemini',
     providers: {},
-    fallbackToMock: true,
     enhancementMode: 'sequential',
   };
 }

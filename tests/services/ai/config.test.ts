@@ -50,8 +50,7 @@ describe('AI Configuration Management', () => {
         loadFromFile: false,
       });
 
-      expect(config.defaultProvider).toBe('mock');
-      expect(config.fallbackToMock).toBe(true);
+      expect(config.defaultProvider).toBe('gemini');
       expect(config.enhancementMode).toBe('sequential');
     });
 
@@ -61,7 +60,6 @@ describe('AI Configuration Management', () => {
       process.env.GEMINI_MODEL = 'gemini-2.5-pro';
       process.env.GEMINI_TEMPERATURE = '0.8';
       process.env.GEMINI_MAX_TOKENS = '3000';
-      process.env.FALLBACK_TO_MOCK = 'false';
       process.env.ENHANCEMENT_MODE = 'sequential';
 
       const config = await loadAIConfig({
@@ -73,7 +71,6 @@ describe('AI Configuration Management', () => {
       expect(config.providers?.gemini?.model).toBe('gemini-2.5-pro');
       expect(config.providers?.gemini?.temperature).toBe(0.8);
       expect(config.providers?.gemini?.maxTokens).toBe(3000);
-      expect(config.fallbackToMock).toBe(false);
       expect(config.enhancementMode).toBe('sequential');
     });
 
@@ -88,7 +85,6 @@ describe('AI Configuration Management', () => {
             maxTokens: 1500,
           },
         },
-        fallbackToMock: true,
         enhancementMode: 'sequential',
       };
 
@@ -271,7 +267,7 @@ describe('AI Configuration Management', () => {
       });
 
       // Should return default config
-      expect(config.defaultProvider).toBe('mock');
+      expect(config.defaultProvider).toBe('gemini');
     });
 
     it('should handle invalid JSON in config file', async () => {
@@ -285,7 +281,7 @@ describe('AI Configuration Management', () => {
       });
 
       // Should return default config when JSON is invalid
-      expect(config.defaultProvider).toBe('mock');
+      expect(config.defaultProvider).toBe('gemini');
     });
 
     it('should skip validation when validate is false', async () => {
@@ -332,7 +328,7 @@ describe('AI Configuration Management', () => {
 
     it('should return undefined when Gemini config is not present', () => {
       const config: AIConfig = {
-        defaultProvider: 'mock',
+        defaultProvider: 'gemini',
         providers: {},
       };
 
@@ -351,12 +347,12 @@ describe('AI Configuration Management', () => {
       expect(getDefaultProvider(config)).toBe('gemini');
     });
 
-    it('should return mock when default provider is not set', () => {
+    it('should return gemini when default provider is not set', () => {
       const config: AIConfig = {
         providers: {},
       };
 
-      expect(getDefaultProvider(config)).toBe('mock');
+      expect(getDefaultProvider(config)).toBe('gemini');
     });
   });
 
@@ -387,7 +383,7 @@ describe('AI Configuration Management', () => {
 
     it('should return undefined for non-existent provider', () => {
       const config: AIConfig = {
-        defaultProvider: 'mock',
+        defaultProvider: 'gemini',
         providers: {},
       };
 
@@ -400,8 +396,7 @@ describe('AI Configuration Management', () => {
     it('should create default configuration', () => {
       const config = createDefaultConfig();
 
-      expect(config.defaultProvider).toBe('mock');
-      expect(config.fallbackToMock).toBe(true);
+      expect(config.defaultProvider).toBe('gemini');
       expect(config.enhancementMode).toBe('sequential');
       expect(config.providers).toEqual({});
     });
@@ -443,13 +438,11 @@ describe('AI Configuration Management', () => {
 
     it('should handle boolean environment variables', async () => {
       process.env.GEMINI_API_KEY = 'test-key';
-      process.env.FALLBACK_TO_MOCK = 'true';
-
       const config = await loadAIConfig({
         loadFromFile: false,
       });
 
-      expect(config.fallbackToMock).toBe(true);
+      expect(config.defaultProvider).toBe('gemini');
     });
   });
 });

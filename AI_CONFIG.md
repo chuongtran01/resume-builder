@@ -24,7 +24,7 @@ export GEMINI_API_KEY="your-api-key-here"
 
 ### Optional Settings
 ```bash
-# Default AI provider (gemini or mock)
+# Default AI provider (gemini)
 export DEFAULT_AI_PROVIDER="gemini"
 
 # Gemini model selection
@@ -37,7 +37,6 @@ export GEMINI_TIMEOUT="30000"         # Request timeout in milliseconds
 export GEMINI_MAX_RETRIES="3"         # Maximum retry attempts
 
 # General settings
-export FALLBACK_TO_MOCK="true"        # Fallback to mock service on errors
 export ENHANCEMENT_MODE="sequential"   # sequential or agent
 ```
 
@@ -83,7 +82,6 @@ cp src/config/ai.config.example.json ai.config.json
       "retryDelayBase": 1000
     }
   },
-  "fallbackToMock": true,
   "enhancementMode": "sequential"
 }
 ```
@@ -118,8 +116,8 @@ export GEMINI_API_KEY="your-api-key-here"
 ## Configuration Options
 
 ### `defaultProvider`
-- **Type:** `"gemini" | "mock"`
-- **Default:** `"mock"`
+- **Type:** `"gemini"`
+- **Default:** `"gemini"`
 - **Description:** Which AI provider to use by default
 
 ### `providers.gemini.apiKey`
@@ -163,10 +161,6 @@ export GEMINI_API_KEY="your-api-key-here"
 - **Default:** `1000` (1 second)
 - **Description:** Base delay for exponential backoff retries
 
-### `fallbackToMock`
-- **Type:** `boolean`
-- **Default:** `true`
-- **Description:** Whether to fallback to mock service if AI provider fails
 
 ### `enhancementMode`
 - **Type:** `"sequential" | "agent"`

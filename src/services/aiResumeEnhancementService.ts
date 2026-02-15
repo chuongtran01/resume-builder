@@ -27,7 +27,6 @@ import type { ParsedJobDescription } from '@utils/jobParser';
 import { parseJobDescription } from '@utils/jobParser';
 import { getProvider, getDefaultProvider } from '@services/ai/providerRegistry';
 import { validateAtsCompliance } from '@services/atsValidator';
-import { MockResumeEnhancementService } from '@services/resumeEnhancementService';
 import { logger } from '@utils/logger';
 
 /**
@@ -38,47 +37,35 @@ import { logger } from '@utils/logger';
  * 2. Modify: Apply enhancements based on review findings
  */
 export class AIResumeEnhancementService implements ResumeEnhancementService {
-  private aiProvider: AIProvider | null;
-  private fallbackService: MockResumeEnhancementService;
-  private providerName: string | null;
+  private aiProvider: AIProvider;
+  private providerName: string;
 
   /**
    * Create AI Resume Enhancement Service
    * 
    * @param providerName - Name of AI provider to use (e.g., "gemini"). If not provided, uses default provider.
-   * @param fallbackToMock - Whether to fallback to mock service on errors (default: true)
+   * @throws Error if AI provider cannot be initialized
    */
-  constructor(providerName?: string, private fallbackToMock: boolean = true) {
-    this.providerName = providerName || null;
-    this.fallbackService = new MockResumeEnhancementService();
-    this.aiProvider = null;
+  constructor(providerName?: string) {
+    this.providerName = providerName || '';
 
-    // Try to get the AI provider
-    try {
-      if (this.providerName) {
-        const provider = getProvider(this.providerName);
-        if (provider) {
-          this.aiProvider = provider;
-          logger.info(`Using AI provider: ${this.providerName}`);
-        } else {
-          throw new Error(`Provider "${this.providerName}" not found`);
-        }
-      } else {
-        try {
-          this.aiProvider = getDefaultProvider();
-          const info = this.aiProvider.getProviderInfo();
-          this.providerName = info.name;
-          logger.info(`Using default AI provider: ${this.providerName}`);
-        } catch (error) {
-          throw new Error('No default provider available');
-        }
+    // Get the AI provider
+    if (this.providerName) {
+      const provider = getProvider(this.providerName);
+      if (!provider) {
+        throw new Error(`Provider "${this.providerName}" not found`);
       }
-    } catch (error) {
-      logger.warn(`Failed to initialize AI provider: ${error instanceof Error ? error.message : String(error)}`);
-      if (!this.fallbackToMock) {
-        throw error;
+      this.aiProvider = provider;
+      logger.info(`Using AI provider: ${this.providerName}`);
+    } else {
+      const provider = getDefaultProvider();
+      if (!provider) {
+        throw new Error('No default AI provider available. Please configure an AI provider.');
       }
-      logger.info('Falling back to mock service');
+      this.aiProvider = provider;
+      const info = this.aiProvider.getProviderInfo();
+      this.providerName = info.name;
+      logger.info(`Using default AI provider: ${this.providerName}`);
     }
   }
 
@@ -105,32 +92,15 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     const parsedJob = parseJobDescription(jobDescription);
     logger.debug(`Parsed job description: ${parsedJob.keywords.length} keywords found`);
 
-    // If no AI provider available, fallback to mock service
-    if (!this.aiProvider) {
-      logger.warn('No AI provider available, using mock service');
-      return this.fallbackService.enhanceResume(resume, jobDescription, options);
-    }
+    // Step 1: Review phase
+    const reviewResult = await this.reviewResume(resume, jobDescription, options);
+    logger.debug(`Review complete. Found ${reviewResult.prioritizedActions.length} prioritized actions`);
 
-    try {
-      // Step 1: Review phase
-      const reviewResult = await this.reviewResume(resume, jobDescription, options);
-      logger.debug(`Review complete. Found ${reviewResult.prioritizedActions.length} prioritized actions`);
+    // Step 2: Modify phase
+    const enhancementResult = await this.modifyResume(resume, reviewResult, parsedJob, options);
+    logger.debug(`Modification complete. Made ${enhancementResult.improvements.length} improvements`);
 
-      // Step 2: Modify phase
-      const enhancementResult = await this.modifyResume(resume, reviewResult, parsedJob, options);
-      logger.debug(`Modification complete. Made ${enhancementResult.improvements.length} improvements`);
-
-      return enhancementResult;
-    } catch (error) {
-      logger.error(`AI enhancement failed: ${error instanceof Error ? error.message : String(error)}`);
-      
-      if (this.fallbackToMock) {
-        logger.warn('Falling back to mock service');
-        return this.fallbackService.enhanceResume(resume, jobDescription, options);
-      }
-      
-      throw error;
-    }
+    return enhancementResult;
   }
 
   /**
@@ -148,10 +118,6 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     jobDescription: string,
     options?: EnhancementOptions
   ): Promise<ReviewResult> {
-    if (!this.aiProvider) {
-      throw new Error('AI provider not available');
-    }
-
     logger.debug('Starting review phase...');
 
     // Parse job description
@@ -196,10 +162,6 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     parsedJob: ParsedJobDescription,
     options?: EnhancementOptions
   ): Promise<EnhancementResult> {
-    if (!this.aiProvider) {
-      throw new Error('AI provider not available');
-    }
-
     logger.debug('Starting modification phase...');
 
     // Build modification request
