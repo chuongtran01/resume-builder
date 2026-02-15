@@ -165,6 +165,7 @@ function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'norm
       font-family: Arial, Helvetica, sans-serif;
       font-size: ${s.bodyFontSize};
       line-height: ${s.lineHeight};
+      font-weight: 500;
       color: #000000;
       background-color: #ffffff;
       padding: ${s.bodyPadding};
