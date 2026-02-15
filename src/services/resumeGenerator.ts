@@ -22,7 +22,7 @@ export type OutputFormat = 'pdf' | 'html';
  * Generator options
  */
 export interface GeneratorOptions {
-  /** Template name to use (default: 'modern') */
+  /** Template name to use (default: 'classic') */
   template?: string;
   /** Output format (default: 'pdf') */
   format?: OutputFormat;
@@ -77,7 +77,7 @@ export async function generateResumeFromFile(
   options: GeneratorOptions = {}
 ): Promise<GeneratorResult> {
   const {
-    template: templateName = 'modern',
+    template: templateName = 'classic',
     format: outputFormat = 'pdf',
     validate: runValidation = false,
     templateOptions,
@@ -177,7 +177,7 @@ export async function generateResumeFromObject(
   options: GeneratorOptions = {}
 ): Promise<GeneratorResult> {
   const {
-    template: templateName = 'modern',
+    template: templateName = 'classic',
     format: outputFormat = 'pdf',
     validate: runValidation = false,
     templateOptions,
@@ -267,7 +267,7 @@ export async function generateResumeHtml(
   resume: Resume,
   options: Omit<GeneratorOptions, 'format'> = {}
 ): Promise<string> {
-  const { template: templateName = 'modern', templateOptions } = options;
+  const { template: templateName = 'classic', templateOptions } = options;
 
   // Get template
   const template = getTemplate(templateName);
