@@ -373,7 +373,7 @@ Create third ATS-compliant template (minimalist style).
 ## 📄 Task Group 5: PDF & HTML Generation
 
 ### Task 5.1: Implement HTML Generator
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 1.5 hours
 
@@ -381,12 +381,12 @@ Create third ATS-compliant template (minimalist style).
 Create utility to generate standalone HTML files from templates.
 
 **Subtasks:**
-- [ ] Create `src/utils/htmlGenerator.ts`
-- [ ] Implement function to wrap template HTML in full document
-- [ ] Embed CSS styles
-- [ ] Ensure print-friendly styling
-- [ ] Add HTML validation
-- [ ] Write unit tests
+- [x] Create `src/utils/htmlGenerator.ts`
+- [x] Implement function to wrap template HTML in full document
+- [x] Embed CSS styles
+- [x] Ensure print-friendly styling
+- [x] Add HTML validation
+- [x] Write unit tests
 
 **Acceptance Criteria:**
 - Generates valid HTML5
@@ -399,7 +399,7 @@ Create utility to generate standalone HTML files from templates.
 ---
 
 ### Task 5.2: Implement PDF Generator
-**Status:** ⬜  
+**Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2.5 hours
 
@@ -407,15 +407,15 @@ Create utility to generate standalone HTML files from templates.
 Create utility to convert HTML to PDF using puppeteer.
 
 **Subtasks:**
-- [ ] Install puppeteer
-- [ ] Create `src/utils/pdfGenerator.ts`
-- [ ] Implement HTML to PDF conversion
-- [ ] Configure PDF options (margins, format, etc.)
-- [ ] Ensure text is selectable
-- [ ] Optimize file size
-- [ ] Handle PDF generation errors
-- [ ] Add timeout handling
-- [ ] Write unit tests
+- [x] Install puppeteer
+- [x] Create `src/utils/pdfGenerator.ts`
+- [x] Implement HTML to PDF conversion
+- [x] Configure PDF options (margins, format, etc.)
+- [x] Ensure text is selectable
+- [x] Optimize file size
+- [x] Handle PDF generation errors
+- [x] Add timeout handling
+- [x] Write unit tests
 
 **Acceptance Criteria:**
 - Converts HTML to PDF successfully
