@@ -95,6 +95,42 @@ export interface EnhancementResult {
 }
 
 /**
+ * Change detail tracking for resume enhancements
+ * Tracks individual changes made during enhancement process
+ */
+export interface ChangeDetail {
+  /** Original text/content before enhancement */
+  old: string;
+  /** Enhanced/replaced text/content after enhancement */
+  new: string;
+  /** Section where change occurred (e.g., "experience", "skills") */
+  section?: string;
+  /** Type of change made */
+  type?: 'bulletPoint' | 'skill' | 'summary' | 'keyword';
+}
+
+/**
+ * Enhanced resume output structure
+ * Contains the enhanced resume along with change tracking metadata
+ */
+export interface EnhancedResumeOutput {
+  /** The enhanced resume object */
+  updatedResume: Resume;
+  /** List of general suggestions for improvement */
+  suggestions: string[];
+  /** Skills highlighted as important for the job */
+  highlightedSkills: string[];
+  /** Human-readable summary of all changes made */
+  changesSummary: string;
+  /** Detailed list of all changes (old → new) */
+  changesDetail: ChangeDetail[];
+  /** Path to generated PDF file */
+  pdfPath: string;
+  /** Path to generated Markdown report */
+  mdPath: string;
+}
+
+/**
  * AI enhancement service interface
  */
 export interface ResumeEnhancementService {
