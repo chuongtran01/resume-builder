@@ -1,0 +1,166 @@
+{
+  "updatedResume": {
+    "personalInfo": {
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "phone": "+1 (555) 987-6543",
+      "location": "New York, NY, USA",
+      "linkedin": "linkedin.com/in/johndoe",
+      "website": "www.johndoe.dev"
+    },
+    "experience": [
+      {
+        "company": "Tech Innovations Inc",
+        "role": "Senior Software Engineer",
+        "startDate": "2021-03",
+        "endDate": "Present",
+        "location": "San Francisco, CA",
+        "bulletPoints": [
+          "Architected and developed scalable microservices and web applications using TypeScript, JavaScript, and Python, ensuring high availability and performance across cloud platforms.",
+          "Led a cross-functional team of 3 developers in an Agile/Scrum environment, mentoring junior engineers and overseeing the full software development life cycle (SDLC).",
+          "Optimized complex PostgreSQL and MongoDB queries and schema designs, improving application response times by 30% and enhancing overall data integrity.",
+          "Partnered with product managers and stakeholders to translate business requirements into technical specifications, utilizing advanced debugging and problem-solving skills to maintain 99.9% uptime."
+        ]
+      },
+      {
+        "company": "StartupXYZ",
+        "role": "Full Stack Developer",
+        "startDate": "2019-06",
+        "endDate": "2021-02",
+        "location": "Remote",
+        "bulletPoints": [
+          "Engineered robust RESTful APIs and GraphQL endpoints using Node.js and Express, facilitating seamless data exchange between client-side and server-side components.",
+          "Developed responsive, user-centric frontend interfaces with React, implementing modern UI/UX patterns and ensuring cross-browser compatibility.",
+          "Established comprehensive CI/CD pipelines and automated testing suites using Jest and GitHub Actions, significantly reducing deployment errors and manual QA time.",
+          "Deployed and managed containerized applications on AWS cloud infrastructure using Docker and Kubernetes, leveraging serverless architectures (AWS Lambda) for cost-efficient scaling."
+        ]
+      }
+    ],
+    "summary": "Senior Software Engineer with 5+ years of experience specializing in full-stack development, microservices architecture, and cloud-native solutions. Expert in building scalable React/Node.js applications and leading technical teams within Agile/Scrum environments to deliver high-impact software.",
+    "education": {
+      "institution": "University of Houston",
+      "degree": "Bachelor's",
+      "field": "Computer Science",
+      "graduationDate": "2023-12",
+      "gpa": "3.9"
+    },
+    "skills": {
+      "categories": [
+        {
+          "name": "Skills",
+          "items": [
+            "React.js",
+            "Node.js",
+            "TypeScript",
+            "JavaScript",
+            "Python",
+            "Java",
+            "PostgreSQL",
+            "MongoDB",
+            "MySQL",
+            "GraphQL",
+            "Microservices Architecture",
+            "Serverless (AWS Lambda)",
+            "Docker",
+            "Kubernetes",
+            "CI/CD Pipelines",
+            "Agile/Scrum",
+            "REST APIs",
+            "Spring Boot",
+            "Git",
+            "Selenium",
+            "Apache Kafka",
+            "Cloud Infrastructure (AWS/GCP)"
+          ]
+        }
+      ]
+    },
+    "certifications": [
+      {
+        "name": "AWS Certified Solutions Architect",
+        "issuer": "Amazon Web Services",
+        "date": "2023-06",
+        "expirationDate": "2026-06",
+        "credentialId": "ABC123XYZ"
+      },
+      {
+        "name": "Google Cloud Professional Cloud Architect",
+        "issuer": "Google Cloud",
+        "date": "2022-03",
+        "expirationDate": "2025-03",
+        "credentialId": "DEF456UVW"
+      },
+      {
+        "name": "Certified Kubernetes Administrator",
+        "issuer": "Cloud Native Computing Foundation",
+        "date": "2021-09",
+        "expirationDate": "2024-09",
+        "credentialId": "GHI789RST"
+      }
+    ]
+  },
+  "suggestions": [
+    "Consider adding these skills to your resume: 5+ years of experience in full, stack development, Strong experience with cloud platforms (AWS, Azure, or GCP), Strong problem, solving and debugging skills, Excellent communication and collaboration abilities, Knowledge of serverless architectures, Previous experience leading technical teams, Azure, Communication, Debugging, cloud platforms, containerization technologies, full",
+    "Incorporate these high-priority keywords: Azure, Communication, containerization technologies"
+  ],
+  "highlightedSkills": [],
+  "changesSummary": "Enhanced resume with 9 total changes. 8 bullet points were enhanced, summary was updated to include relevant keywords.",
+  "changesDetail": [
+    {
+      "old": "Developed and maintained web applications using JavaScript and Python",
+      "new": "Architected and developed scalable microservices and web applications using TypeScript, JavaScript, and Python, ensuring high availability and performance across cloud platforms.",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Led a team of 3 junior developers on multiple projects",
+      "new": "Led a cross-functional team of 3 developers in an Agile/Scrum environment, mentoring junior engineers and overseeing the full software development life cycle (SDLC).",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Improved application performance by optimizing database queries",
+      "new": "Optimized complex PostgreSQL and MongoDB queries and schema designs, improving application response times by 30% and enhancing overall data integrity.",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Collaborated with product managers to define feature requirements",
+      "new": "Partnered with product managers and stakeholders to translate business requirements into technical specifications, utilizing advanced debugging and problem-solving skills to maintain 99.9% uptime.",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Built RESTful APIs using Node.js and Express",
+      "new": "Engineered robust RESTful APIs and GraphQL endpoints using Node.js and Express, facilitating seamless data exchange between client-side and server-side components.",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Created responsive frontend interfaces with React",
+      "new": "Developed responsive, user-centric frontend interfaces with React, implementing modern UI/UX patterns and ensuring cross-browser compatibility.",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Implemented automated testing with Jest",
+      "new": "Established comprehensive CI/CD pipelines and automated testing suites using Jest and GitHub Actions, significantly reducing deployment errors and manual QA time.",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Deployed applications to AWS cloud infrastructure",
+      "new": "Deployed and managed containerized applications on AWS cloud infrastructure using Docker and Kubernetes, leveraging serverless architectures (AWS Lambda) for cost-efficient scaling.",
+      "section": "experience[1]",
+      "type": "bulletPoint"
+    },
+    {
+      "old": "Experienced software engineer with expertise in full-stack development and cloud technologies. Passionate about building scalable applications and leading technical teams.",
+      "new": "Senior Software Engineer with 5+ years of experience specializing in full-stack development, microservices architecture, and cloud-native solutions. Expert in building scalable React/Node.js applications and leading technical teams within Agile/Scrum environments to deliver high-impact software.",
+      "section": "summary",
+      "type": "summary"
+    }
+  ],
+  "pdfPath": "/Users/chuongtran/Desktop/Projects/resume-builder/examples/output/mock-resume-enhanced.pdf",
+  "mdPath": "/Users/chuongtran/Desktop/Projects/resume-builder/examples/output/mock-resume-enhanced.md"
+}
