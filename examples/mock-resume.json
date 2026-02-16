@@ -1,12 +1,5 @@
 {
-  "personalInfo": {
-    "name": "Jane Smith",
-    "email": "jane.smith@email.com",
-    "phone": "+1 (555) 123-4567",
-    "location": "San Francisco, CA",
-    "linkedin": "linkedin.com/in/janesmith",
-    "github": "github.com/janesmith"
-  },
+  "personalInfo": "file:./resume-sections/personalInfo.json",
   "summary": "Experienced software engineer with expertise in full-stack development and cloud technologies. Passionate about building scalable applications and leading technical teams.",
   "experience": [
     {
@@ -36,42 +29,7 @@
       ]
     }
   ],
-  "education": {
-    "institution": "University of California, Berkeley",
-    "degree": "Bachelor of Science",
-    "field": "Computer Science",
-    "graduationDate": "2019-05"
-  },
-  "skills": {
-    "categories": [
-      {
-        "name": "Programming Languages",
-        "items": [
-          "JavaScript",
-          "Python",
-          "Java",
-          "TypeScript"
-        ]
-      },
-      {
-        "name": "Frameworks & Libraries",
-        "items": [
-          "React",
-          "Node.js",
-          "Express",
-          "Django"
-        ]
-      },
-      {
-        "name": "Tools & Technologies",
-        "items": [
-          "Git",
-          "Docker",
-          "AWS",
-          "MongoDB",
-          "PostgreSQL"
-        ]
-      }
-    ]
-  }
+  "education": "file:./resume-sections/education.json",
+  "skills": "file:./resume-sections/skills.json",
+  "certifications": "file:./resume-sections/certifications.json"
 }
