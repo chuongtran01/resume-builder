@@ -54,3 +54,6 @@ Thumbs.db
 
 # TypeScript cache
 *.tsbuildinfo
+
+# Resume files
+resumes/
