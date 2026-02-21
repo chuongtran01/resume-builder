@@ -23,7 +23,7 @@ export const modernTemplate: ResumeTemplate = {
 
   render(resume: Resume, options?: TemplateOptions): string {
     // Determine spacing mode
-    let spacing: 'compact' | 'normal' = 'normal';
+    let spacing: 'compact' | 'normal' = 'compact';
     if (options?.spacing === 'auto') {
       spacing = estimateContentDensity(resume);
     } else if (options?.spacing === 'compact') {
@@ -73,7 +73,7 @@ registerTemplate(modernTemplate);
 /**
  * Get CSS styles for modern template
  */
-function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'normal'): string {
+function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'compact'): string {
   const customCss = options?.customCss || '';
 
   // Define spacing presets
