@@ -1,6 +1,6 @@
 {
   "personalInfo": "file:./resume-sections/personalInfo.json",
-  "summary": "Experienced software engineer with expertise in full-stack development and cloud technologies. Passionate about building scalable applications and leading technical teams.",
+  "summary": "Experienced software engineer with expertise in full-stack development and cloud technologies. Passionate about building scalable applications and leading technical teams. Proven track record of delivering high-quality software solutions and mentoring junior developers.",
   "experience": [
     {
       "company": "Tech Innovations Inc",
@@ -9,10 +9,13 @@
       "endDate": "Present",
       "location": "San Francisco, CA",
       "bulletPoints": [
-        "Developed and maintained web applications using JavaScript and Python",
-        "Led a team of 3 junior developers on multiple projects",
-        "Improved application performance by optimizing database queries",
-        "Collaborated with product managers to define feature requirements"
+        "Developed and maintained web applications using JavaScript and Python, serving over 100,000 daily active users",
+        "Led a team of 3 junior developers on multiple projects, improving code quality and reducing bug rate by 40%",
+        "Improved application performance by optimizing database queries, resulting in 50% faster page load times",
+        "Collaborated with product managers to define feature requirements and technical specifications",
+        "Implemented CI/CD pipelines using Jenkins and Docker, reducing deployment time from 2 hours to 15 minutes",
+        "Designed and developed RESTful APIs that handle over 1 million requests per day",
+        "Mentored junior developers through code reviews and pair programming sessions"
       ]
     },
     {
@@ -22,14 +25,75 @@
       "endDate": "2021-02",
       "location": "Remote",
       "bulletPoints": [
-        "Built RESTful APIs using Node.js and Express",
-        "Created responsive frontend interfaces with React",
-        "Implemented automated testing with Jest",
-        "Deployed applications to AWS cloud infrastructure"
+        "Built RESTful APIs using Node.js and Express, supporting multiple client applications",
+        "Created responsive frontend interfaces with React and TypeScript, improving user engagement by 35%",
+        "Implemented automated testing with Jest and React Testing Library, achieving 85% code coverage",
+        "Deployed applications to AWS cloud infrastructure using EC2, S3, and CloudFront",
+        "Optimized database queries and implemented caching strategies, reducing API response time by 60%",
+        "Collaborated with designers to implement pixel-perfect UI components and maintain design consistency"
+      ]
+    },
+    {
+      "company": "WebDev Solutions",
+      "role": "Software Developer",
+      "startDate": "2017-08",
+      "endDate": "2019-05",
+      "location": "New York, NY",
+      "bulletPoints": [
+        "Developed responsive web applications using HTML, CSS, JavaScript, and jQuery",
+        "Worked with PHP and MySQL to build dynamic web applications and content management systems",
+        "Participated in agile development processes including daily standups and sprint planning",
+        "Fixed bugs and implemented new features based on client requirements and feedback",
+        "Collaborated with cross-functional teams including designers, product managers, and QA engineers"
       ]
     }
   ],
   "education": "file:./resume-sections/education.json",
   "skills": "file:./resume-sections/skills.json",
-  "certifications": "file:./resume-sections/certifications.json"
+  "certifications": "file:./resume-sections/certifications.json",
+  "projects": [
+    {
+      "name": "E-Commerce Platform",
+      "description": "Built a full-stack e-commerce platform with payment integration, inventory management, and admin dashboard",
+      "technologies": [
+        "React",
+        "Node.js",
+        "PostgreSQL",
+        "Stripe API"
+      ],
+      "url": "https://example.com/ecommerce",
+      "github": "https://github.com/example/ecommerce"
+    },
+    {
+      "name": "Task Management App",
+      "description": "Developed a collaborative task management application with real-time updates using WebSockets",
+      "technologies": [
+        "Vue.js",
+        "Express",
+        "Socket.io",
+        "MongoDB"
+      ],
+      "github": "https://github.com/example/taskmanager"
+    },
+    {
+      "name": "Weather Dashboard",
+      "description": "Created a weather dashboard application that displays current conditions and forecasts for multiple cities",
+      "technologies": [
+        "React",
+        "OpenWeatherMap API",
+        "Chart.js"
+      ],
+      "url": "https://example.com/weather"
+    }
+  ],
+  "languages": [
+    {
+      "name": "English",
+      "proficiency": "Native"
+    },
+    {
+      "name": "Spanish",
+      "proficiency": "Professional"
+    }
+  ]
 }
