@@ -33,6 +33,7 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
+    '^@templates$': '<rootDir>/src/templates/index',
     '^@templates/(.*)$': '<rootDir>/src/templates/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@resume-types/(.*)$': '<rootDir>/src/types/$1',

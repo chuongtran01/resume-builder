@@ -32,7 +32,7 @@ type GenerateResumeRequestBody = {
       pageBreaks?: boolean;
       customCss?: string;
       printStyles?: boolean;
-      spacing?: 'compact' | 'normal' | 'auto';
+      multiplier?: number;
     };
   };
 };
@@ -118,7 +118,7 @@ export function registerRoutes(app: Express): void {
           try {
             const { getTemplateNames } = await import('../templates/templateRegistry');
             const availableTemplates = getTemplateNames();
-            
+
             res.status(400).json({
               error: 'Invalid template',
               message: error.message,
@@ -275,7 +275,7 @@ export function registerRoutes(app: Express): void {
         // Create enhancement service with the temporary provider
         const { AIResumeEnhancementService } = await import('../services/aiResumeEnhancementService');
         const enhancementService = new AIResumeEnhancementService(tempProviderName);
-        
+
         // Enhance resume
         const enhancementResult = await enhancementService.enhanceResume(
           resume,

@@ -124,27 +124,27 @@ const INFERENCE_PATTERNS: Record<string, string[]> = {
   'python': ['data science', 'automation', 'scripting', 'backend development', 'machine learning'],
   'django': ['web development', 'backend development', 'python'],
   'flask': ['web development', 'backend development', 'python'],
-  
+
   // Frontend technologies
   'react': ['frontend development', 'user interface', 'client-side applications', 'component-based architecture'],
   'vue': ['frontend development', 'user interface', 'client-side applications'],
   'angular': ['frontend development', 'user interface', 'client-side applications', 'typescript'],
   'javascript': ['frontend development', 'web development', 'client-side programming'],
   'typescript': ['frontend development', 'type safety', 'javascript'],
-  
+
   // Cloud & DevOps
   'aws': ['cloud infrastructure', 'cloud services', 'cloud deployment', 'devops'],
   'azure': ['cloud infrastructure', 'cloud services', 'cloud deployment', 'devops'],
   'gcp': ['cloud infrastructure', 'cloud services', 'cloud deployment', 'devops'],
   'docker': ['containerization', 'container orchestration', 'devops', 'deployment'],
   'kubernetes': ['container orchestration', 'devops', 'deployment', 'scalability'],
-  
+
   // Databases
   'postgresql': ['database management', 'sql', 'relational database'],
   'mysql': ['database management', 'sql', 'relational database'],
   'mongodb': ['database management', 'nosql', 'document database'],
   'redis': ['caching', 'in-memory database', 'performance optimization'],
-  
+
   // Data Science
   'pandas': ['data analysis', 'data processing', 'python'],
   'numpy': ['data analysis', 'numerical computing', 'python'],
@@ -158,41 +158,50 @@ const INFERENCE_PATTERNS: Record<string, string[]> = {
 function canInferTerm(term: string, existingSkills: string[]): boolean {
   const termLower = term.toLowerCase();
   const existingSkillsLower = existingSkills.map(s => s.toLowerCase());
-  
+
   // Check if term is already present
   if (existingSkillsLower.some(s => s.includes(termLower) || termLower.includes(s))) {
     return true;
   }
-  
+
   // Check inference patterns
   for (const [tech, inferredTerms] of Object.entries(INFERENCE_PATTERNS)) {
     const techLower = tech.toLowerCase();
-    
+
     // If existing skill matches a technology pattern
-    if (existingSkillsLower.some(s => s.includes(techLower) || techLower.includes(s))) {
+    if (existingSkillsLower.some(s => {
+      const sLower = s.toLowerCase();
+      return sLower === techLower || sLower.includes(techLower) || techLower.includes(sLower);
+    })) {
       // Check if the term matches any inferred terms for that technology
-      if (inferredTerms.some(inferred => 
-        termLower.includes(inferred.toLowerCase()) || 
-        inferred.toLowerCase().includes(termLower)
-      )) {
+      if (inferredTerms.some(inferred => {
+        const inferredLower = inferred.toLowerCase();
+        // Exact match or substring match
+        return termLower === inferredLower ||
+          termLower.includes(inferredLower) ||
+          inferredLower.includes(termLower);
+      })) {
         return true;
       }
     }
-    
+
     // If term matches a technology pattern
-    if (termLower.includes(techLower) || techLower.includes(termLower)) {
+    if (termLower === techLower || termLower.includes(techLower) || techLower.includes(termLower)) {
       // Check if any existing skill matches inferred terms for that technology
-      if (existingSkillsLower.some(s => 
-        inferredTerms.some(inferred => 
-          s.includes(inferred.toLowerCase()) || 
-          inferred.toLowerCase().includes(s)
-        )
-      )) {
+      if (existingSkillsLower.some(s => {
+        const sLower = s.toLowerCase();
+        return inferredTerms.some(inferred => {
+          const inferredLower = inferred.toLowerCase();
+          return sLower === inferredLower ||
+            sLower.includes(inferredLower) ||
+            inferredLower.includes(sLower);
+        });
+      })) {
         return true;
       }
     }
   }
-  
+
   return false;
 }
 
@@ -203,7 +212,7 @@ function flattenSkills(skills: Resume['skills']): string[] {
   if (!skills || typeof skills === 'string') {
     return []; // File reference or undefined
   }
-  
+
   if (typeof skills === 'object' && 'categories' in skills) {
     const skillsObj = skills as Skills;
     if (Array.isArray(skillsObj.categories)) {
@@ -216,7 +225,7 @@ function flattenSkills(skills: Resume['skills']): string[] {
       return allSkills;
     }
   }
-  
+
   return [];
 }
 
@@ -237,10 +246,15 @@ function validateExperiences(
     mismatchedDates: [],
     mismatchedRoles: [],
   };
-  
+
   const originalExp = original.experience || [];
   const enhancedExp = enhanced.experience || [];
-  
+
+  // Quick check: if experiences are the same array reference, they're identical
+  if (originalExp === enhancedExp) {
+    return result;
+  }
+
   // Check if new experiences were added
   if (enhancedExp.length > originalExp.length) {
     result.newExperiencesDetected = enhancedExp.length - originalExp.length;
@@ -249,14 +263,14 @@ function validateExperiences(
       `Detected ${result.newExperiencesDetected} new experience(s) that were not in the original resume`
     );
   }
-  
+
   // Validate each experience entry
   for (let i = 0; i < Math.min(originalExp.length, enhancedExp.length); i++) {
     const orig = originalExp[i];
     const enh = enhancedExp[i];
-    
+
     if (!orig || !enh) continue;
-    
+
     // Check company name
     if (orig.company && enh.company && orig.company !== enh.company) {
       result.mismatchedCompanies.push(
@@ -265,7 +279,7 @@ function validateExperiences(
       result.valid = false;
       result.errors.push(result.mismatchedCompanies[result.mismatchedCompanies.length - 1] || '');
     }
-    
+
     // Check role
     if (orig.role && enh.role && orig.role !== enh.role) {
       result.mismatchedRoles.push(
@@ -274,7 +288,7 @@ function validateExperiences(
       result.valid = false;
       result.errors.push(result.mismatchedRoles[result.mismatchedRoles.length - 1] || '');
     }
-    
+
     // Check dates
     if (orig.startDate && enh.startDate && orig.startDate !== enh.startDate) {
       result.mismatchedDates.push(
@@ -283,7 +297,7 @@ function validateExperiences(
       result.valid = false;
       result.errors.push(result.mismatchedDates[result.mismatchedDates.length - 1] || '');
     }
-    
+
     if (orig.endDate && enh.endDate && orig.endDate !== enh.endDate) {
       result.mismatchedDates.push(
         `Experience[${i}]: End date changed from "${orig.endDate}" to "${enh.endDate}"`
@@ -292,7 +306,7 @@ function validateExperiences(
       result.errors.push(result.mismatchedDates[result.mismatchedDates.length - 1] || '');
     }
   }
-  
+
   return result;
 }
 
@@ -312,18 +326,18 @@ function validateSkills(
     inferredSkills: [],
     unrelatedSkills: [],
   };
-  
+
   const originalSkills = flattenSkills(original.skills);
   const enhancedSkills = flattenSkills(enhanced.skills);
   const originalSkillsLower = originalSkills.map(s => s.toLowerCase());
-  
+
   // Find new skills
   for (const skill of enhancedSkills) {
     const skillLower = skill.toLowerCase();
-    const isOriginal = originalSkillsLower.some(os => 
+    const isOriginal = originalSkillsLower.some(os =>
       os.includes(skillLower) || skillLower.includes(os)
     );
-    
+
     if (!isOriginal) {
       // Check if it can be inferred
       if (options.allowInference && canInferTerm(skill, originalSkills)) {
@@ -342,10 +356,10 @@ function validateSkills(
       }
     }
   }
-  
+
   // Collect all new skills for reporting
   result.newSkills = [...result.inferredSkills, ...result.unrelatedSkills];
-  
+
   return result;
 }
 
@@ -365,12 +379,17 @@ function validateEducation(
     mismatchedDegrees: [],
     mismatchedDates: [],
   };
-  
-  const originalEdu = Array.isArray(original.education) ? original.education : 
+
+  const originalEdu = Array.isArray(original.education) ? original.education :
     (original.education ? [original.education] : []);
-  const enhancedEdu = Array.isArray(enhanced.education) ? enhanced.education : 
+  const enhancedEdu = Array.isArray(enhanced.education) ? enhanced.education :
     (enhanced.education ? [enhanced.education] : []);
-  
+
+  // Quick check: if education is the same array/object reference, they're identical
+  if (original.education === enhanced.education) {
+    return result;
+  }
+
   // Check if new education entries were added
   if (enhancedEdu.length > originalEdu.length) {
     result.valid = false;
@@ -378,19 +397,19 @@ function validateEducation(
       `Detected ${enhancedEdu.length - originalEdu.length} new education entry/entries that were not in the original resume`
     );
   }
-  
+
   // Validate each education entry
   for (let i = 0; i < Math.min(originalEdu.length, enhancedEdu.length); i++) {
     const orig = originalEdu[i];
     const enh = enhancedEdu[i];
-    
+
     if (!orig || !enh) continue;
-    
+
     // Skip file references
     if (typeof orig === 'string' || typeof enh === 'string') {
       continue;
     }
-    
+
     // Check institution
     if (orig.institution && enh.institution && orig.institution !== enh.institution) {
       result.mismatchedInstitutions.push(
@@ -399,7 +418,7 @@ function validateEducation(
       result.valid = false;
       result.errors.push(result.mismatchedInstitutions[result.mismatchedInstitutions.length - 1] || '');
     }
-    
+
     // Check degree
     if (orig.degree && enh.degree && orig.degree !== enh.degree) {
       result.mismatchedDegrees.push(
@@ -408,7 +427,7 @@ function validateEducation(
       result.valid = false;
       result.errors.push(result.mismatchedDegrees[result.mismatchedDegrees.length - 1] || '');
     }
-    
+
     // Check graduation date
     if (orig.graduationDate && enh.graduationDate && orig.graduationDate !== enh.graduationDate) {
       result.mismatchedDates.push(
@@ -418,7 +437,7 @@ function validateEducation(
       result.errors.push(result.mismatchedDates[result.mismatchedDates.length - 1] || '');
     }
   }
-  
+
   return result;
 }
 
@@ -428,21 +447,38 @@ function validateEducation(
 function extractTechnologies(text: string): string[] {
   const technologies: string[] = [];
   const textLower = text.toLowerCase();
-  
-  // Check against inference patterns
-  for (const [tech, _] of Object.entries(INFERENCE_PATTERNS)) {
+
+  // Common non-tech words to filter out
+  const commonWords = new Set(['built', 'developed', 'created', 'designed', 'implemented', 'improved', 'managed', 'led', 'worked', 'used', 'utilized']);
+
+  // Check against inference patterns (including inferred terms)
+  for (const [tech, inferredTerms] of Object.entries(INFERENCE_PATTERNS)) {
     if (textLower.includes(tech.toLowerCase())) {
       technologies.push(tech);
     }
+    // Also check if any inferred terms appear in the text
+    for (const inferred of inferredTerms) {
+      const inferredLower = inferred.toLowerCase();
+      if (textLower.includes(inferredLower) && !commonWords.has(inferredLower)) {
+        technologies.push(inferred);
+      }
+    }
   }
-  
+
   // Also look for common tech terms (capitalized words that might be technologies)
+  // But filter out common verbs and non-tech words
   const techPattern = /\b([A-Z][a-z]+(?:\.[a-z]+)?)\b/g;
   const matches = text.match(techPattern);
   if (matches) {
-    technologies.push(...matches);
+    for (const match of matches) {
+      const matchLower = match.toLowerCase();
+      // Only include if it's not a common word and looks like a technology
+      if (!commonWords.has(matchLower) && match.length > 2) {
+        technologies.push(match);
+      }
+    }
   }
-  
+
   return [...new Set(technologies)]; // Remove duplicates
 }
 
@@ -462,11 +498,16 @@ function validateBulletPoints(
     unrelatedTechnologies: [],
     inferredTechnologies: [],
   };
-  
+
   const originalExp = original.experience || [];
   const enhancedExp = enhanced.experience || [];
   const originalSkills = flattenSkills(original.skills);
-  
+
+  // Quick check: if experiences are the same array reference, bullet points are identical
+  if (originalExp === enhancedExp) {
+    return result;
+  }
+
   // Extract all technologies from original resume
   const originalTechnologies = new Set<string>();
   for (const exp of originalExp) {
@@ -476,38 +517,42 @@ function validateBulletPoints(
     }
   }
   originalSkills.forEach(s => originalTechnologies.add(s.toLowerCase()));
-  
+
   // Validate each experience entry's bullet points
   for (let i = 0; i < Math.min(originalExp.length, enhancedExp.length); i++) {
     const orig = originalExp[i];
     const enh = enhancedExp[i];
-    
+
     if (!orig || !enh || !orig.bulletPoints || !enh.bulletPoints) continue;
-    
+
     // Check if new bullet points were added (count)
     if (enh.bulletPoints.length > orig.bulletPoints.length) {
       result.warnings.push(
         `Experience[${i}]: Number of bullet points increased from ${orig.bulletPoints.length} to ${enh.bulletPoints.length}`
       );
     }
-    
-    // Validate each bullet point
-    for (let j = 0; j < enh.bulletPoints.length; j++) {
+
+    // Validate each bullet point (only compare those that exist in both)
+    for (let j = 0; j < Math.min(orig.bulletPoints.length, enh.bulletPoints.length); j++) {
       const enhancedBullet = enh.bulletPoints[j];
-      if (!enhancedBullet) continue;
-      
+      const originalBullet = orig.bulletPoints[j];
+      if (!enhancedBullet || !originalBullet) continue;
+
+      // If bullet points are identical, skip validation (no changes)
+      if (enhancedBullet === originalBullet) continue;
+
       // Extract technologies from enhanced bullet point
       const enhancedTechs = extractTechnologies(enhancedBullet);
-      
+
       // Check for unrelated technologies
       for (const tech of enhancedTechs) {
         const techLower = tech.toLowerCase();
         const isOriginal = originalTechnologies.has(techLower) ||
           originalTechnologies.has(tech) ||
-          Array.from(originalTechnologies).some(ot => 
+          Array.from(originalTechnologies).some(ot =>
             ot.includes(techLower) || techLower.includes(ot)
           );
-        
+
         if (!isOriginal) {
           // Check if it can be inferred
           if (options.allowInference && canInferTerm(tech, Array.from(originalTechnologies))) {
@@ -526,28 +571,25 @@ function validateBulletPoints(
           }
         }
       }
-      
+
       // Check for fabricated metrics (numbers that weren't in original)
       // This is a heuristic - extract numbers from both and compare
       const originalNumbers = new Set<string>();
-      const originalBullet = orig.bulletPoints[j];
-      if (originalBullet) {
-        const origNumbers = originalBullet.match(/\d+/g);
-        if (origNumbers) {
-          origNumbers.forEach(n => originalNumbers.add(n));
-        }
+      const origNumbers = originalBullet.match(/\d+/g);
+      if (origNumbers) {
+        origNumbers.forEach(n => originalNumbers.add(n));
       }
-      
+
       const enhancedNumbers = enhancedBullet.match(/\d+/g);
       if (enhancedNumbers) {
         for (const num of enhancedNumbers) {
           if (!originalNumbers.has(num)) {
             // Check if it's a percentage or common metric pattern
             const context = enhancedBullet.toLowerCase();
-            if (context.includes(`${num}%`) || 
-                context.includes(`${num} percent`) ||
-                context.includes(`by ${num}`) ||
-                context.includes(`of ${num}`)) {
+            if (context.includes(`${num}%`) ||
+              context.includes(`${num} percent`) ||
+              context.includes(`by ${num}`) ||
+              context.includes(`of ${num}`)) {
               result.fabricatedMetrics.push(num);
               if (options.strictness !== 'lenient') {
                 result.valid = false;
@@ -565,7 +607,7 @@ function validateBulletPoints(
       }
     }
   }
-  
+
   return result;
 }
 
@@ -576,18 +618,18 @@ function calculateYearsOfExperience(resume: Resume): number {
   if (!resume.experience || resume.experience.length === 0) {
     return 0;
   }
-  
+
   let totalMonths = 0;
   for (const exp of resume.experience) {
     if (exp.startDate && exp.endDate) {
       const start = new Date(exp.startDate);
       const end = exp.endDate === 'Present' ? new Date() : new Date(exp.endDate);
-      const months = (end.getFullYear() - start.getFullYear()) * 12 + 
-                     (end.getMonth() - start.getMonth());
+      const months = (end.getFullYear() - start.getFullYear()) * 12 +
+        (end.getMonth() - start.getMonth());
       totalMonths += Math.max(0, months);
     }
   }
-  
+
   return Math.floor(totalMonths / 12);
 }
 
@@ -605,19 +647,24 @@ function validateSummary(
     warnings: [],
     mismatchedClaims: [],
   };
-  
+
   if (!original.summary || !enhanced.summary) {
     return result;
   }
-  
+
+  // Quick check: if summaries are the same string reference, they're identical
+  if (original.summary === enhanced.summary) {
+    return result;
+  }
+
   // Calculate years of experience
   const enhancedYears = calculateYearsOfExperience(enhanced);
-  
+
   // Check for years of experience claims in summary
   const yearsPattern = /(\d+)\+?\s*(?:years?|yrs?)\s+(?:of\s+)?experience/gi;
   const originalYearsMatches = original.summary.match(yearsPattern);
   const enhancedYearsMatches = enhanced.summary.match(yearsPattern);
-  
+
   if (enhancedYearsMatches && !originalYearsMatches) {
     // New years claim was added
     const claimedYears = parseInt(enhancedYearsMatches[0].match(/\d+/)?.[0] || '0', 10);
@@ -629,7 +676,7 @@ function validateSummary(
       result.errors.push(result.mismatchedClaims[result.mismatchedClaims.length - 1] || '');
     }
   }
-  
+
   // Check for major technology claims that weren't in original
   const originalTechs = new Set<string>();
   if (original.experience) {
@@ -641,11 +688,11 @@ function validateSummary(
       }
     }
   }
-  
+
   const enhancedTechs = extractTechnologies(enhanced.summary);
   for (const tech of enhancedTechs) {
     const techLower = tech.toLowerCase();
-    if (!Array.from(originalTechs).some(ot => 
+    if (!Array.from(originalTechs).some(ot =>
       ot.includes(techLower) || techLower.includes(ot)
     )) {
       // Check if it can be inferred
@@ -665,7 +712,7 @@ function validateSummary(
       }
     }
   }
-  
+
   return result;
 }
 
@@ -679,61 +726,61 @@ function generateSuggestions(
   if (!options.generateSuggestions) {
     return [];
   }
-  
+
   const suggestions: string[] = [];
-  
+
   // Experience suggestions
   if (result.details.experiences.newExperiencesDetected > 0) {
     suggestions.push(
       `Remove ${result.details.experiences.newExperiencesDetected} newly added experience(s). Only enhance existing experiences.`
     );
   }
-  
+
   if (result.details.experiences.mismatchedCompanies.length > 0) {
     suggestions.push(
       `Restore original company names. Company names should not be changed.`
     );
   }
-  
+
   if (result.details.experiences.mismatchedDates.length > 0) {
     suggestions.push(
       `Restore original dates. Employment dates should not be changed.`
     );
   }
-  
+
   // Skills suggestions
   if (result.details.skills.unrelatedSkills.length > 0) {
     suggestions.push(
       `Remove unrelated skills: ${result.details.skills.unrelatedSkills.join(', ')}. These cannot be reasonably inferred from existing skills.`
     );
   }
-  
+
   if (result.details.skills.inferredSkills.length > 0 && options.strictness === 'strict') {
     suggestions.push(
       `Review inferred skills: ${result.details.skills.inferredSkills.join(', ')}. Verify these are appropriate inferences.`
     );
   }
-  
+
   // Bullet point suggestions
   if (result.details.bulletPoints.fabricatedMetrics.length > 0) {
     suggestions.push(
       `Remove or verify fabricated metrics. Metrics should only be added if they can be reasonably inferred from original content.`
     );
   }
-  
+
   if (result.details.bulletPoints.unrelatedTechnologies.length > 0) {
     suggestions.push(
       `Remove unrelated technologies from bullet points: ${result.details.bulletPoints.unrelatedTechnologies.join(', ')}`
     );
   }
-  
+
   // Summary suggestions
   if (result.details.summary.mismatchedClaims.length > 0) {
     suggestions.push(
       `Review summary claims. Ensure all claims match the experience and skills in the resume.`
     );
   }
-  
+
   return suggestions;
 }
 
@@ -751,16 +798,33 @@ export function validateTruthfulness(
   options: TruthfulnessValidationOptions = {}
 ): TruthfulnessValidationResult {
   const opts = { ...DEFAULT_OPTIONS, ...options };
-  
+
   logger.debug('Starting truthfulness validation');
-  
+
+  // Quick check: if resumes are identical (same object reference), return truthful
+  if (original === enhanced) {
+    return {
+      isTruthful: true,
+      errors: [],
+      warnings: [],
+      suggestions: [],
+      details: {
+        experiences: { valid: true, errors: [], warnings: [], newExperiencesDetected: 0, mismatchedCompanies: [], mismatchedDates: [], mismatchedRoles: [] },
+        skills: { valid: true, errors: [], warnings: [], newSkills: [], inferredSkills: [], unrelatedSkills: [] },
+        education: { valid: true, errors: [], warnings: [], mismatchedInstitutions: [], mismatchedDegrees: [], mismatchedDates: [] },
+        bulletPoints: { valid: true, errors: [], warnings: [], fabricatedMetrics: [], unrelatedTechnologies: [], inferredTechnologies: [] },
+        summary: { valid: true, errors: [], warnings: [], mismatchedClaims: [] },
+      },
+    };
+  }
+
   // Validate each section
   const experiencesResult = validateExperiences(original, enhanced, opts);
   const skillsResult = validateSkills(original, enhanced, opts);
   const educationResult = validateEducation(original, enhanced, opts);
   const bulletPointsResult = validateBulletPoints(original, enhanced, opts);
   const summaryResult = validateSummary(original, enhanced, opts);
-  
+
   // Combine all errors and warnings
   const allErrors: string[] = [
     ...experiencesResult.errors,
@@ -769,7 +833,7 @@ export function validateTruthfulness(
     ...bulletPointsResult.errors,
     ...summaryResult.errors,
   ];
-  
+
   const allWarnings: string[] = [
     ...experiencesResult.warnings,
     ...skillsResult.warnings,
@@ -777,10 +841,11 @@ export function validateTruthfulness(
     ...bulletPointsResult.warnings,
     ...summaryResult.warnings,
   ];
-  
+
   // Determine overall truthfulness
+  // Only consider it untruthful if there are actual errors (not just inferred items)
   const isTruthful = allErrors.length === 0;
-  
+
   // Generate suggestions
   const result: TruthfulnessValidationResult = {
     isTruthful,
@@ -795,11 +860,11 @@ export function validateTruthfulness(
       summary: summaryResult,
     },
   };
-  
+
   result.suggestions = generateSuggestions(result, opts);
-  
+
   logger.debug(`Truthfulness validation complete. Truthful: ${isTruthful}, Errors: ${allErrors.length}, Warnings: ${allWarnings.length}`);
-  
+
   return result;
 }
 

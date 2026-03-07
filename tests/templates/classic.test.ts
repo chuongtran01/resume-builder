@@ -55,7 +55,7 @@ describe('classicTemplate', () => {
     expect(html).toContain('<!DOCTYPE html>');
     expect(html).toContain('John Doe');
     expect(html).toContain('john@example.com');
-    expect(html).toContain('Professional Experience');
+    expect(html).toContain('Experience');
     expect(html).toContain('Tech Corp');
   });
 
@@ -66,9 +66,9 @@ describe('classicTemplate', () => {
 
   it('should include all sections when present', () => {
     const html = classicTemplate.render(sampleResume);
-    expect(html).toContain('Professional Experience');
+    expect(html).toContain('Experience');
     expect(html).toContain('Education');
-    expect(html).toContain('Technical Skills');
+    expect(html).toContain('Skills');
   });
 
   it('should escape HTML special characters', () => {
@@ -105,8 +105,8 @@ describe('classicTemplate', () => {
     expect(classicHtml).toContain('Times New Roman');
     expect(modernHtml).toContain('Arial');
 
-    // Classic has different section title (Professional Experience vs Experience)
-    expect(classicHtml).toContain('Professional Experience');
+    // Both templates use "Experience" as the section title
+    expect(classicHtml).toContain('Experience');
     expect(modernHtml).toContain('Experience');
   });
 });

@@ -133,7 +133,7 @@ const templateOptionsSchema = z.object({
   pageBreaks: z.boolean().optional(),
   customCss: z.string().optional(),
   printStyles: z.boolean().optional(),
-  spacing: z.enum(['compact', 'normal', 'auto']).optional(),
+  multiplier: z.number().min(0).max(1.0).optional(),
 });
 
 /**
@@ -210,20 +210,20 @@ export function validateRequest<T>(schema: z.ZodSchema<T>) {
     try {
       // Validate and parse request body
       const validatedData = schema.parse(req.body);
-      
+
       // Replace req.body with validated data (ensures type safety)
       req.body = validatedData;
-      
+
       next();
     } catch (error) {
       if (error instanceof ZodError) {
         const errorResponse = formatZodError(error);
-        
+
         logger.warn(`Validation error: ${errorResponse.message}`);
         if (logger.isVerbose()) {
           logger.debug(`Validation details: ${JSON.stringify(errorResponse.details, null, 2)}`);
         }
-        
+
         res.status(400).json(errorResponse);
       } else {
         // Unexpected error

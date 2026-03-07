@@ -10,7 +10,9 @@ import * as fs from 'fs-extra';
 import '../../src/templates';
 
 describe('CLI', () => {
-  const cliPath = path.join(__dirname, '../../dist/cli/index.js');
+  // Use ts-node to run TypeScript source directly to avoid path alias issues
+  const cliSourcePath = path.join(__dirname, '../../src/cli/index.ts');
+  const cliPath = `ts-node -r tsconfig-paths/register ${cliSourcePath}`;
   const testResumePath = path.join(__dirname, '../fixtures/test-resume.json');
   const testOutputPath = path.join(__dirname, '../output/test-resume.pdf');
 
@@ -28,14 +30,20 @@ describe('CLI', () => {
 
   describe('help command', () => {
     it('should display help when --help is used', () => {
-      const output = execSync(`node ${cliPath} --help`, { encoding: 'utf-8' });
+      const output = execSync(`${cliPath} --help`, { 
+        encoding: 'utf-8',
+        cwd: path.join(__dirname, '../..')
+      });
       expect(output).toContain('Usage:');
       expect(output).toContain('resume-builder');
       expect(output).toContain('Commands:');
     });
 
     it('should display help for generate command', () => {
-      const output = execSync(`node ${cliPath} generate --help`, { encoding: 'utf-8' });
+      const output = execSync(`${cliPath} generate --help`, { 
+        encoding: 'utf-8',
+        cwd: path.join(__dirname, '../..')
+      });
       expect(output).toContain('Generate a resume from JSON input');
       expect(output).toContain('--input');
       expect(output).toContain('--output');
@@ -44,21 +52,30 @@ describe('CLI', () => {
 
   describe('version command', () => {
     it('should display version when --version is used', () => {
-      const output = execSync(`node ${cliPath} --version`, { encoding: 'utf-8' });
+      const output = execSync(`${cliPath} --version`, { 
+        encoding: 'utf-8',
+        cwd: path.join(__dirname, '../..')
+      });
       expect(output.trim()).toMatch(/^\d+\.\d+\.\d+$/);
     });
   });
 
   describe('templates command', () => {
     it('should list available templates', () => {
-      const output = execSync(`node ${cliPath} templates`, { encoding: 'utf-8' });
+      const output = execSync(`${cliPath} templates`, { 
+        encoding: 'utf-8',
+        cwd: path.join(__dirname, '../..')
+      });
       expect(output).toContain('Available templates:');
       // At least one template should be listed
       expect(output.length).toBeGreaterThan('Available templates:'.length);
     });
 
     it('should work with list alias', () => {
-      const output = execSync(`node ${cliPath} list`, { encoding: 'utf-8' });
+      const output = execSync(`${cliPath} list`, { 
+        encoding: 'utf-8',
+        cwd: path.join(__dirname, '../..')
+      });
       expect(output).toContain('Available templates:');
     });
   });
@@ -66,8 +83,11 @@ describe('CLI', () => {
   describe('validate command', () => {
     it('should validate a resume file', () => {
       const output = execSync(
-        `node ${cliPath} validate --input ${testResumePath}`,
-        { encoding: 'utf-8' }
+        `${cliPath} validate --input ${testResumePath}`,
+        { 
+          encoding: 'utf-8',
+          cwd: path.join(__dirname, '../..')
+        }
       );
       expect(output).toContain('ATS Validation Results');
       expect(output).toContain('Score:');
@@ -75,7 +95,10 @@ describe('CLI', () => {
 
     it('should require --input option', () => {
       try {
-        execSync(`node ${cliPath} validate`, { encoding: 'utf-8' });
+        execSync(`${cliPath} validate`, { 
+          encoding: 'utf-8',
+          cwd: path.join(__dirname, '../..')
+        });
         fail('Should have thrown an error');
       } catch (error: unknown) {
         // execSync throws an error when process exits with non-zero code
@@ -92,8 +115,9 @@ describe('CLI', () => {
   describe('generate command', () => {
     it('should require --input option', () => {
       try {
-        execSync(`node ${cliPath} generate --output ${testOutputPath}`, {
+        execSync(`${cliPath} generate --output ${testOutputPath}`, {
           encoding: 'utf-8',
+          cwd: path.join(__dirname, '../..')
         });
         fail('Should have thrown an error');
       } catch (error: unknown) {
@@ -109,8 +133,9 @@ describe('CLI', () => {
 
     it('should require --output option', () => {
       try {
-        execSync(`node ${cliPath} generate --input ${testResumePath}`, {
+        execSync(`${cliPath} generate --input ${testResumePath}`, {
           encoding: 'utf-8',
+          cwd: path.join(__dirname, '../..')
         });
         fail('Should have thrown an error');
       } catch (error: unknown) {
@@ -127,8 +152,11 @@ describe('CLI', () => {
     it('should reject invalid format', () => {
       try {
         execSync(
-          `node ${cliPath} generate --input ${testResumePath} --output ${testOutputPath} --format docx`,
-          { encoding: 'utf-8' }
+          `${cliPath} generate --input ${testResumePath} --output ${testOutputPath} --format docx`,
+          { 
+            encoding: 'utf-8',
+            cwd: path.join(__dirname, '../..')
+          }
         );
         fail('Should have thrown an error');
       } catch (error: unknown) {

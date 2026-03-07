@@ -87,9 +87,15 @@ const ENV_VARS = {
 } as const;
 
 /**
- * Get environment variable value from .env file only
+ * Get environment variable value from .env file, with fallback to process.env
+ * (process.env takes precedence for testing purposes)
  */
 function getEnvVar(name: string): string | undefined {
+  // Check process.env first (allows tests to override .env file values)
+  if (process.env[name] !== undefined) {
+    return process.env[name];
+  }
+  // Fallback to .env file
   return envVars[name];
 }
 
@@ -186,7 +192,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
  */
 async function loadFromFile(configPath: string): Promise<Partial<AIConfig>> {
   const fullPath = path.resolve(configPath);
-  
+
   // Check if file exists
   const exists = await fs.pathExists(fullPath);
   if (!exists) {
@@ -224,32 +230,38 @@ function mergeConfigs(
   envConfig: Partial<AIConfig>,
   fileConfig: Partial<AIConfig>
 ): AIConfig {
-  // Deep merge gemini config
+  // Deep merge gemini config (file takes precedence over env)
   let geminiConfig: GeminiProviderConfig | undefined;
-  if (envConfig.providers?.gemini || fileConfig.providers?.gemini) {
-    const envGemini = envConfig.providers?.gemini;
-    const fileGemini = fileConfig.providers?.gemini;
-    
-    // If either has apiKey, merge them (file takes precedence)
-    if (envGemini?.apiKey || fileGemini?.apiKey) {
-      geminiConfig = {
-        ...envGemini,
-        ...fileGemini,
-        // Ensure apiKey is present (required field)
-        apiKey: fileGemini?.apiKey || envGemini?.apiKey || '',
-        // Ensure model is present (required field)
-        model: fileGemini?.model || envGemini?.model || 'gemini-2.5-pro',
-      };
-    }
+  const envGemini = envConfig.providers?.gemini;
+  const fileGemini = fileConfig.providers?.gemini;
+
+  // If either has a config, merge them (file takes precedence)
+  if (envGemini || fileGemini) {
+    // Start with env config, then override with file config (file takes precedence)
+    geminiConfig = {
+      ...envGemini,
+      ...fileGemini,
+      // Ensure apiKey is present (file takes precedence)
+      apiKey: (fileGemini?.apiKey || envGemini?.apiKey || '') as string,
+      // Ensure model is present (file takes precedence)
+      model: (fileGemini?.model || envGemini?.model || 'gemini-2.5-pro') as 'gemini-2.5-pro' | 'gemini-3-flash-preview',
+    };
+  }
+
+  // Build providers object with proper merging
+  const providers: AIConfig['providers'] = {
+    ...(envConfig.providers || {}),
+    ...(fileConfig.providers || {}),
+  };
+
+  // Ensure merged gemini config takes precedence (file overrides env)
+  if (geminiConfig) {
+    providers.gemini = geminiConfig;
   }
 
   const merged: AIConfig = {
     defaultProvider: fileConfig.defaultProvider ?? envConfig.defaultProvider ?? 'gemini',
-    providers: {
-      ...envConfig.providers,
-      ...fileConfig.providers,
-      gemini: geminiConfig,
-    },
+    providers,
     enhancementMode: fileConfig.enhancementMode ?? envConfig.enhancementMode ?? 'sequential',
   };
 
@@ -269,51 +281,50 @@ function validateConfig(config: AIConfig): ConfigValidationResult {
   }
 
   // Validate Gemini configuration if provider is gemini
-  if (config.defaultProvider === 'gemini' || config.providers?.gemini) {
-    const geminiConfig = config.providers?.gemini;
-    
-    if (!geminiConfig) {
-      errors.push('Gemini provider is selected but no configuration found');
-    } else {
-      // Validate API key
-      if (!geminiConfig.apiKey || geminiConfig.apiKey.trim() === '') {
-        errors.push('Gemini API key is required');
-      }
+  // Only validate if gemini config actually exists (not just default provider)
+  if (config.providers?.gemini) {
+    const geminiConfig = config.providers.gemini;
+    // Validate API key
+    if (!geminiConfig.apiKey || geminiConfig.apiKey.trim() === '') {
+      errors.push('Gemini API key is required');
+    }
 
-      // Validate model
-      const validModels = ['gemini-2.5-pro', 'gemini-3-flash-preview'];
-      if (geminiConfig.model && !validModels.includes(geminiConfig.model)) {
-        errors.push(`Invalid Gemini model: ${geminiConfig.model}. Must be one of: ${validModels.join(', ')}`);
-      }
+    // Validate model
+    const validModels = ['gemini-2.5-pro', 'gemini-3-flash-preview'];
+    if (geminiConfig.model && !validModels.includes(geminiConfig.model)) {
+      errors.push(`Invalid Gemini model: ${geminiConfig.model}. Must be one of: ${validModels.join(', ')}`);
+    }
 
-      // Validate temperature
-      if (geminiConfig.temperature !== undefined) {
-        if (typeof geminiConfig.temperature !== 'number' || geminiConfig.temperature < 0 || geminiConfig.temperature > 1) {
-          errors.push('Gemini temperature must be a number between 0 and 1');
-        }
-      }
-
-      // Validate maxTokens
-      if (geminiConfig.maxTokens !== undefined) {
-        if (typeof geminiConfig.maxTokens !== 'number' || geminiConfig.maxTokens <= 0) {
-          errors.push('Gemini maxTokens must be a positive number');
-        }
-      }
-
-      // Validate timeout
-      if (geminiConfig.timeout !== undefined) {
-        if (typeof geminiConfig.timeout !== 'number' || geminiConfig.timeout <= 0) {
-          errors.push('Gemini timeout must be a positive number');
-        }
-      }
-
-      // Validate maxRetries
-      if (geminiConfig.maxRetries !== undefined) {
-        if (typeof geminiConfig.maxRetries !== 'number' || geminiConfig.maxRetries < 0) {
-          errors.push('Gemini maxRetries must be a non-negative number');
-        }
+    // Validate temperature
+    if (geminiConfig.temperature !== undefined) {
+      if (typeof geminiConfig.temperature !== 'number' || geminiConfig.temperature < 0 || geminiConfig.temperature > 1) {
+        errors.push('Gemini temperature must be a number between 0 and 1');
       }
     }
+
+    // Validate maxTokens
+    if (geminiConfig.maxTokens !== undefined) {
+      if (typeof geminiConfig.maxTokens !== 'number' || geminiConfig.maxTokens <= 0) {
+        errors.push('Gemini maxTokens must be a positive number');
+      }
+    }
+
+    // Validate timeout
+    if (geminiConfig.timeout !== undefined) {
+      if (typeof geminiConfig.timeout !== 'number' || geminiConfig.timeout <= 0) {
+        errors.push('Gemini timeout must be a positive number');
+      }
+    }
+
+    // Validate maxRetries
+    if (geminiConfig.maxRetries !== undefined) {
+      if (typeof geminiConfig.maxRetries !== 'number' || geminiConfig.maxRetries < 0) {
+        errors.push('Gemini maxRetries must be a non-negative number');
+      }
+    }
+  } else if (config.defaultProvider === 'gemini') {
+    // Default provider is gemini but no config provided - this is a warning, not an error
+    warnings.push('Gemini is selected as default provider but no configuration found. API key will be required at runtime.');
   }
 
   // Validate enhancement mode
@@ -321,10 +332,7 @@ function validateConfig(config: AIConfig): ConfigValidationResult {
     errors.push(`Invalid enhancementMode: ${config.enhancementMode}. Must be 'sequential' or 'agent'`);
   }
 
-  // Warnings
-  if (config.defaultProvider === 'gemini' && !config.providers?.gemini?.apiKey) {
-    warnings.push('Gemini is selected as default provider but no API key is configured');
-  }
+  // Additional warnings (already handled above for missing config case)
 
   return {
     valid: errors.length === 0,
@@ -346,9 +354,12 @@ export async function loadAIConfig(
   const {
     configPath,
     loadFromEnv = true,
-    loadFromFile: shouldLoadFromFile = false, // Default to false - prefer .env
+    loadFromFile: shouldLoadFromFile,
     validate = true,
   } = options;
+
+  // Auto-enable loadFromFile if configPath is provided
+  const shouldLoadFromFileAuto = shouldLoadFromFile ?? (configPath !== undefined);
 
   logger.debug('Loading AI configuration');
 
@@ -363,9 +374,9 @@ export async function loadAIConfig(
     }
   }
 
-  // Load from config file (optional - only if explicitly enabled)
+  // Load from config file (optional - only if explicitly enabled or configPath provided)
   let fileConfig: Partial<AIConfig> = {};
-  if (shouldLoadFromFile) {
+  if (shouldLoadFromFileAuto) {
     if (!configPath) {
       throw new Error('configPath is required when loadFromFile is true');
     }

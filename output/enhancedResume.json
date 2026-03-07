@@ -1,0 +1,55 @@
+{
+  "updatedResume": {
+    "personalInfo": {
+      "name": "John Doe",
+      "email": "john@example.com",
+      "phone": "+1 123-456-7890",
+      "location": "San Francisco, CA"
+    },
+    "summary": "Experienced software engineer",
+    "experience": [
+      {
+        "company": "Tech Corp",
+        "role": "Senior Software Engineer",
+        "startDate": "2020-01",
+        "endDate": "Present",
+        "location": "Remote",
+        "bulletPoints": [
+          "Built scalable systems using React and TypeScript",
+          "Led team of engineers"
+        ]
+      }
+    ],
+    "skills": {
+      "categories": [
+        {
+          "name": "Programming Languages",
+          "items": [
+            "TypeScript",
+            "JavaScript",
+            "Python"
+          ]
+        }
+      ]
+    }
+  },
+  "suggestions": [
+    "Consider adding more job-relevant keywords",
+    "Add a professional summary to improve ATS score"
+  ],
+  "highlightedSkills": [
+    "React",
+    "TypeScript"
+  ],
+  "changesSummary": "Enhanced resume with 1 total change. 1 bullet point was enhanced.",
+  "changesDetail": [
+    {
+      "old": "Built scalable systems",
+      "new": "Built scalable systems using React and TypeScript",
+      "section": "experience[0]",
+      "type": "bulletPoint"
+    }
+  ],
+  "pdfPath": "/Users/chuongtran/Desktop/Projects/resume-builder/output/enhancedResume.pdf",
+  "mdPath": "/Users/chuongtran/Desktop/Projects/resume-builder/output/enhancedResume.md"
+}

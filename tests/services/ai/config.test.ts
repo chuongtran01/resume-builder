@@ -143,7 +143,7 @@ describe('AI Configuration Management', () => {
           configPath,
           loadFromEnv: false,
         })
-      ).rejects.toThrow('Environment variable MISSING_VAR is not set');
+      ).rejects.toThrow(/Environment variable.*MISSING_VAR/);
     });
 
     it('should merge environment and file config (file takes precedence)', async () => {
@@ -235,7 +235,7 @@ describe('AI Configuration Management', () => {
           configPath,
           loadFromEnv: false,
         })
-      ).rejects.toThrow('temperature must be a number between 0 and 1');
+      ).rejects.toThrow(/temperature must be a number between 0 and 1/);
     });
 
     it('should validate maxTokens is positive', async () => {
@@ -257,7 +257,7 @@ describe('AI Configuration Management', () => {
           configPath,
           loadFromEnv: false,
         })
-      ).rejects.toThrow('maxTokens must be a positive number');
+      ).rejects.toThrow(/maxTokens must be a positive number/);
     });
 
     it('should handle missing config file gracefully', async () => {

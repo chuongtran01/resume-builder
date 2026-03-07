@@ -115,6 +115,12 @@ describe('FallbackManager', () => {
     });
 
     it('should use retryAfter from RateLimitError if available', async () => {
+      // Create a manager with higher maxRetryDelay for this test
+      const manager = new FallbackManager({
+        maxRetries: 3,
+        retryDelayBase: 100,
+        maxRetryDelay: 10000, // 10 seconds to allow 5 second retryAfter
+      });
       const rateLimitError = new RateLimitError('Rate limit', 'test', 5); // 5 seconds
       let attempts = 0;
       const fn = jest.fn().mockImplementation(async () => {
@@ -126,14 +132,14 @@ describe('FallbackManager', () => {
       });
 
       const startTime = Date.now();
-      const result = await fallbackManager.executeWithRetry(fn, mockProvider, 'test');
+      const result = await manager.executeWithRetry(fn, mockProvider, 'test');
       const elapsed = Date.now() - startTime;
 
       expect(result).toBe('success');
       // Should wait approximately 5 seconds (with some tolerance)
       expect(elapsed).toBeGreaterThanOrEqual(4000);
       expect(elapsed).toBeLessThan(6000);
-    });
+    }, 10000); // Increase timeout to 10 seconds for this test
 
     it('should normalize unknown errors to AIProviderError', async () => {
       const fn = jest.fn().mockRejectedValue(new Error('Unknown error'));
@@ -216,8 +222,14 @@ describe('FallbackManager', () => {
 
   describe('calculateRetryDelay', () => {
     it('should use retryAfter from RateLimitError', () => {
+      // Create a manager with higher maxRetryDelay for this test
+      const manager = new FallbackManager({
+        maxRetries: 3,
+        retryDelayBase: 100,
+        maxRetryDelay: 10000, // 10 seconds to allow 5 second retryAfter
+      });
       const error = new RateLimitError('Rate limit', 'test', 5);
-      const delay = fallbackManager.calculateRetryDelay(1, error);
+      const delay = manager.calculateRetryDelay(1, error);
       expect(delay).toBe(5000); // 5 seconds in milliseconds
     });
 

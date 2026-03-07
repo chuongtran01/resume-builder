@@ -302,7 +302,7 @@ function extractRequirements(text: string): string[] {
  * @param text - Job description text to parse
  * @returns Parsed job description with extracted information
  */
-export function parseJobDescription(text: string): ParsedJobDescription {
+export function parseJobDescription(text: string | null | undefined): ParsedJobDescription {
   if (!text || typeof text !== 'string') {
     logger.warn('Invalid job description text provided');
     return {

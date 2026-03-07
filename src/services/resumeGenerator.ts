@@ -4,11 +4,11 @@
  */
 
 import type { Resume } from '@resume-types/resume.types';
-import type { TemplateOptions } from '@resume-types/template.types';
+import type { TemplateOptions, ResumeTemplate } from '@resume-types/template.types';
 import { parseResume } from '@utils/resumeParser';
 import { getTemplate } from '@templates/templateRegistry';
 import { generateHtmlFile, generateHtmlString } from '@utils/htmlGenerator';
-import { generatePdfFromHtml } from '@utils/pdfGenerator';
+import { generatePdfFromHtml, calculatePageCount, getBrowser } from '@utils/pdfGenerator';
 import { validateAtsCompliance, type AtsValidationResult } from '@services/atsValidator';
 import { logger } from '@utils/logger';
 import * as fs from 'fs-extra';
@@ -65,6 +65,136 @@ export class TemplateNotFoundError extends Error {
 }
 
 /**
+ * Autofit resume to fit on one page using binary search
+ * Scales typography values (font sizes and line-heights) using a multiplier
+ * @param resume - Resume data object
+ * @param template - Template instance to render with
+ * @param templateOptions - Optional template options (will be extended with multiplier)
+ * @returns HTML string with optimal multiplier applied
+ */
+async function autofitResumeToPage(
+  resume: Resume,
+  template: ResumeTemplate,
+  templateOptions?: TemplateOptions
+): Promise<string> {
+  const MIN_MULTIPLIER = 0.818; // 9pt / 11pt
+  const MAX_MULTIPLIER = 1.0;
+  const MULTIPLIER_STEP = 0.023; // ~0.25pt steps for rounding precision
+  const EPSILON = 0.001; // Small value for bound increments to prevent infinite loops
+  const MAX_ITERATIONS = 20; // Safety limit for binary search
+
+  // Create a single page for all calculations (performance optimization)
+  const browser = await getBrowser();
+  if (!browser) {
+    throw new Error('Browser instance not available');
+  }
+  const page = await browser.newPage();
+
+  try {
+    // Setup viewport once (reused for all calculations)
+    await page.setViewport({
+      width: 816, // Letter width at 96 DPI
+      height: 1056, // Letter height at 96 DPI
+      deviceScaleFactor: 1,
+    });
+
+    // Render initial HTML with multiplier 1.0 (11pt base)
+    let html = template.render(resume, { ...templateOptions, multiplier: MAX_MULTIPLIER });
+
+    // Check initial page count (reuse page)
+    logger.debug('Checking initial page count...');
+    const initialCount = await calculatePageCount(html, page); // Pass page as required parameter
+    logger.debug(`Initial page count: ${initialCount.pageCount}`);
+
+    if (initialCount.pageCount <= 1) {
+      logger.debug('Resume already fits on one page at 11pt - skipping autofit');
+      return html; // Already fits at 11pt - early exit!
+    }
+
+    // Helper to round to nearest step
+    const roundToStep = (mult: number): number => {
+      return Math.round(mult / MULTIPLIER_STEP) * MULTIPLIER_STEP;
+    };
+
+    let low = MIN_MULTIPLIER;
+    let high = MAX_MULTIPLIER;
+    let bestMultiplier = MAX_MULTIPLIER;
+    let bestHtml = html;
+    let iterations = 0;
+
+    logger.debug(`Starting binary search autofit (range: ${MIN_MULTIPLIER} to ${MAX_MULTIPLIER})`);
+
+    // Binary search with page reuse (performance optimization)
+    while (high >= low && iterations < MAX_ITERATIONS) {
+      iterations++;
+      const mid = roundToStep((low + high) / 2);
+
+      // Ensure mid is within bounds
+      if (mid < low || mid > high) {
+        break;
+      }
+
+      logger.debug(`Iteration ${iterations}: Trying multiplier ${mid.toFixed(3)} (≈${(11 * mid).toFixed(1)}pt)`);
+
+      // Re-render template with new multiplier
+      const updatedHtml = template.render(resume, { ...templateOptions, multiplier: mid });
+
+      // Reuse the same page for calculation (no page creation overhead)
+      const result = await calculatePageCount(updatedHtml, page); // Pass page as required parameter
+
+      logger.debug(`  Page count: ${result.pageCount}`);
+
+      if (result.pageCount <= 1) {
+        bestMultiplier = mid;
+        bestHtml = updatedHtml;
+        low = mid + EPSILON; // Try larger multiplier (to find maximum that fits)
+        logger.debug(`  ✓ Fits! Trying larger multiplier...`);
+      } else {
+        high = Math.max(mid - EPSILON, low); // Ensure high doesn't go below low
+        logger.debug(`  ✗ Doesn't fit, trying smaller multiplier...`);
+      }
+    }
+
+    // Check if the best result from binary search still doesn't fit
+    const bestResult = await calculatePageCount(bestHtml, page);
+    if (bestResult.pageCount > 1) {
+      logger.debug(`Binary search result still doesn't fit (${bestResult.pageCount} pages). Trying minimum multiplier ${MIN_MULTIPLIER.toFixed(3)} (≈${(11 * MIN_MULTIPLIER).toFixed(1)}pt)...`);
+      const minHtml = template.render(resume, { ...templateOptions, multiplier: MIN_MULTIPLIER });
+      const minResult = await calculatePageCount(minHtml, page);
+      logger.debug(`  Page count: ${minResult.pageCount}`);
+
+      bestMultiplier = MIN_MULTIPLIER;
+      bestHtml = minHtml;
+
+      if (minResult.pageCount <= 1) {
+        logger.debug(`  ✓ Fits at minimum multiplier!`);
+      } else {
+        logger.debug(`  ✗ Still doesn't fit at minimum multiplier`);
+      }
+    }
+
+    if (iterations >= MAX_ITERATIONS) {
+      logger.warn(`Binary search reached max iterations (${MAX_ITERATIONS}), using best result`);
+    }
+
+    if (bestMultiplier < MAX_MULTIPLIER) {
+      logger.info(`Autofit applied: multiplier ${bestMultiplier.toFixed(3)} (≈${(11 * bestMultiplier).toFixed(1)}pt)`);
+    } else if (bestMultiplier === MIN_MULTIPLIER && initialCount.pageCount > 1) {
+      logger.warn(`Content still doesn't fit at minimum multiplier (${MIN_MULTIPLIER}), using minimum size`);
+    }
+
+    return bestHtml;
+  } catch (error) {
+    logger.error(`Autofit failed: ${error instanceof Error ? error.message : String(error)}`);
+    // Fall back to original HTML if autofit fails
+    return template.render(resume, { ...templateOptions, multiplier: MAX_MULTIPLIER });
+  } finally {
+    // Clean up page once at the end (caller's responsibility)
+    await page.close();
+  }
+}
+
+/**
  * Generates resume from JSON file
  * @param resumePath - Path to resume.json file
  * @param outputPath - Path for output file
@@ -115,9 +245,15 @@ export async function generateResumeFromFile(
     }
   }
 
-  // Render template to HTML
-  logger.debug('Rendering template...');
-  const html = template.render(resume, templateOptions);
+  // Generate HTML with autofit for PDF, or direct render for HTML
+  let html: string;
+  if (outputFormat === 'pdf') {
+    logger.debug('Rendering template with autofit to fit on one page...');
+    html = await autofitResumeToPage(resume, template, templateOptions);
+  } else {
+    logger.debug('Rendering template...');
+    html = template.render(resume, templateOptions);
+  }
 
   // Generate output based on format
   let finalOutputPath: string;
@@ -208,9 +344,15 @@ export async function generateResumeFromObject(
     }
   }
 
-  // Render template to HTML
-  logger.debug('Rendering template...');
-  const html = template.render(resume, templateOptions);
+  // Generate HTML with autofit for PDF, or direct render for HTML
+  let html: string;
+  if (outputFormat === 'pdf') {
+    logger.debug('Rendering template with autofit to fit on one page...');
+    html = await autofitResumeToPage(resume, template, templateOptions);
+  } else {
+    logger.debug('Rendering template...');
+    html = template.render(resume, templateOptions);
+  }
 
   // Generate output based on format
   let finalOutputPath: string;

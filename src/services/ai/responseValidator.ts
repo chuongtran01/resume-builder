@@ -77,7 +77,7 @@ function validateJsonStructure(
 
   if (type === 'review') {
     const reviewResponse = response as Partial<ReviewResponse>;
-    
+
     if (!('reviewResult' in reviewResponse)) {
       errors.push('Review response missing "reviewResult" field');
     } else {
@@ -160,7 +160,7 @@ function validateJsonStructure(
   } else {
     // AIResponse validation
     const aiResponse = response as Partial<AIResponse>;
-    
+
     if (!('enhancedResume' in aiResponse)) {
       errors.push('AI response missing "enhancedResume" field');
     } else if (!aiResponse.enhancedResume || typeof aiResponse.enhancedResume !== 'object') {
@@ -220,7 +220,7 @@ function validateResumeStructure(
   // Use existing resume validator
   try {
     const validationErrors = validateResume(resume as Partial<Resume>);
-    
+
     if (validationErrors.length > 0) {
       if (strict) {
         errors.push(...validationErrors);
@@ -377,7 +377,7 @@ function attemptStructureRecovery(
   try {
     if (type === 'review') {
       const review = response as Partial<ReviewResponse>;
-      
+
       // Ensure reviewResult exists
       if (!review.reviewResult) {
         review.reviewResult = {
@@ -413,7 +413,7 @@ function attemptStructureRecovery(
       return { success: true, recovered: review as ReviewResponse, errors: [] };
     } else {
       const ai = response as Partial<AIResponse>;
-      
+
       // Ensure enhancedResume exists (can't recover if missing)
       if (!ai.enhancedResume) {
         errors.push('Cannot recover: enhancedResume is missing');
@@ -453,6 +453,11 @@ function generateSuggestions(
   // JSON structure errors
   if (errors.some(e => e.includes('must be a JSON object'))) {
     suggestions.push('Ensure the response is a valid JSON object, not a string or other type');
+  }
+
+  // JSON parsing errors
+  if (errors.some(e => e.includes('Failed to parse JSON') || e.includes('parse JSON'))) {
+    suggestions.push('The response contains invalid JSON. Check for syntax errors like missing commas, unclosed brackets, or invalid characters. Try using a JSON validator to identify the issue.');
   }
 
   // Missing required fields

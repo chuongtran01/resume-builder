@@ -29,8 +29,6 @@ program
   .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
   .option('--validate', 'Run ATS validation', false)
-  .option('--spacing <mode>', 'Spacing mode: auto (default), compact, normal', 'compact')
-  .option('--compact', 'Use compact spacing (shorthand for --spacing compact)', false)
   .option('-v, --verbose', 'Enable verbose logging', false)
   .action(async (options) => {
     try {
@@ -44,7 +42,7 @@ program
 
       // Import here to avoid circular dependencies
       const { generateResumeFromFile } = await import('@services/resumeGenerator');
-      
+
       // Validate required options
       if (!options.input) {
         logger.error('❌ Error: --input is required');
@@ -92,7 +90,7 @@ program
       const outputPath = path.resolve(options.output);
       const outputDir = path.dirname(outputPath);
       const outputDirExists = await fs.pathExists(outputDir);
-      
+
       if (!outputDirExists) {
         logger.error(`❌ Error: Output directory does not exist: ${outputDir}`);
         logger.info('💡 Suggestions:');
@@ -123,22 +121,10 @@ program
         process.exit(1);
       }
 
-      // Determine spacing mode
-      let spacing: 'auto' | 'compact' | 'normal' = options.compact ? 'compact' : (options.spacing as 'auto' | 'compact' | 'normal' || 'auto');
-      if (!['auto', 'compact', 'normal'].includes(spacing)) {
-        logger.error(`❌ Error: Invalid spacing mode "${spacing}"`);
-        logger.info('💡 Valid spacing modes are:');
-        logger.info('   - auto (automatically adjust based on content)');
-        logger.info('   - compact (minimal spacing for dense content)');
-        logger.info('   - normal (standard spacing)');
-        logger.info(`   Example: --spacing compact`);
-        process.exit(1);
-      }
-
       // Validate template
       const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
       const availableTemplates = getTemplateNames();
-      
+
       if (!hasTemplate(options.template)) {
         logger.error(`❌ Error: Template "${options.template}" not found`);
         logger.info('💡 Available templates:');
@@ -148,9 +134,9 @@ program
         logger.info(`   Example: --template ${availableTemplates[0] || 'classic'}`);
         process.exit(1);
       }
-      
+
       logger.info('Starting resume generation...');
-      
+
       const result = await generateResumeFromFile(
         options.input,
         options.output,
@@ -158,9 +144,6 @@ program
           template: options.template,
           format: options.format.toLowerCase() as 'pdf' | 'html',
           validate: options.validate,
-          templateOptions: {
-            spacing: spacing as 'auto' | 'compact' | 'normal',
-          },
         }
       );
 
@@ -176,7 +159,7 @@ program
         logger.info(`\n📊 ATS Validation Results:`);
         logger.info(`   Score: ${result.atsValidation.score}/100`);
         logger.info(`   Status: ${result.atsValidation.isCompliant ? '✅ Compliant' : '⚠️  Needs Improvement'}`);
-        
+
         if (result.atsValidation.errors.length > 0) {
           logger.warn(`\n   Errors (${result.atsValidation.errors.length}):`);
           result.atsValidation.errors.forEach((error) => {
@@ -282,12 +265,12 @@ program
       await import('@templates/index');
       const { getTemplateNames } = await import('../templates/templateRegistry');
       const templates = getTemplateNames();
-      
+
       logger.info('Available templates:');
       templates.forEach((template: string) => {
         logger.info(`  - ${template}`);
       });
-      
+
       process.exit(0);
     } catch (error) {
       logger.error(`Error listing templates: ${error instanceof Error ? error.message : String(error)}`);
@@ -340,7 +323,7 @@ program
       const { validateAtsCompliance } = await import('@services/atsValidator');
 
       logger.info('Validating resume...');
-      
+
       const resume = await parseResume({
         resumePath: options.input,
         validate: true,
@@ -352,7 +335,7 @@ program
       logger.info(`\n📊 ATS Validation Results:`);
       logger.info(`   Score: ${validation.score}/100`);
       logger.info(`   Status: ${validation.isCompliant ? '✅ Compliant' : '⚠️  Needs Improvement'}`);
-      
+
       if (validation.errors.length > 0) {
         logger.error(`\n   Errors (${validation.errors.length}):`);
         validation.errors.forEach((error) => {
@@ -544,7 +527,7 @@ program
       // Validate template
       const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
       const availableTemplates = getTemplateNames();
-      
+
       if (!hasTemplate(options.template)) {
         logger.error(`❌ Error: Template "${options.template}" not found`);
         logger.info('💡 Available templates:');
@@ -576,18 +559,18 @@ program
 
       // Step 3: Initialize AI provider and enhance resume
       logger.info('\n🤖 Step 3: Initializing AI provider...');
-      
+
       // Load AI configuration
       const { loadAIConfig, getGeminiConfig } = await import('@services/ai/config');
       const aiConfig = await loadAIConfig();
-      
+
       // Get provider name from CLI option or config (default: gemini)
       const providerName = options.aiProvider || aiConfig.defaultProvider || 'gemini';
-      
+
       // Initialize and register Gemini provider if needed
       const { registerProvider, hasProvider } = await import('@services/ai/providerRegistry');
       const { GeminiProvider } = await import('@services/ai/gemini');
-      
+
       if (!hasProvider('gemini')) {
         const geminiConfig = getGeminiConfig(aiConfig);
         if (!geminiConfig || !geminiConfig.apiKey) {
@@ -598,18 +581,18 @@ program
           logger.info('   - See AI_CONFIG.md for configuration details');
           process.exit(1);
         }
-        
+
         // Use defaults: model from config (default: gemini-2.5-pro), temperature from config (default: 0.7)
         // Override with CLI options if provided
         const DEFAULT_MODEL: 'gemini-2.5-pro' | 'gemini-3-flash-preview' = 'gemini-2.5-pro';
         const DEFAULT_TEMPERATURE = 0.7;
-        
+
         const finalConfig = {
           ...geminiConfig,
           model: (options.aiModel as 'gemini-2.5-pro' | 'gemini-3-flash-preview') || geminiConfig.model || DEFAULT_MODEL,
           temperature: options.aiTemperature !== undefined ? options.aiTemperature : (geminiConfig.temperature ?? DEFAULT_TEMPERATURE),
         };
-        
+
         const geminiProvider = new GeminiProvider(finalConfig);
         registerProvider('gemini', geminiProvider);
         logger.success(`   ✅ AI provider initialized: ${providerName}`);
@@ -618,12 +601,12 @@ program
       } else {
         logger.success(`   ✅ Using existing AI provider: ${providerName}`);
       }
-      
+
       // Enhance resume using AI
       logger.info('\n🤖 Step 4: Enhancing resume with AI...');
       const { AIResumeEnhancementService } = await import('@services/aiResumeEnhancementService');
       const { getProvider } = await import('@services/ai/providerRegistry');
-      
+
       let provider = getProvider(providerName);
       if (provider) {
         const providerInfo = provider.getProviderInfo();
@@ -633,9 +616,9 @@ program
         const actualModel = options.aiModel || geminiConfig?.model || providerInfo.defaultModel;
         logger.info(`   Model: ${actualModel}${!options.aiModel ? ' (default)' : ''}`);
       }
-      
+
       const aiEnhancementService = new AIResumeEnhancementService(providerName);
-      
+
       // Get provider again after service initialization (in case it was set as default)
       provider = getProvider(providerName);
       const enhancementResult = await aiEnhancementService.enhanceResume(
@@ -696,16 +679,16 @@ program
       if (enhancementResult.missingSkills.length > 0) {
         logger.warn(`\n   Missing Skills: ${enhancementResult.missingSkills.slice(0, 5).join(', ')}${enhancementResult.missingSkills.length > 5 ? '...' : ''}`);
       }
-      
+
       // Display provider information
       if (provider) {
         const providerInfo = provider.getProviderInfo();
         const geminiConfig = getGeminiConfig(aiConfig);
         const actualModel = options.aiModel || geminiConfig?.model || providerInfo.defaultModel;
-        const actualTemperature = options.aiTemperature !== undefined 
-          ? options.aiTemperature 
+        const actualTemperature = options.aiTemperature !== undefined
+          ? options.aiTemperature
           : (geminiConfig?.temperature ?? 0.7);
-        
+
         logger.info(`\n🤖 AI Provider: ${providerInfo.displayName}`);
         logger.info(`   Model: ${actualModel}${!options.aiModel ? ' (default)' : ''}`);
         logger.info(`   Temperature: ${actualTemperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);

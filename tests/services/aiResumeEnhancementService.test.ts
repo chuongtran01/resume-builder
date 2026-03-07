@@ -253,13 +253,12 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.reviewResume).toHaveBeenCalled();
     });
 
-    it('should throw error when AI provider is not available', async () => {
+    it('should throw error when AI provider is not available', () => {
       (getProvider as jest.Mock).mockReturnValue(undefined);
-      const service = new AIResumeEnhancementService('nonexistent');
-
-      await expect(
-        service.reviewResume(sampleResume, sampleJobDescription)
-      ).rejects.toThrow('AI provider not available');
+      
+      expect(() => {
+        new AIResumeEnhancementService('nonexistent');
+      }).toThrow('Provider "nonexistent" not found');
     });
 
     it('should throw error when review fails', async () => {
@@ -321,13 +320,12 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.modifyResume).toHaveBeenCalled();
     });
 
-    it('should throw error when AI provider is not available', async () => {
+    it('should throw error when AI provider is not available', () => {
       (getProvider as jest.Mock).mockReturnValue(undefined);
-      const service = new AIResumeEnhancementService('nonexistent');
-
-      await expect(
-        service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
-      ).rejects.toThrow('AI provider not available');
+      
+      expect(() => {
+        new AIResumeEnhancementService('nonexistent');
+      }).toThrow('Provider "nonexistent" not found');
     });
 
     it('should throw error when modification fails', async () => {

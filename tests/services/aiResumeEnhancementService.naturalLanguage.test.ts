@@ -8,9 +8,12 @@ import type { Resume } from '../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../src/utils/jobParser';
 
 // Mock dependencies
+import type { AIProvider } from '../../src/services/ai/provider.types';
+import { getProvider, getDefaultProvider } from '../../src/services/ai/providerRegistry';
+
 jest.mock('../../src/services/ai/providerRegistry', () => ({
-  getProvider: jest.fn(() => null),
-  getDefaultProvider: jest.fn(() => null),
+  getProvider: jest.fn(),
+  getDefaultProvider: jest.fn(),
 }));
 
 jest.mock('../../src/services/resumeEnhancementService', () => ({
@@ -23,10 +26,30 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
   let service: AIResumeEnhancementService;
   let sampleResume: Resume;
   let sampleJobInfo: ParsedJobDescription;
+  let mockAIProvider: jest.Mocked<AIProvider>;
 
   beforeEach(() => {
-    // Create service with undefined provider (will use fallback)
-    service = new AIResumeEnhancementService(undefined, true);
+    // Create mock AI provider
+    mockAIProvider = {
+      reviewResume: jest.fn(),
+      modifyResume: jest.fn(),
+      enhanceResume: jest.fn(),
+      validateResponse: jest.fn(() => true),
+      estimateCost: jest.fn(() => 0),
+      getProviderInfo: jest.fn(() => ({
+        name: 'mock',
+        displayName: 'Mock Provider',
+        supportedModels: ['mock-model'],
+        defaultModel: 'mock-model',
+      })),
+    } as unknown as jest.Mocked<AIProvider>;
+
+    // Mock provider registry to return the mock provider
+    (getProvider as jest.Mock).mockReturnValue(mockAIProvider);
+    (getDefaultProvider as jest.Mock).mockReturnValue(mockAIProvider);
+
+    // Create service with mock provider
+    service = new AIResumeEnhancementService('mock');
     sampleResume = {
       personalInfo: {
         name: 'John Doe',

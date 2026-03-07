@@ -13,7 +13,7 @@ import {
 import type { Resume } from '@resume-types/resume.types';
 
 // Import templates to ensure they are registered
-import '@templates';
+import '../../src/templates/index';
 
 // Mock dependencies
 jest.mock('@utils/logger', () => ({
@@ -32,6 +32,15 @@ jest.mock('@utils/pdfGenerator', () => ({
     await fs.ensureDir(require('path').dirname(options.outputPath));
     await fs.writeFile(options.outputPath, Buffer.from('mock pdf content'));
     return options.outputPath;
+  }),
+  getBrowser: jest.fn().mockResolvedValue({
+    newPage: jest.fn().mockResolvedValue({
+      setContent: jest.fn(),
+      evaluate: jest.fn().mockResolvedValue({ width: 800, height: 1000 }),
+      pdf: jest.fn().mockResolvedValue(Buffer.from('mock pdf')),
+      close: jest.fn(),
+    }),
+    close: jest.fn(),
   }),
 }));
 

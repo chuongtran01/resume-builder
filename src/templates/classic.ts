@@ -10,7 +10,6 @@ import {
   baseTemplateValidation,
   escapeHtml,
   formatDate,
-  estimateContentDensity,
 } from './templateHelpers';
 import { isSingleEducation, isEducationArray } from '@resume-types/resume.types';
 import { registerTemplate } from './templateRegistry';
@@ -23,17 +22,10 @@ export const classicTemplate: ResumeTemplate = {
   description: 'Classic single-column template with clean styling and Times New Roman font',
 
   render(resume: Resume, options?: TemplateOptions): string {
-    // Determine spacing mode
-    let spacing: 'compact' | 'normal' = 'compact';
-    if (options?.spacing === 'auto') {
-      spacing = estimateContentDensity(resume);
-    } else if (options?.spacing === 'compact') {
-      spacing = 'compact';
-    } else if (options?.spacing === 'spacious') {
-      spacing = 'normal'; // Spacious not implemented yet, fallback to normal
-    }
-
-    const css = getCss(options, spacing);
+    // Always start with multiplier 1.0 (11pt base)
+    // Autofit will reduce if needed
+    const multiplier = options?.multiplier ?? 1.0;
+    const css = getCss(options, multiplier);
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -76,68 +68,48 @@ registerTemplate(classicTemplate);
  * Get CSS styles for classic template
  * Classic styling uses Times New Roman font
  */
-function getCss(options?: TemplateOptions, spacing: 'compact' | 'normal' = 'compact'): string {
+function getCss(options?: TemplateOptions, multiplier: number = 1.0): string {
   const customCss = options?.customCss || '';
 
-  // Define spacing presets
-  const spacingPresets = {
-    compact: {
-      bodyPadding: '0.35in',
-      bodyFontSize: '9.5pt',
-      lineHeight: '1.25',
-      headerMarginBottom: '8pt',
-      headerPaddingBottom: '2pt',
-      headerH1FontSize: '20pt',
-      headerH1MarginBottom: '2pt',
-      headerContactFontSize: '8pt',
-      headerContactSpanMargin: '0 2pt',
-      sectionMarginBottom: '8pt',
-      sectionTitleFontSize: '11pt',
-      sectionTitleMarginBottom: '4pt',
-      sectionTitlePaddingBottom: '2pt',
-      summaryLineHeight: '1.3',
-      summaryMarginBottom: '10pt',
-      experienceItemMarginBottom: '6pt',
-      experienceHeaderMarginBottom: '2pt',
-      bulletMarginTop: '2pt',
-      bulletMarginLeft: '16pt',
-      bulletMarginBottom: '0.5pt',
-      skillsCategoriesMarginTop: '4pt',
-      skillCategoryMarginBottom: '0.5pt',
-      skillCategoryNameMarginBottom: '2pt',
-      certificationItemMarginBottom: '5pt',
-      certificationIssuerMarginTop: '1pt',
-    },
-    normal: {
-      bodyPadding: '0.5in',
-      bodyFontSize: '11pt',
-      lineHeight: '1.6',
-      headerMarginBottom: '12pt',
-      headerPaddingBottom: '4pt',
-      headerH1FontSize: '20pt',
-      headerH1MarginBottom: '3pt',
-      headerContactFontSize: '10pt',
-      headerContactSpanMargin: '0 3pt',
-      sectionMarginBottom: '16pt',
-      sectionTitleFontSize: '14pt',
-      sectionTitleMarginBottom: '10pt',
-      sectionTitlePaddingBottom: '4pt',
-      summaryLineHeight: '1.6',
-      summaryMarginBottom: '16pt',
-      experienceItemMarginBottom: '12pt',
-      experienceHeaderMarginBottom: '4pt',
-      bulletMarginTop: '6pt',
-      bulletMarginLeft: '20pt',
-      bulletMarginBottom: '2pt',
-      skillsCategoriesMarginTop: '8pt',
-      skillCategoryMarginBottom: '2pt',
-      skillCategoryNameMarginBottom: '4pt',
-      certificationItemMarginBottom: '8pt',
-      certificationIssuerMarginTop: '2pt',
-    },
+  // Base preset with 11pt font size (maximum)
+  const baseSpacing = {
+    bodyPadding: '0.35in',
+    bodyFontSize: 11, // Base: 11pt (stored as number)
+    lineHeight: 1.6,  // Base line height
+    headerMarginBottom: '8pt',
+    headerPaddingBottom: '2pt',
+    headerH1FontSize: 20,
+    headerH1MarginBottom: '2pt',
+    headerContactFontSize: 8,
+    headerContactSpanMargin: '0 2pt',
+    sectionMarginBottom: '8pt',
+    sectionTitleFontSize: 11,
+    sectionTitleMarginBottom: '4pt',
+    sectionTitlePaddingBottom: '2pt',
+    summaryLineHeight: 1.6,
+    summaryMarginBottom: '10pt',
+    experienceItemMarginBottom: '6pt',
+    experienceHeaderMarginBottom: '2pt',
+    bulletMarginTop: '2pt',
+    bulletMarginLeft: '16pt',
+    bulletMarginBottom: '0.5pt',
+    skillsCategoriesMarginTop: '4pt',
+    skillCategoryMarginBottom: '0.5pt',
+    skillCategoryNameMarginBottom: '2pt',
+    certificationItemMarginBottom: '5pt',
+    certificationIssuerMarginTop: '1pt',
   };
 
-  const s = spacingPresets[spacing];
+  // Apply multiplier to typography only
+  const s = {
+    ...baseSpacing,
+    bodyFontSize: `${(baseSpacing.bodyFontSize * multiplier).toFixed(1)}pt`,
+    lineHeight: Math.max(baseSpacing.lineHeight * multiplier, 1.0).toFixed(2),
+    headerH1FontSize: `${(baseSpacing.headerH1FontSize * multiplier).toFixed(1)}pt`,
+    headerContactFontSize: `${(baseSpacing.headerContactFontSize * multiplier).toFixed(1)}pt`,
+    sectionTitleFontSize: `${(baseSpacing.sectionTitleFontSize * multiplier).toFixed(1)}pt`,
+    summaryLineHeight: Math.max(baseSpacing.summaryLineHeight * multiplier, 1.0).toFixed(2),
+  };
 
   return `
     * {

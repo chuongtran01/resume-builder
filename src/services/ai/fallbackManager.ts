@@ -310,6 +310,9 @@ export class FallbackManager {
     const providerName = provider.getProviderInfo().name;
     const errorType = error.constructor.name;
 
+    // Record the error in statistics
+    this.recordError(error);
+
     logger.error(
       `Provider "${providerName}" failed with ${errorType}: ${error.message}`
     );

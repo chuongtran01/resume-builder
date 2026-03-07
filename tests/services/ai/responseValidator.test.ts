@@ -178,7 +178,7 @@ describe('ResponseValidator', () => {
           },
         } as unknown as ReviewResponse;
 
-        const result = validateResponseFormat(response, 'review');
+        const result = validateResponseFormat(response, 'review', { attemptRecovery: false });
         expect(result.isValid).toBe(false);
         expect(result.errors.some(e => e.includes('confidence'))).toBe(true);
       });
@@ -424,7 +424,7 @@ describe('ResponseValidator', () => {
       it('should generate suggestions for JSON errors', () => {
         const invalidJson = '{ invalid }';
 
-        const result = validateResponseFormat(invalidJson, 'ai');
+        const result = validateResponseFormat(invalidJson, 'ai', { attemptRecovery: false });
         expect(result.suggestions.length).toBeGreaterThan(0);
         expect(result.suggestions.some(s => s.includes('JSON'))).toBe(true);
       });

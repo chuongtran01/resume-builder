@@ -66,7 +66,7 @@ let browserInstance: Browser | null = null;
 /**
  * Get or create browser instance
  */
-async function getBrowser(): Promise<Browser> {
+export async function getBrowser(): Promise<Browser> {
   if (!browserInstance) {
     logger.debug('Launching Puppeteer browser...');
     browserInstance = await puppeteer.launch({
@@ -93,6 +93,99 @@ export async function closeBrowser(): Promise<void> {
     browserInstance = null;
     logger.debug('Puppeteer browser closed');
   }
+}
+
+/**
+ * Page count calculation result
+ */
+interface PageCountResult {
+  pageCount: number;
+  contentHeight: number;
+  usableHeight: number;
+  pageHeightPx: number;
+  marginTopPx: number;
+  marginBottomPx: number;
+}
+
+/**
+ * Letter format page dimensions (8.5in × 11in = 816 × 1056px at 96 DPI)
+ */
+const LETTER_PAGE_DIMENSIONS = {
+  width: 816,
+  height: 1056,
+} as const;
+
+/**
+ * Setup viewport for PDF page size
+ * Uses Letter format dimensions (8.5in × 11in = 816 × 1056px at 96 DPI)
+ * @param page - Puppeteer page instance
+ * @returns Page dimensions
+ */
+export async function setupViewportForPdf(page: Page): Promise<{ width: number; height: number }> {
+  const pageWidth = LETTER_PAGE_DIMENSIONS.width;
+  const pageHeight = LETTER_PAGE_DIMENSIONS.height;
+
+  // Set viewport to match PDF page size for accurate measurement
+  await page.setViewport({
+    width: pageWidth,
+    height: pageHeight,
+    deviceScaleFactor: 1,
+  });
+
+  return { width: pageWidth, height: pageHeight };
+}
+
+/**
+ * Calculate page count for PDF generation
+ * Loads HTML content and executes calculation in browser context
+ * Uses Letter format dimensions (8.5in × 11in = 816 × 1056px at 96 DPI)
+ * @param html - HTML string to calculate page count for
+ * @param page - Puppeteer page instance (caller manages lifecycle)
+ * @returns Page count calculation result
+ */
+export async function calculatePageCount(
+  html: string,
+  page: Page
+): Promise<PageCountResult> {
+  // Load HTML content (reuses provided page)
+  await page.setContent(html, { waitUntil: 'domcontentloaded' }); // Faster than 'networkidle0'
+
+  const pageHeight = 1056; // Letter height at 96 DPI
+  const safetyBuffer = 50; // Extra buffer to account for rendering differences
+  const usableHeight = pageHeight - safetyBuffer;
+
+  // Calculate page count in browser context
+  return await page.evaluate((usableHeightPx) => {
+    const doc = (globalThis as any).document;
+    if (!doc) {
+      return {
+        pageCount: 1,
+        contentHeight: 0,
+        usableHeight: usableHeightPx,
+        pageHeightPx: usableHeightPx,
+        marginTopPx: 0,
+        marginBottomPx: 0,
+      };
+    }
+
+    const resumeElement = doc.querySelector('.resume') || doc.body;
+    const contentHeight = Math.max(
+      resumeElement.scrollHeight,
+      resumeElement.offsetHeight,
+      doc.body.scrollHeight,
+      doc.body.offsetHeight
+    );
+
+    const calculatedPages = Math.ceil(contentHeight / usableHeightPx);
+    return {
+      pageCount: calculatedPages,
+      contentHeight,
+      usableHeight: usableHeightPx,
+      pageHeightPx: usableHeightPx,
+      marginTopPx: 0,
+      marginBottomPx: 0,
+    };
+  }, usableHeight);
 }
 
 /**
