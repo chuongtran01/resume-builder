@@ -169,7 +169,7 @@ describe('atsValidator', () => {
                 projects: [
                     {
                         name: 'Project',
-                        description: 'Description',
+                        bulletPoints: ['Description'],
                     },
                 ],
             };

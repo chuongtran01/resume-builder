@@ -86,8 +86,8 @@ const certificationSchema = z.object({
  */
 const projectSchema = z.object({
   name: z.string().min(1, 'Project name is required'),
-  description: z.string().min(1, 'Description is required'),
-  technologies: z.array(z.string().min(1, 'Technology cannot be empty')),
+  bulletPoints: z.array(z.string().min(1, 'Bullet point cannot be empty')).min(1, 'At least one bullet point is required'),
+  technologies: z.array(z.string().min(1, 'Technology cannot be empty')).optional(),
   url: z.string().url('Invalid URL').optional(),
   github: z.string().url('Invalid GitHub URL').optional(),
 });

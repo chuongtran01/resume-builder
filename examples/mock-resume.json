@@ -53,7 +53,9 @@
   "projects": [
     {
       "name": "E-Commerce Platform",
-      "description": "Built a full-stack e-commerce platform with payment integration, inventory management, and admin dashboard",
+      "bulletPoints": [
+        "Built a full-stack e-commerce platform with payment integration, inventory management, and admin dashboard"
+      ],
       "technologies": [
         "React",
         "Node.js",
@@ -65,7 +67,9 @@
     },
     {
       "name": "Task Management App",
-      "description": "Developed a collaborative task management application with real-time updates using WebSockets",
+      "bulletPoints": [
+        "Developed a collaborative task management application with real-time updates using WebSockets"
+      ],
       "technologies": [
         "Vue.js",
         "Express",
@@ -76,7 +80,9 @@
     },
     {
       "name": "Weather Dashboard",
-      "description": "Created a weather dashboard application that displays current conditions and forecasts for multiple cities",
+      "bulletPoints": [
+        "Created a weather dashboard application that displays current conditions and forecasts for multiple cities"
+      ],
       "technologies": [
         "React",
         "OpenWeatherMap API",
