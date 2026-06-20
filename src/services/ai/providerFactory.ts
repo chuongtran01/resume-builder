@@ -6,7 +6,8 @@ import type { GeminiConfig } from '@services/ai/gemini';
 import { GeminiProvider } from '@services/ai/gemini';
 import type { AIConfig } from '@services/ai/config';
 import { getGeminiConfig } from '@services/ai/config';
-import type { AIProvider } from '@services/ai/provider.types';
+import type { ResumeAIClient } from '@services/ai/enhancement.types';
+import type { ProviderInfo } from '@services/ai/provider.types';
 
 export type SupportedAIProvider = 'gemini';
 
@@ -20,7 +21,7 @@ export interface ProviderOverrides {
 
 export interface ProviderCreationResult {
   providerName: SupportedAIProvider;
-  provider: AIProvider;
+  provider: ResumeAIClient & { getProviderInfo(): ProviderInfo };
   config: GeminiConfig;
 }
 

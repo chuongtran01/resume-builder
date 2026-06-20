@@ -1,16 +1,6 @@
 /**
- * AI Provider Interface Types
- * 
- * Defines unified interfaces for AI providers (designed for Gemini, extensible for future providers).
- * Supports sequential review → modify workflow for resume enhancement.
+ * AI provider metadata and shared error types.
  */
-
-import type {
-  AIRequest,
-  AIResponse,
-  ReviewRequest,
-  ReviewResponse,
-} from './enhancement.types';
 
 export type {
   AIRequest,
@@ -139,64 +129,4 @@ export class TimeoutError extends AIProviderError {
     this.name = 'TimeoutError';
     Object.setPrototypeOf(this, TimeoutError.prototype);
   }
-}
-
-/**
- * AI Provider interface
- * 
- * Unified interface for AI providers (Gemini, OpenAI, Anthropic, etc.)
- * Supports sequential review → modify workflow
- */
-export interface AIProvider {
-  /**
-   * Review resume against job requirements
-   * Step 1 of the enhancement process: Analyze and identify opportunities
-   * 
-   * @param request - Review request with resume and job info
-   * @returns Promise resolving to review response with analysis
-   * @throws {AIProviderError} If review fails
-   */
-  reviewResume(request: ReviewRequest): Promise<ReviewResponse>;
-
-  /**
-   * Modify resume based on review findings
-   * Step 2 of the enhancement process: Apply enhancements
-   * 
-   * @param request - Enhancement request with resume, job info, and review result
-   * @returns Promise resolving to AI response with enhanced resume
-   * @throws {AIProviderError} If modification fails
-   */
-  modifyResume(request: AIRequest): Promise<AIResponse>;
-
-  /**
-   * Enhance resume (convenience method that orchestrates review + modify)
-   * 
-   * @param request - Enhancement request with resume and job info
-   * @returns Promise resolving to AI response with enhanced resume
-   * @throws {AIProviderError} If enhancement fails
-   */
-  enhanceResume(request: AIRequest): Promise<AIResponse>;
-
-  /**
-   * Validate AI response structure
-   * 
-   * @param response - AI response to validate
-   * @returns True if response is valid, false otherwise
-   */
-  validateResponse(response: AIResponse | ReviewResponse): boolean;
-
-  /**
-   * Estimate cost for a request
-   * 
-   * @param request - AI request to estimate cost for
-   * @returns Estimated cost in USD
-   */
-  estimateCost(request: AIRequest | ReviewRequest): number;
-
-  /**
-   * Get provider information
-   * 
-   * @returns Provider information including name, models, etc.
-   */
-  getProviderInfo(): ProviderInfo;
 }

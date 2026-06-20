@@ -158,45 +158,6 @@ describe('GeminiProvider', () => {
     });
   });
 
-  describe('validateResponse', () => {
-    it('validates ReviewResponse correctly', () => {
-      expect(provider.validateResponse(reviewResponse)).toBe(true);
-    });
-
-    it('validates AIResponse correctly', () => {
-      expect(provider.validateResponse(modifyResponse)).toBe(true);
-    });
-
-    it('rejects invalid ReviewResponse', () => {
-      const invalidResponse = {
-        reviewResult: {
-          strengths: 'not an array' as unknown as string[],
-          weaknesses: [],
-          opportunities: [],
-          prioritizedActions: [],
-          confidence: 0.8,
-        },
-      };
-
-      expect(provider.validateResponse(invalidResponse as any)).toBe(false);
-    });
-
-    it('rejects invalid AIResponse', () => {
-      const invalidResponse = {
-        enhancedResume: undefined as unknown as Resume,
-        improvements: [],
-      };
-
-      expect(provider.validateResponse(invalidResponse as any)).toBe(false);
-    });
-  });
-
-  describe('estimateCost', () => {
-    it('estimates cost for requests', () => {
-      expect(provider.estimateCost({ resume: sampleResume, jobInfo: sampleJobInfo })).toBe(0);
-    });
-  });
-
   describe('reviewResume', () => {
     it('calls the AI SDK generator and returns review response', async () => {
       const request = {

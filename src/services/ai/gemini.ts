@@ -1,12 +1,10 @@
 /**
  * Google Gemini AI Provider Implementation.
  *
- * Keeps the existing AIProvider interface while routing generation through the
- * AI SDK adapter.
+ * Routes Gemini resume generation through the AI SDK adapter.
  */
 
 import type {
-  AIProvider,
   AIProviderConfig,
   ProviderInfo,
 } from '@services/ai/provider.types';
@@ -62,7 +60,7 @@ const DEFAULT_CONFIG: Partial<GeminiConfig> = {
 /**
  * Google Gemini AI Provider.
  */
-export class GeminiProvider implements AIProvider {
+export class GeminiProvider {
   private config: GeminiConfig;
   private generator: AISdkResumeGenerator;
 
@@ -144,41 +142,6 @@ export class GeminiProvider implements AIProvider {
       tokensUsed: (reviewResponse.tokensUsed || 0) + (modifyResponse.tokensUsed || 0),
       cost: 0,
     };
-  }
-
-  /**
-   * Validate AI response structure
-   */
-  validateResponse(response: AIResponse | ReviewResponse): boolean {
-    if ('reviewResult' in response) {
-      const review = response.reviewResult;
-      return (
-        Array.isArray(review.strengths) &&
-        Array.isArray(review.weaknesses) &&
-        Array.isArray(review.opportunities) &&
-        Array.isArray(review.prioritizedActions) &&
-        typeof review.confidence === 'number' &&
-        review.confidence >= 0 &&
-        review.confidence <= 1
-      );
-    }
-
-    return (
-      response.enhancedResume !== undefined &&
-      Array.isArray(response.improvements) &&
-      (response.confidence === undefined ||
-        (typeof response.confidence === 'number' &&
-          response.confidence >= 0 &&
-          response.confidence <= 1))
-    );
-  }
-
-  /**
-   * Estimate cost for a request.
-   * Note: Cost calculation removed - will be improved in later phases.
-   */
-  estimateCost(_request: AIRequest | ReviewRequest): number {
-    return 0;
   }
 
   /**
