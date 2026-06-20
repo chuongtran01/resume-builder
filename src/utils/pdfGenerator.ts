@@ -225,7 +225,7 @@ export async function generatePdfFromHtml(
 
     // Set content with timeout
     await Promise.race([
-      page.setContent(html, { waitUntil: 'networkidle0' }),
+      page.setContent(html, { waitUntil: 'domcontentloaded' }),
       new Promise((_, reject) =>
         setTimeout(() => reject(new Error('HTML loading timeout')), timeout)
       ),
