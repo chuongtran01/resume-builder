@@ -25,7 +25,7 @@ export const classicTemplate: ResumeTemplate = {
     // Always start with multiplier 1.0 (11pt base)
     // Autofit will reduce if needed
     const multiplier = options?.multiplier ?? 1.0;
-    const css = getCss(options, multiplier);
+    const css = getCss(multiplier);
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -68,9 +68,7 @@ registerTemplate(classicTemplate);
  * Get CSS styles for classic template
  * Classic styling uses Times New Roman font
  */
-function getCss(options?: TemplateOptions, multiplier: number = 1.0): string {
-  const customCss = options?.customCss || '';
-
+function getCss(multiplier: number = 1.0): string {
   // Base preset with 11pt font size (maximum)
   const baseSpacing = {
     bodyPadding: '0.35in',
@@ -310,8 +308,6 @@ function getCss(options?: TemplateOptions, multiplier: number = 1.0): string {
         max-width: 100%;
       }
     }
-
-    ${customCss}
   `;
 }
 

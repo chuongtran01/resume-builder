@@ -5,6 +5,7 @@
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import {
+  type GeneratorOptions,
   generateResumeFromFile,
   generateResumeFromObject,
   generateResumeHtml,
@@ -67,6 +68,16 @@ describe('ResumeGenerator', () => {
 
   const testResumePath = path.join(__dirname, '../fixtures/test-resume.json');
   const testOutputPath = path.join(__dirname, '../output/test-resume.pdf');
+
+  it('does not expose template rendering options', () => {
+    const options: GeneratorOptions = {
+      format: 'pdf',
+      // @ts-expect-error templateOptions is internal to autofit and templates
+      templateOptions: { multiplier: 0.9 },
+    };
+
+    expect(options.format).toBe('pdf');
+  });
 
   beforeEach(() => {
     jest.clearAllMocks();

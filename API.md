@@ -146,12 +146,7 @@ Generate a PDF or HTML resume from structured JSON input.
   },
   "options": {
     "format": "pdf",
-    "validate": false,
-    "templateOptions": {
-      "spacing": "auto",
-      "pageBreaks": true,
-      "printStyles": true
-    }
+    "validate": false
   }
 }
 ```
@@ -163,10 +158,6 @@ Generate a PDF or HTML resume from structured JSON input.
 | `resume` | `Resume` | Yes | - | Complete resume object (see [Resume JSON Schema](#resume-json-schema)) |
 | `options.format` | `"pdf" \| "html"` | No | `"pdf"` | Output format |
 | `options.validate` | `boolean` | No | `false` | Run ATS validation before generation |
-| `options.templateOptions.spacing` | `"compact" \| "normal" \| "auto"` | No | `"normal"` | Spacing mode |
-| `options.templateOptions.pageBreaks` | `boolean` | No | `true` | Enable page breaks |
-| `options.templateOptions.printStyles` | `boolean` | No | `true` | Enable print styles |
-| `options.templateOptions.customCss` | `string` | No | - | Custom CSS to inject |
 
 **Response:**
 
@@ -869,7 +860,7 @@ Default: `*` (all origins allowed)
 
 1. **Always validate resumes** before generating final versions using the `/api/validate` endpoint
 2. **Use file references** for reusable sections to keep your resume JSON clean
-3. **Choose appropriate spacing** - Use `"auto"` for automatic spacing adjustment based on content
+3. **Use PDF output for automatic font fitting** when generating final versions
 4. **Handle errors gracefully** - Check response status codes and error messages
 5. **Use the default classic template** for consistent ATS-friendly output
 

@@ -127,16 +127,6 @@ export const resumeSchema = z.object({
 });
 
 /**
- * Zod schema for TemplateOptions
- */
-const templateOptionsSchema = z.object({
-  pageBreaks: z.boolean().optional(),
-  customCss: z.string().optional(),
-  printStyles: z.boolean().optional(),
-  multiplier: z.number().min(0).max(1.0).optional(),
-});
-
-/**
  * Zod schema for GenerateResume request body
  */
 export const generateResumeRequestSchema = z.object({
@@ -144,8 +134,7 @@ export const generateResumeRequestSchema = z.object({
   options: z.object({
     format: z.enum(['pdf', 'html']).optional(),
     validate: z.boolean().optional(),
-    templateOptions: templateOptionsSchema.optional(),
-  }).optional(),
+  }).strict().optional(),
 });
 
 /**

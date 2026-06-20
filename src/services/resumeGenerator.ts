@@ -4,7 +4,7 @@
  */
 
 import type { Resume } from '@resume-types/resume.types';
-import type { TemplateOptions, ResumeTemplate } from '@resume-types/template.types';
+import type { ResumeTemplate } from '@resume-types/template.types';
 import { parseResume } from '@utils/resumeParser';
 import { getTemplate } from '@templates/templateRegistry';
 import { generateHtmlFile, generateHtmlString } from '@utils/htmlGenerator';
@@ -28,8 +28,6 @@ export interface GeneratorOptions {
   format?: OutputFormat;
   /** Whether to run ATS validation */
   validate?: boolean;
-  /** Template rendering options */
-  templateOptions?: TemplateOptions;
   /** Base directory for resolving file references */
   baseDir?: string;
 }
@@ -65,13 +63,11 @@ function getClassicTemplate(): ResumeTemplate {
  * Scales typography values (font sizes and line-heights) using a multiplier
  * @param resume - Resume data object
  * @param template - Template instance to render with
- * @param templateOptions - Optional template options (will be extended with multiplier)
  * @returns HTML string with optimal multiplier applied
  */
 async function autofitResumeToPage(
   resume: Resume,
-  template: ResumeTemplate,
-  templateOptions?: TemplateOptions
+  template: ResumeTemplate
 ): Promise<string> {
   const MIN_MULTIPLIER = 0.818; // 9pt / 11pt
   const MAX_MULTIPLIER = 1.0;
@@ -95,7 +91,7 @@ async function autofitResumeToPage(
     });
 
     // Render initial HTML with multiplier 1.0 (11pt base)
-    let html = template.render(resume, { ...templateOptions, multiplier: MAX_MULTIPLIER });
+    let html = template.render(resume, { multiplier: MAX_MULTIPLIER });
 
     // Check initial page count (reuse page)
     logger.debug('Checking initial page count...');
@@ -133,7 +129,7 @@ async function autofitResumeToPage(
       logger.debug(`Iteration ${iterations}: Trying multiplier ${mid.toFixed(3)} (≈${(11 * mid).toFixed(1)}pt)`);
 
       // Re-render template with new multiplier
-      const updatedHtml = template.render(resume, { ...templateOptions, multiplier: mid });
+      const updatedHtml = template.render(resume, { multiplier: mid });
 
       // Reuse the same page for calculation (no page creation overhead)
       const result = await calculatePageCount(updatedHtml, page); // Pass page as required parameter
@@ -155,7 +151,7 @@ async function autofitResumeToPage(
     const bestResult = await calculatePageCount(bestHtml, page);
     if (bestResult.pageCount > 1) {
       logger.debug(`Binary search result still doesn't fit (${bestResult.pageCount} pages). Trying minimum multiplier ${MIN_MULTIPLIER.toFixed(3)} (≈${(11 * MIN_MULTIPLIER).toFixed(1)}pt)...`);
-      const minHtml = template.render(resume, { ...templateOptions, multiplier: MIN_MULTIPLIER });
+      const minHtml = template.render(resume, { multiplier: MIN_MULTIPLIER });
       const minResult = await calculatePageCount(minHtml, page);
       logger.debug(`  Page count: ${minResult.pageCount}`);
 
@@ -183,7 +179,7 @@ async function autofitResumeToPage(
   } catch (error) {
     logger.error(`Autofit failed: ${error instanceof Error ? error.message : String(error)}`);
     // Fall back to original HTML if autofit fails
-    return template.render(resume, { ...templateOptions, multiplier: MAX_MULTIPLIER });
+    return template.render(resume, { multiplier: MAX_MULTIPLIER });
   } finally {
     // Clean up page once at the end (caller's responsibility)
     await page.close();
@@ -205,7 +201,6 @@ export async function generateResumeFromFile(
   const {
     format: outputFormat = 'pdf',
     validate: runValidation = false,
-    templateOptions,
   } = options;
 
   logger.info(`Generating ${outputFormat.toUpperCase()} resume from: ${resumePath}`);
@@ -239,10 +234,10 @@ export async function generateResumeFromFile(
   let html: string;
   if (outputFormat === 'pdf') {
     logger.debug('Rendering template with autofit to fit on one page...');
-    html = await autofitResumeToPage(resume, template, templateOptions);
+    html = await autofitResumeToPage(resume, template);
   } else {
     logger.debug('Rendering template...');
-    html = template.render(resume, templateOptions);
+    html = template.render(resume);
   }
 
   // Generate output based on format
@@ -305,7 +300,6 @@ export async function generateResumeFromObject(
   const {
     format: outputFormat = 'pdf',
     validate: runValidation = false,
-    templateOptions,
   } = options;
 
   logger.info(`Generating ${outputFormat.toUpperCase()} resume from Resume object`);
@@ -332,10 +326,10 @@ export async function generateResumeFromObject(
   let html: string;
   if (outputFormat === 'pdf') {
     logger.debug('Rendering template with autofit to fit on one page...');
-    html = await autofitResumeToPage(resume, template, templateOptions);
+    html = await autofitResumeToPage(resume, template);
   } else {
     logger.debug('Rendering template...');
-    html = template.render(resume, templateOptions);
+    html = template.render(resume);
   }
 
   // Generate output based on format
@@ -390,16 +384,13 @@ export async function generateResumeFromObject(
  * @returns HTML string
  */
 export async function generateResumeHtml(
-  resume: Resume,
-  options: Omit<GeneratorOptions, 'format'> = {}
+  resume: Resume
 ): Promise<string> {
-  const { templateOptions } = options;
-
   // Get template
   const template = getClassicTemplate();
 
   // Render template to HTML
-  const html = template.render(resume, templateOptions);
+  const html = template.render(resume);
 
   // Validate and return HTML string
   return generateHtmlString(html, true);

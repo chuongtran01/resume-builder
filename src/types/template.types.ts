@@ -17,15 +17,9 @@ export interface ValidationResult {
 }
 
 /**
- * Template rendering options
+ * Internal template rendering options
  */
 export interface TemplateOptions {
-  /** Whether to include page breaks */
-  pageBreaks?: boolean;
-  /** Custom CSS to inject */
-  customCss?: string;
-  /** Whether to include print styles */
-  printStyles?: boolean;
   /** Typography multiplier for scaling (default: 1.0 = 11pt base) */
   multiplier?: number;
 }

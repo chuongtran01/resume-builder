@@ -57,11 +57,6 @@ Generate an HTML resume:
 npm run dev -- generate --input resume.json --output resume.html --format html
 ```
 
-Use compact spacing:
-```bash
-npm run dev -- generate --input resume.json --output resume.pdf --spacing compact
-```
-
 Run ATS validation:
 ```bash
 npm run dev -- generate --input resume.json --output resume.pdf --validate
@@ -71,8 +66,6 @@ npm run dev -- generate --input resume.json --output resume.pdf --validate
 - `--input, -i <path>` - Path to resume JSON file (required)
 - `--output, -o <path>` - Path for output file (required)
 - `--format, -f <format>` - Output format: `pdf` or `html` (default: `pdf`)
-- `--spacing <mode>` - Spacing mode: `auto` (default), `compact`, or `normal`
-- `--compact` - Use compact spacing (shorthand for `--spacing compact`)
 - `--validate` - Run ATS validation
 - `--verbose, -v` - Enable verbose logging
 

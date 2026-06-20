@@ -27,12 +27,6 @@ type GenerateResumeRequestBody = {
   options?: {
     format?: 'pdf' | 'html';
     validate?: boolean;
-    templateOptions?: {
-      pageBreaks?: boolean;
-      customCss?: string;
-      printStyles?: boolean;
-      multiplier?: number;
-    };
   };
 };
 
@@ -58,7 +52,6 @@ export function registerRoutes(app: Express): void {
         // Extract options with defaults
         const format = options.format || 'pdf';
         const runValidation = options.validate || false;
-        const templateOptions = options.templateOptions;
 
         logger.debug(`[${requestId}] Format: ${format}, Validate: ${runValidation}`);
 
@@ -71,7 +64,6 @@ export function registerRoutes(app: Express): void {
         const result = await generateResumeFromObject(resume, outputPath, {
           format,
           validate: runValidation,
-          templateOptions,
         });
 
         logger.info(`[${requestId}] Resume generated successfully: ${result.outputPath} (${(result.fileSize / 1024).toFixed(2)} KB)`);
