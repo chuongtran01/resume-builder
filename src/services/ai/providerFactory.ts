@@ -12,7 +12,6 @@ import type { ProviderInfo } from '@services/ai/provider.types';
 export type SupportedAIProvider = 'gemini';
 
 export interface ProviderOverrides {
-  model?: GeminiConfig['model'];
   temperature?: number;
   maxTokens?: number;
   timeout?: number;
@@ -48,7 +47,7 @@ export function createGeminiProvider(
 
   const finalConfig: GeminiConfig = {
     ...geminiConfig,
-    model: overrides.model || geminiConfig.model || 'gemini-3-flash-preview',
+    model: geminiConfig.model || 'gemini-3.1-pro',
     temperature: overrides.temperature !== undefined
       ? overrides.temperature
       : (geminiConfig.temperature ?? 0.7),

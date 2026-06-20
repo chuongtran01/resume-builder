@@ -12,8 +12,8 @@ jest.mock('../../../src/services/ai/gemini', () => ({
     getProviderInfo: jest.fn(() => ({
       name: 'gemini',
       displayName: 'Google Gemini',
-      supportedModels: ['gemini-3-flash-preview', 'gemini-2.5-pro'],
-      defaultModel: 'gemini-3-flash-preview',
+      supportedModels: ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'],
+      defaultModel: 'gemini-3.1-pro',
     })),
   })),
 }));
@@ -24,7 +24,7 @@ describe('providerFactory', () => {
     providers: {
       gemini: {
         apiKey: 'test-key',
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.1-pro',
         temperature: 0.4,
         maxTokens: 1000,
         timeout: 30000,
@@ -46,9 +46,8 @@ describe('providerFactory', () => {
     expect(createGeminiResumeClient).toHaveBeenCalledWith(baseConfig.providers?.gemini);
   });
 
-  it('applies request overrides when creating a Gemini provider', () => {
+  it('applies runtime overrides when creating a Gemini provider', () => {
     const result = createAIProvider(baseConfig, 'gemini', {
-      model: 'gemini-2.5-pro',
       temperature: 0.9,
       maxTokens: 500,
     });
@@ -56,7 +55,7 @@ describe('providerFactory', () => {
     expect(result.config).toEqual(
       expect.objectContaining({
         apiKey: 'test-key',
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.1-pro',
         temperature: 0.9,
         maxTokens: 500,
         timeout: 30000,
@@ -71,7 +70,7 @@ describe('providerFactory', () => {
         providers: {
           gemini: {
             apiKey: '',
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-3.1-pro',
           },
         },
       })

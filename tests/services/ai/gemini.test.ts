@@ -27,7 +27,7 @@ describe('createGeminiResumeClient', () => {
 
   const mockConfig: GeminiConfig = {
     apiKey: 'test-api-key',
-    model: 'gemini-2.5-pro',
+    model: 'gemini-3.1-pro',
     temperature: 0.7,
     maxTokens: 2000,
     timeout: 30000,
@@ -111,11 +111,24 @@ describe('createGeminiResumeClient', () => {
       expect(provider.reviewResume).toEqual(expect.any(Function));
       expect(provider.modifyResume).toEqual(expect.any(Function));
       expect(mockCreateAISdkResumeClient).toHaveBeenCalledWith({
-        model: 'google/gemini-2.5-pro',
+        model: 'google/gemini-3.1-pro',
         temperature: 0.7,
         maxTokens: 2000,
         maxRetries: 0,
       });
+    });
+
+    it('maps gemini-2.5-pro to the AI SDK gateway model id', () => {
+      createGeminiResumeClient({
+        apiKey: 'test-api-key',
+        model: 'gemini-2.5-pro',
+      });
+
+      expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          model: 'google/gemini-2.5-pro',
+        })
+      );
     });
 
     it('maps gemini-3-flash-preview to the AI SDK gateway model id', () => {
@@ -135,7 +148,7 @@ describe('createGeminiResumeClient', () => {
       expect(() => {
         createGeminiResumeClient({
           apiKey: '',
-          model: 'gemini-2.5-pro',
+          model: 'gemini-3.1-pro',
         });
       }).toThrow();
     });
@@ -143,7 +156,7 @@ describe('createGeminiResumeClient', () => {
     it('uses default config values', () => {
       const minimalConfig: GeminiConfig = {
         apiKey: 'test-key',
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.1-pro',
       };
       const p = createGeminiResumeClient(minimalConfig);
       expect(p.reviewResume).toEqual(expect.any(Function));
@@ -161,8 +174,10 @@ describe('createGeminiResumeClient', () => {
       const info = provider.getProviderInfo();
       expect(info.name).toBe('gemini');
       expect(info.displayName).toBe('Google Gemini');
+      expect(info.supportedModels).toContain('gemini-3.1-pro');
       expect(info.supportedModels).toContain('gemini-2.5-pro');
       expect(info.supportedModels).toContain('gemini-3-flash-preview');
+      expect(info.defaultModel).toBe('gemini-3.1-pro');
     });
   });
 

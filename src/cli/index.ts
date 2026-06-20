@@ -416,7 +416,6 @@ program
   .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
   .option('--ai-provider <provider>', 'AI provider to use (default: gemini)', 'gemini')
-  .option('--ai-model <model>', 'AI model to use: gemini-3-flash-preview (default) or gemini-2.5-pro')
   .option('--ai-temperature <temp>', 'AI temperature 0-1 (default: 0.7)', parseFloat)
   .option('-v, --verbose', 'Enable verbose logging', false)
   .action(async (options) => {
@@ -508,13 +507,6 @@ program
         process.exit(1);
       }
 
-      // Validate AI model if provided
-      if (options.aiModel && !['gemini-3-flash-preview', 'gemini-2.5-pro'].includes(options.aiModel)) {
-        logger.error(`❌ Error: Invalid AI model "${options.aiModel}"`);
-        logger.info('💡 Valid models are: gemini-3-flash-preview, gemini-2.5-pro');
-        process.exit(1);
-      }
-
       // Validate AI temperature if provided
       if (options.aiTemperature !== undefined) {
         if (isNaN(options.aiTemperature) || options.aiTemperature < 0 || options.aiTemperature > 1) {
@@ -567,14 +559,13 @@ program
       const providerName = (options.aiProvider || aiConfig.defaultProvider || 'gemini') as 'gemini';
       const { createAIProvider } = await import('@services/ai/providerFactory');
       const providerCreation = createAIProvider(aiConfig, providerName, {
-        model: options.aiModel as 'gemini-2.5-pro' | 'gemini-3-flash-preview' | undefined,
         temperature: options.aiTemperature,
       });
       const provider = providerCreation.provider;
       const finalConfig = providerCreation.config;
 
       logger.success(`   ✅ AI provider initialized: ${providerName}`);
-      logger.info(`   📊 Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
+      logger.info(`   📊 Model: ${finalConfig.model} (.env)`);
       logger.info(`   🌡️  Temperature: ${finalConfig.temperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
 
       // Enhance resume using AI
@@ -583,7 +574,7 @@ program
 
       const providerInfo = provider.getProviderInfo();
       logger.info(`   Using: ${providerInfo.displayName} (${providerInfo.name})`);
-      logger.info(`   Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
+      logger.info(`   Model: ${finalConfig.model} (.env)`);
 
       const enhancementResult = await enhanceResume({
         resume,
@@ -652,7 +643,7 @@ program
           : (finalConfig.temperature ?? 0.7);
 
         logger.info(`\n🤖 AI Provider: ${providerInfo.displayName}`);
-        logger.info(`   Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
+        logger.info(`   Model: ${finalConfig.model} (.env)`);
         logger.info(`   Temperature: ${actualTemperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
       }
 

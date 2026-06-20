@@ -28,7 +28,7 @@ export GEMINI_API_KEY="your-api-key-here"
 export DEFAULT_AI_PROVIDER="gemini"
 
 # Gemini model selection
-export GEMINI_MODEL="gemini-3-flash-preview"  # Options: gemini-3-flash-preview, gemini-2.5-pro
+export GEMINI_MODEL="gemini-3.1-pro"
 
 # Gemini parameters
 export GEMINI_TEMPERATURE="0.7"        # 0.0 to 1.0 (creativity control)
@@ -43,7 +43,7 @@ export GEMINI_MAX_RETRIES="3"         # Maximum retry attempts
 # In ~/.bashrc or ~/.zshrc
 export GEMINI_API_KEY="your-api-key-here"
 export DEFAULT_AI_PROVIDER="gemini"
-export GEMINI_MODEL="gemini-3-flash-preview"
+export GEMINI_MODEL="gemini-3.1-pro"
 ```
 
 ### Example: Using in a script
@@ -63,7 +63,6 @@ export GEMINI_API_KEY="your-api-key-here"
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job.txt \
-  --ai-model gemini-3-flash-preview \
   --ai-temperature 0.8 \
   --output ./enhanced-resumes
 ```
@@ -91,7 +90,7 @@ You can customize other settings in `.env`:
 
 ```env
 GEMINI_API_KEY=your-api-key-here
-GEMINI_MODEL=gemini-3-flash-preview
+GEMINI_MODEL=gemini-3.1-pro
 GEMINI_TEMPERATURE=0.7
 GEMINI_MAX_TOKENS=2000
 GEMINI_TIMEOUT=30000
@@ -118,11 +117,12 @@ GEMINI_MAX_RETRIES=3
 - **Security:** Use environment variable reference: `"${GEMINI_API_KEY}"`
 
 ### `providers.gemini.model`
-- **Type:** `"gemini-3-flash-preview" | "gemini-2.5-pro"`
-- **Default:** `"gemini-3-flash-preview"`
+- **Type:** `"gemini-3.1-pro" | "gemini-2.5-pro" | "gemini-3-flash-preview"`
+- **Default:** `"gemini-3.1-pro"`
 - **Description:** Which Gemini model to use
-  - `gemini-3-flash-preview`: Faster, cheaper model (default, recommended)
-  - `gemini-2.5-pro`: Higher quality model for production use
+  - `gemini-3.1-pro`: Default model used by the app
+  - `gemini-2.5-pro`: Supported legacy config value
+  - `gemini-3-flash-preview`: Supported legacy config value
 
 ### `providers.gemini.temperature`
 - **Type:** `number` (0.0 to 1.0)
@@ -183,14 +183,12 @@ const defaultProvider = getDefaultProvider(config);
 
 Configuration is loaded from `.env` file automatically. Priority order:
 
-1. **CLI options** (highest priority)
-2. **Environment variables** (from `.env` file or system environment)
-3. **Defaults** (if neither is set)
+1. **Environment variables** (from `.env` file or system environment)
+2. **Defaults** (if neither is set)
 
 **Example:**
-- `.env`: `GEMINI_MODEL=gemini-3-flash-preview`
-- CLI: `--ai-model gemini-3-flash-preview`
-- **Result:** `gemini-3-flash-preview` (CLI option wins)
+- `.env`: `GEMINI_MODEL=gemini-3.1-pro`
+- **Result:** `gemini-3.1-pro`
 
 ---
 
@@ -263,7 +261,7 @@ The configuration is automatically validated when loaded. Common validation erro
 # Set environment variables
 export GEMINI_API_KEY="your-key-here"
 export DEFAULT_AI_PROVIDER="gemini"
-export GEMINI_MODEL="gemini-3-flash-preview"
+export GEMINI_MODEL="gemini-3.1-pro"
 
 # Basic usage (uses defaults from environment)
 npm run cli -- enhanceResume --input resume.json --job job.txt
@@ -272,7 +270,6 @@ npm run cli -- enhanceResume --input resume.json --job job.txt
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job.txt \
-  --ai-model gemini-3-flash-preview \
   --ai-temperature 0.8
 ```
 
@@ -290,11 +287,10 @@ export GEMINI_API_KEY="your-key-here"
 # 4. Basic usage (uses defaults from config file)
 npm run cli -- enhanceResume --input resume.json --job job.txt
 
-# 4b. With custom options (overrides config)
+# 4b. With custom output
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job.txt \
-  --ai-model gemini-3-flash-preview \
   --output ./custom-output
 ```
 
@@ -306,7 +302,7 @@ cp .env.example .env
 
 # 2. Edit .env with all your settings
 # GEMINI_API_KEY=your-key-here
-# GEMINI_MODEL=gemini-3-flash-preview
+# GEMINI_MODEL=gemini-3.1-pro
 # GEMINI_TEMPERATURE=0.7
 # GEMINI_MAX_TOKENS=2000
 # GEMINI_TIMEOUT=30000
@@ -329,7 +325,7 @@ npm run cli -- enhanceResume \
 
 ### Basic Usage (All Defaults)
 
-Uses default AI provider (`gemini`), model (`gemini-3-flash-preview`), and temperature (`0.7`):
+Uses default AI provider (`gemini`), model from `GEMINI_MODEL` in `.env`, and temperature (`0.7`):
 
 ```bash
 npm run cli -- enhanceResume \
@@ -339,13 +335,12 @@ npm run cli -- enhanceResume \
 
 ### With Custom AI Settings
 
-Override AI model and temperature:
+Override AI temperature:
 
 ```bash
 npm run cli -- enhanceResume \
   --input resume.json \
   --job job-description.txt \
-  --ai-model gemini-3-flash-preview \
   --ai-temperature 0.8
 ```
 
@@ -361,7 +356,6 @@ npm run cli -- enhanceResume \
   --template classic \
   --format pdf \
   --ai-provider gemini \
-  --ai-model gemini-3-flash-preview \
   --ai-temperature 0.7 \
   --verbose
 ```

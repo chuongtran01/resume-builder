@@ -408,6 +408,7 @@ describe('AI Configuration Management', () => {
         loadFromFile: false,
       });
 
+      expect(config.providers?.gemini?.model).toBe('gemini-3.1-pro');
       expect(config.providers?.gemini?.temperature).toBe(0.75);
       expect(config.providers?.gemini?.maxTokens).toBe(2500);
       expect(config.providers?.gemini?.timeout).toBe(45000);

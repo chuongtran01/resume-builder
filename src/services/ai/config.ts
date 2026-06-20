@@ -21,7 +21,7 @@ export interface GeminiProviderConfig {
   /** API key for Google AI */
   apiKey: string;
   /** Model to use - supports latest models from official docs */
-  model: 'gemini-2.5-pro' | 'gemini-3-flash-preview';
+  model: 'gemini-3.1-pro' | 'gemini-2.5-pro' | 'gemini-3-flash-preview';
   /** Temperature (0-1) for creativity control */
   temperature?: number;
   /** Maximum tokens to generate */
@@ -135,7 +135,7 @@ function loadFromEnvironment(): Partial<AIConfig> {
   if (geminiApiKey) {
     config.providers!.gemini = {
       apiKey: geminiApiKey,
-      model: (getEnvVar(ENV_VARS.GEMINI_MODEL) as 'gemini-2.5-pro' | 'gemini-3-flash-preview') || 'gemini-3-flash-preview',
+      model: (getEnvVar(ENV_VARS.GEMINI_MODEL) as GeminiProviderConfig['model']) || 'gemini-3.1-pro',
     };
 
     // Optional Gemini settings
@@ -232,7 +232,7 @@ function mergeConfigs(
       // Ensure apiKey is present (file takes precedence)
       apiKey: (fileGemini?.apiKey || envGemini?.apiKey || '') as string,
       // Ensure model is present (file takes precedence)
-      model: (fileGemini?.model || envGemini?.model || 'gemini-3-flash-preview') as 'gemini-2.5-pro' | 'gemini-3-flash-preview',
+      model: (fileGemini?.model || envGemini?.model || 'gemini-3.1-pro') as GeminiProviderConfig['model'],
     };
   }
 
@@ -277,7 +277,7 @@ function validateConfig(config: AIConfig): ConfigValidationResult {
     }
 
     // Validate model
-    const validModels = ['gemini-3-flash-preview', 'gemini-2.5-pro'];
+    const validModels = ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'];
     if (geminiConfig.model && !validModels.includes(geminiConfig.model)) {
       errors.push(`Invalid Gemini model: ${geminiConfig.model}. Must be one of: ${validModels.join(', ')}`);
     }

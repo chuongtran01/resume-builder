@@ -36,7 +36,7 @@ export interface GeminiConfig extends AIProviderConfig {
   /** API key for Google AI */
   apiKey: string;
   /** Model to use - supports latest models from official docs */
-  model: 'gemini-2.5-pro' | 'gemini-3-flash-preview';
+  model: 'gemini-3.1-pro' | 'gemini-2.5-pro' | 'gemini-3-flash-preview';
   /** Temperature (0-1) for creativity control */
   temperature?: number;
   /** Maximum tokens to generate */
@@ -145,8 +145,8 @@ export function createGeminiResumeClient(config: GeminiConfig): GeminiResumeClie
     return {
       name: 'gemini',
       displayName: 'Google Gemini',
-      supportedModels: ['gemini-3-flash-preview', 'gemini-2.5-pro'],
-      defaultModel: 'gemini-3-flash-preview',
+      supportedModels: ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'],
+      defaultModel: 'gemini-3.1-pro',
       version: '3.0.0',
     };
   }
@@ -169,6 +169,10 @@ function buildGeneratorConfig(config: GeminiConfig): AISdkResumeGeneratorConfig 
 }
 
 function toAISdkModel(model: GeminiConfig['model']): LanguageModel {
+  if (model === 'gemini-3.1-pro') {
+    return 'google/gemini-3.1-pro';
+  }
+
   if (model === 'gemini-2.5-pro') {
     return 'google/gemini-2.5-pro';
   }

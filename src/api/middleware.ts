@@ -183,7 +183,6 @@ export const enhanceResumeRequestSchema = z.object({
   jobDescription: z.string().min(1, 'Job description is required'),
   options: enhancementOptionsSchema.optional(),
   aiProvider: z.enum(['gemini']).optional(),
-  aiModel: z.enum(['gemini-3-flash-preview', 'gemini-2.5-pro']).optional(),
   aiOptions: aiOptionsSchema.optional(),
 });
 

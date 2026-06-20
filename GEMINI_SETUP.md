@@ -4,10 +4,9 @@ This guide provides detailed instructions for setting up and using Google Gemini
 
 ## Overview
 
-The resume builder uses Google Gemini AI models to enhance resumes based on job descriptions. The system supports two models:
+The resume builder uses Google Gemini AI models to enhance resumes based on job descriptions. The default model is configured in `.env`:
 
-- **`gemini-3-flash-preview`** (default) - Faster and more cost-effective, recommended for most use cases
-- **`gemini-2.5-pro`** - Higher quality, best for production use when quality is paramount
+- **`gemini-3.1-pro`** - Default model used by the app
 
 ## Prerequisites
 
@@ -40,11 +39,8 @@ GEMINI_API_KEY=your-api-key-here
 ### Step 3: (Optional) Configure Model and Settings
 
 ```env
-# Use gemini-3-flash-preview (default) for faster/cheaper, or gemini-2.5-pro for best quality
-GEMINI_MODEL=gemini-3-flash-preview
-
-# Or use gemini-3-flash-preview for faster/cheaper
-# GEMINI_MODEL=gemini-3-flash-preview
+# Model used by CLI and API enhancement requests
+GEMINI_MODEL=gemini-3.1-pro
 
 # Adjust temperature (0.0-1.0, default: 0.7)
 GEMINI_TEMPERATURE=0.7
@@ -69,39 +65,19 @@ npm run dev -- enhanceResume \
 
 ## Model Selection
 
-### gemini-3-flash-preview (Default, Recommended)
+### gemini-3.1-pro (Default)
 
-**Best for:** Most use cases, testing, high-volume processing, cost-sensitive use
-
-**Characteristics:**
-- Fast response times
-- Lower cost per request
-- Good quality output
-- Higher rate limits
-- Suitable for batch processing
-
-**When to use:**
-- Testing and development
-- Processing multiple resumes
-- When speed is important
-- Cost-sensitive scenarios
-- Most production use cases
-
-### gemini-2.5-pro
-
-**Best for:** Production use, high-quality enhancements
+**Best for:** Resume enhancement with the app's default configuration
 
 **Characteristics:**
-- Highest quality output
-- Better understanding of context
-- More accurate keyword integration
-- Slower response time
-- Higher cost per request
+- High-quality output
+- Strong context handling
+- Configured once through `.env`
 
 **When to use:**
-- Final resume preparation
-- Important job applications
-- When quality is paramount
+- Normal CLI and API resume enhancement
+- Production resume generation
+- When you want the same model across all request paths
 
 ## Configuration Options
 
@@ -154,10 +130,10 @@ npm run dev -- enhanceResume \
   --job job-description.txt
 ```
 
-### 2. Use Appropriate Model
+### 2. Use the Configured Model
 
-- Use `gemini-3-flash-preview` for most use cases (default), or `gemini-2.5-pro` for final resumes when quality is critical
-- Use `gemini-3-flash-preview` for testing and iterations
+- Set `GEMINI_MODEL` in `.env` to the Gemini model you want the app to use
+- CLI and API enhancement requests use this configured model
 
 ### 3. Monitor API Usage
 
@@ -170,7 +146,7 @@ npm run dev -- enhanceResume \
 If you encounter rate limit errors:
 
 - Wait a few minutes before retrying
-- Use `gemini-3-flash-preview` which has higher rate limits
+- Set `GEMINI_MODEL` in `.env` to a model with higher rate limits if needed
 - Implement exponential backoff in your scripts
 - Consider processing resumes in batches
 
@@ -195,7 +171,7 @@ For very long resumes:
 
 **Error: "Rate limit exceeded"**
 - Wait 1-2 minutes before retrying
-- Switch to `gemini-3-flash-preview` for higher limits
+- Set `GEMINI_MODEL` in `.env` to a model with higher limits if needed
 - Check your quota in Google AI Studio
 - Consider upgrading your API tier
 
@@ -203,7 +179,7 @@ For very long resumes:
 
 **Error: "Request timeout"**
 - Increase `GEMINI_TIMEOUT` in `.env` (e.g., 60000 for 60 seconds)
-- Use `gemini-3-flash-preview` for faster responses
+- Set `GEMINI_MODEL` in `.env` to a faster model if needed
 - Check your network connection
 - Reduce `GEMINI_MAX_TOKENS` if using very high values
 
@@ -225,39 +201,22 @@ For current pricing information, visit:
 
 ## Advanced Configuration
 
-### Using Different Models Per Request
+### Model Configuration
 
-You can override the default model for specific requests:
-
-**CLI:**
-```bash
-npm run dev -- enhanceResume \
-  --input resume.json \
-  --job job-description.txt \
-  --ai-model gemini-3-flash-preview
-```
-
-**API:**
-```json
-{
-  "resume": { ... },
-  "jobDescription": "...",
-  "aiModel": "gemini-3-flash-preview"
-}
-```
+Set the model once in `.env`. CLI and API enhancement requests use this value.
 
 ### Environment-Specific Configuration
 
 **Development:**
 ```env
-GEMINI_MODEL=gemini-3-flash-preview
+GEMINI_MODEL=gemini-3.1-pro
 GEMINI_TEMPERATURE=0.8
 GEMINI_MAX_TOKENS=1500
 ```
 
 **Production:**
 ```env
-GEMINI_MODEL=gemini-3-flash-preview
+GEMINI_MODEL=gemini-3.1-pro
 GEMINI_TEMPERATURE=0.7
 GEMINI_MAX_TOKENS=2000
 GEMINI_TIMEOUT=60000

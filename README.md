@@ -103,7 +103,7 @@ npm run cli -- enhanceResume \
 
 This uses default settings:
 - AI Provider: `gemini` (default)
-- AI Model: `gemini-3-flash-preview` (default)
+- AI Model: `gemini-3.1-pro` from `GEMINI_MODEL` in `.env`
 - AI Temperature: `0.7` (default)
 - Output directory: `./output` (default)
 - Template: `classic` (default)
@@ -118,7 +118,6 @@ npm run dev -- enhanceResume \
   --template classic \
   --format pdf \
   --ai-provider gemini \
-  --ai-model gemini-3-flash-preview \
   --ai-temperature 0.7 \
   --verbose
 ```
@@ -130,7 +129,6 @@ npm run dev -- enhanceResume \
 - `--template, -t` - Template name: `classic` or `modern` (default: `classic`)
 - `--format, -f` - Output format: `pdf` or `html` (default: `pdf`)
 - `--ai-provider <provider>` - AI provider to use (default: `gemini`)
-- `--ai-model <model>` - AI model to use: `gemini-3-flash-preview` (default) or `gemini-2.5-pro`
 - `--ai-temperature <temp>` - AI temperature 0-1 (default: `0.7`)
 - `--verbose, -v` - Enable verbose logging
 
@@ -146,14 +144,6 @@ Minimal usage (all defaults):
 npm run dev -- enhanceResume \
   --input examples/resume.json \
   --job examples/job-description.txt
-```
-
-With custom AI model (faster and cheaper):
-```bash
-npm run dev -- enhanceResume \
-  --input examples/resume.json \
-  --job examples/job-description.txt \
-  --ai-model gemini-3-flash-preview
 ```
 
 With custom temperature:
@@ -308,12 +298,12 @@ npm run format
 
 **Error: "Rate limit exceeded"**
 - The Gemini API has rate limits. Wait a few minutes and try again
-- Consider using `gemini-3-flash-preview` model which has higher rate limits
+- Consider setting `GEMINI_MODEL` in `.env` to a model with higher rate limits
 - Check your API quota in Google AI Studio
 
 **Error: "Request timeout"**
 - The default timeout is 30 seconds. For large resumes, increase `GEMINI_TIMEOUT` in `.env`
-- Try using `gemini-3-flash-preview` for faster responses
+- Try setting `GEMINI_MODEL` in `.env` to a faster model
 - Check your network connection
 
 **Error: "Invalid response from Gemini"**
@@ -323,7 +313,7 @@ npm run format
 
 **AI enhancement produces unexpected results**
 - Try adjusting the `--ai-temperature` value (lower = more conservative, higher = more creative)
-- Use `gemini-3-flash-preview` for faster/cheaper (default), `gemini-2.5-pro` for better quality
+- Set `GEMINI_MODEL` in `.env` to the Gemini model you want to use
 - Review the enhanced resume and markdown report to see all changes
 
 ### General Issues
