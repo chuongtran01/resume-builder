@@ -16,12 +16,6 @@ jest.mock('../../src/services/ai/providerRegistry', () => ({
   getDefaultProvider: jest.fn(),
 }));
 
-jest.mock('../../src/services/resumeEnhancementService', () => ({
-  MockResumeEnhancementService: jest.fn().mockImplementation(() => ({
-    enhanceResume: jest.fn(),
-  })),
-}));
-
 describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () => {
   let service: AIResumeEnhancementService;
   let sampleResume: Resume;
