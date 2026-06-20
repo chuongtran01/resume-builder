@@ -12,18 +12,15 @@ import type {
 } from '@resume-types/enhancement.types';
 import type { Resume } from '@resume-types/resume.types';
 import type {
-  AIProvider,
-} from '@services/ai/provider.types';
-import type {
   ReviewRequest,
   ReviewResponse,
   AIRequest,
   AIResponse,
   ReviewResult,
+  ResumeAIClient,
 } from '@services/ai/enhancement.types';
 import type { ParsedJobDescription } from '@utils/jobParser';
 import { parseJobDescription } from '@utils/jobParser';
-import { getProvider, getDefaultProvider } from '@services/ai/providerRegistry';
 import {
   buildEnhancementResult,
   flattenSkills,
@@ -38,44 +35,15 @@ import { logger } from '@utils/logger';
  * 2. Modify: Apply enhancements based on review findings
  */
 export class AIResumeEnhancementService implements ResumeEnhancementService {
-  private aiProvider: AIProvider;
-  private providerName: string;
+  private aiClient: ResumeAIClient;
 
   /**
    * Create AI Resume Enhancement Service
    * 
-   * @param providerOrName - AI provider instance or provider name. If not provided, uses default provider.
-   * @throws Error if AI provider cannot be initialized
+   * @param aiClient - Client used to review and modify resumes.
    */
-  constructor(providerOrName?: string | AIProvider) {
-    if (providerOrName && typeof providerOrName !== 'string') {
-      this.aiProvider = providerOrName;
-      const info = this.aiProvider.getProviderInfo();
-      this.providerName = info.name;
-      logger.info(`Using AI provider: ${info.displayName} (${info.name})`);
-      return;
-    }
-
-    this.providerName = providerOrName || '';
-
-    // Get the AI provider
-    if (this.providerName) {
-      const provider = getProvider(this.providerName);
-      if (!provider) {
-        throw new Error(`Provider "${this.providerName}" not found`);
-      }
-      this.aiProvider = provider;
-      logger.info(`Using AI provider: ${this.providerName}`);
-    } else {
-      const provider = getDefaultProvider();
-      if (!provider) {
-        throw new Error('No default AI provider available. Please configure an AI provider.');
-      }
-      this.aiProvider = provider;
-      const info = this.aiProvider.getProviderInfo();
-      this.providerName = info.name;
-      logger.info(`Using default AI provider: ${this.providerName}`);
-    }
+  constructor(aiClient: ResumeAIClient) {
+    this.aiClient = aiClient;
   }
 
   /**
@@ -141,7 +109,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
 
     try {
       // Call AI provider for review
-      const reviewResponse: ReviewResponse = await this.aiProvider.reviewResume(reviewRequest);
+      const reviewResponse: ReviewResponse = await this.aiClient.reviewResume(reviewRequest);
       
       // Parse and validate review response
       const reviewResult = this.parseReviewResponse(reviewResponse);
@@ -183,7 +151,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
 
     try {
       // Call AI provider for modification
-      const aiResponse: AIResponse = await this.aiProvider.modifyResume(modifyRequest);
+      const aiResponse: AIResponse = await this.aiClient.modifyResume(modifyRequest);
       
       // Parse and validate modification response
       const enhancementResult = this.parseModifyResponse(resume, aiResponse, parsedJob);
@@ -204,7 +172,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    */
   private parseReviewResponse(response: ReviewResponse): ReviewResult {
     // Validate response structure
-    if (!this.aiProvider || !this.aiProvider.validateResponse(response)) {
+    if (!response || !response.reviewResult) {
       throw new Error('Invalid review response structure');
     }
 
@@ -240,7 +208,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     parsedJob: ParsedJobDescription
   ): EnhancementResult {
     // Validate response structure
-    if (!this.aiProvider || !this.aiProvider.validateResponse(response)) {
+    if (!response || !Array.isArray(response.improvements)) {
       throw new Error('Invalid modification response structure');
     }
 

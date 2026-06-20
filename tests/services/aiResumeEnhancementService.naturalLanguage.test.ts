@@ -9,12 +9,6 @@ import type { ParsedJobDescription } from '../../src/utils/jobParser';
 
 // Mock dependencies
 import type { AIProvider } from '../../src/services/ai/provider.types';
-import { getProvider, getDefaultProvider } from '../../src/services/ai/providerRegistry';
-
-jest.mock('../../src/services/ai/providerRegistry', () => ({
-  getProvider: jest.fn(),
-  getDefaultProvider: jest.fn(),
-}));
 
 describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () => {
   let service: AIResumeEnhancementService;
@@ -38,12 +32,8 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
       })),
     } as unknown as jest.Mocked<AIProvider>;
 
-    // Mock provider registry to return the mock provider
-    (getProvider as jest.Mock).mockReturnValue(mockAIProvider);
-    (getDefaultProvider as jest.Mock).mockReturnValue(mockAIProvider);
-
     // Create service with mock provider
-    service = new AIResumeEnhancementService('mock');
+    service = new AIResumeEnhancementService(mockAIProvider);
     sampleResume = {
       personalInfo: {
         name: 'John Doe',

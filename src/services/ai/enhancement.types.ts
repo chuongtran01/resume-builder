@@ -105,6 +105,14 @@ export interface ReviewResponse {
 }
 
 /**
+ * Minimal client interface used by resume enhancement orchestration.
+ */
+export interface ResumeAIClient {
+  reviewResume(request: ReviewRequest): Promise<ReviewResponse>;
+  modifyResume(request: AIRequest): Promise<AIResponse>;
+}
+
+/**
  * Enhancement prompt structure
  */
 export interface EnhancementPrompt {

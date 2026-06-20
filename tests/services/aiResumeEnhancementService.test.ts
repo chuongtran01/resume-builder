@@ -18,17 +18,11 @@ jest.mock('../../src/utils/jobParser', () => ({
   parseJobDescription: jest.fn(),
 }));
 
-jest.mock('../../src/services/ai/providerRegistry', () => ({
-  getProvider: jest.fn(),
-  getDefaultProvider: jest.fn(),
-}));
-
 jest.mock('../../src/services/atsValidator', () => ({
   validateAtsCompliance: jest.fn(),
 }));
 
 import { parseJobDescription } from '../../src/utils/jobParser';
-import { getProvider, getDefaultProvider } from '../../src/services/ai/providerRegistry';
 import { validateAtsCompliance } from '../../src/services/atsValidator';
 
 describe('AIResumeEnhancementService', () => {
@@ -152,46 +146,14 @@ describe('AIResumeEnhancementService', () => {
     // Mock job parser
     (parseJobDescription as jest.Mock).mockReturnValue(sampleParsedJob);
 
-    // Mock provider registry
-    (getProvider as jest.Mock).mockReturnValue(mockAIProvider);
-    (getDefaultProvider as jest.Mock).mockReturnValue(mockAIProvider);
-
     // Mock ATS validator
     (validateAtsCompliance as jest.Mock).mockReturnValue({ score: 75 });
   });
 
   describe('Constructor', () => {
-    it('should create service with provider name', () => {
-      const service = new AIResumeEnhancementService('gemini');
-      expect(service).toBeInstanceOf(AIResumeEnhancementService);
-      expect(getProvider).toHaveBeenCalledWith('gemini');
-    });
-
     it('should create service with provider instance', () => {
       const service = new AIResumeEnhancementService(mockAIProvider);
       expect(service).toBeInstanceOf(AIResumeEnhancementService);
-      expect(getProvider).not.toHaveBeenCalled();
-      expect(getDefaultProvider).not.toHaveBeenCalled();
-    });
-
-    it('should create service with default provider when no name provided', () => {
-      const service = new AIResumeEnhancementService();
-      expect(service).toBeInstanceOf(AIResumeEnhancementService);
-      expect(getDefaultProvider).toHaveBeenCalled();
-    });
-
-    it('should throw error when provider not found', () => {
-      (getProvider as jest.Mock).mockReturnValue(undefined);
-      expect(() => {
-        new AIResumeEnhancementService('nonexistent');
-      }).toThrow('Provider "nonexistent" not found');
-    });
-
-    it('should throw error when default provider not available', () => {
-      (getDefaultProvider as jest.Mock).mockReturnValue(null);
-      expect(() => {
-        new AIResumeEnhancementService();
-      }).toThrow('No default AI provider available');
     });
   });
 
@@ -201,7 +163,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.enhanceResume(sampleResume, sampleJobDescription);
 
       expect(result).toBeDefined();
@@ -216,7 +178,7 @@ describe('AIResumeEnhancementService', () => {
     it('should throw error when AI provider fails', async () => {
       mockAIProvider.reviewResume.mockRejectedValue(new Error('API Error'));
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.enhanceResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('API Error');
@@ -232,7 +194,7 @@ describe('AIResumeEnhancementService', () => {
         tone: 'professional',
       };
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await service.enhanceResume(sampleResume, sampleJobDescription, options);
 
       expect(mockAIProvider.reviewResume).toHaveBeenCalledWith(
@@ -248,7 +210,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.reviewResume(sampleResume, sampleJobDescription);
 
       expect(result).toBeDefined();
@@ -260,18 +222,10 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.reviewResume).toHaveBeenCalled();
     });
 
-    it('should throw error when AI provider is not available', () => {
-      (getProvider as jest.Mock).mockReturnValue(undefined);
-      
-      expect(() => {
-        new AIResumeEnhancementService('nonexistent');
-      }).toThrow('Provider "nonexistent" not found');
-    });
-
     it('should throw error when review fails', async () => {
       mockAIProvider.reviewResume.mockRejectedValue(new Error('Review failed'));
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.reviewResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('Review failed');
@@ -281,27 +235,16 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await service.reviewResume(sampleResume, sampleJobDescription);
 
       expect(parseJobDescription).toHaveBeenCalledWith(sampleJobDescription);
     });
 
-    it('should validate review response', async () => {
-      mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
-      mockAIProvider.validateResponse.mockReturnValue(true);
-
-      const service = new AIResumeEnhancementService('gemini');
-      await service.reviewResume(sampleResume, sampleJobDescription);
-
-      expect(mockAIProvider.validateResponse).toHaveBeenCalledWith(sampleReviewResponse);
-    });
-
     it('should throw error when review response is invalid', async () => {
-      mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
-      mockAIProvider.validateResponse.mockReturnValue(false);
+      mockAIProvider.reviewResume.mockResolvedValue({} as ReviewResponse);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.reviewResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('Invalid review response structure');
@@ -313,7 +256,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -327,38 +270,21 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.modifyResume).toHaveBeenCalled();
     });
 
-    it('should throw error when AI provider is not available', () => {
-      (getProvider as jest.Mock).mockReturnValue(undefined);
-      
-      expect(() => {
-        new AIResumeEnhancementService('nonexistent');
-      }).toThrow('Provider "nonexistent" not found');
-    });
-
     it('should throw error when modification fails', async () => {
       mockAIProvider.modifyResume.mockRejectedValue(new Error('Modification failed'));
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Modification failed');
     });
 
-    it('should validate modification response', async () => {
-      mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
-      mockAIProvider.validateResponse.mockReturnValue(true);
-
-      const service = new AIResumeEnhancementService('gemini');
-      await service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob);
-
-      expect(mockAIProvider.validateResponse).toHaveBeenCalledWith(sampleAIResponse);
-    });
-
     it('should throw error when modification response is invalid', async () => {
-      mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
-      mockAIProvider.validateResponse.mockReturnValue(false);
+      mockAIProvider.modifyResume.mockResolvedValue({
+        enhancedResume: sampleAIResponse.enhancedResume,
+      } as AIResponse);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Invalid modification response structure');
@@ -368,7 +294,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -385,7 +311,7 @@ describe('AIResumeEnhancementService', () => {
         .mockReturnValueOnce({ score: 70 }) // Before
         .mockReturnValueOnce({ score: 80 }); // After
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -402,7 +328,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -422,7 +348,7 @@ describe('AIResumeEnhancementService', () => {
         requiredSkills: ['JavaScript', 'React', 'Vue.js'], // Vue.js not in resume
       };
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -437,7 +363,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -476,7 +402,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(aiResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -511,7 +437,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(aiResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -556,7 +482,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(aiResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -584,7 +510,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.reviewResume.mockResolvedValue(invalidResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.reviewResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('Invalid review result structure');
@@ -599,7 +525,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(invalidResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Invalid enhanced resume structure');
@@ -617,7 +543,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.modifyResume.mockResolvedValue(invalidResponse);
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Invalid enhanced resume structure');
@@ -637,7 +563,7 @@ describe('AIResumeEnhancementService', () => {
       });
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         resumeWithoutSkills,
         sampleReviewResult,
@@ -660,7 +586,7 @@ describe('AIResumeEnhancementService', () => {
       });
       mockAIProvider.validateResponse.mockReturnValue(true);
 
-      const service = new AIResumeEnhancementService('gemini');
+      const service = new AIResumeEnhancementService(mockAIProvider);
       const result = await service.modifyResume(
         resumeWithFileRef,
         sampleReviewResult,
