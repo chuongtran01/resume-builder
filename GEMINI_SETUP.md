@@ -7,6 +7,7 @@ This guide provides detailed instructions for setting up and using Google Gemini
 The resume builder uses Google Gemini AI models to enhance resumes based on job descriptions. The default model is configured in `.env`:
 
 - **`gemini-3.1-pro`** - Default model used by the app
+- **`gemini-3.5-flash`** - Optional faster Gemini 3.5 model
 
 ## Prerequisites
 
@@ -40,13 +41,11 @@ GEMINI_API_KEY=your-api-key-here
 
 ```env
 # Model used by CLI and API enhancement requests
+# Options: gemini-3.1-pro, gemini-3.5-flash
 GEMINI_MODEL=gemini-3.1-pro
 
 # Adjust temperature (0.0-1.0, default: 0.7)
 GEMINI_TEMPERATURE=0.7
-
-# Maximum tokens (default: 2000)
-GEMINI_MAX_TOKENS=2000
 
 # Request timeout in milliseconds (default: 30000)
 GEMINI_TIMEOUT=30000
@@ -78,6 +77,19 @@ npm run dev -- enhanceResume \
 - Normal CLI and API resume enhancement
 - Production resume generation
 - When you want the same model across all request paths
+
+### gemini-3.5-flash
+
+**Best for:** Faster resume enhancement runs when latency matters more than using the default Pro model
+
+**Characteristics:**
+- Fast response time
+- Strong general-purpose Gemini 3.5 output
+- Configured once through `.env`
+
+**When to use:**
+- Quick local iteration
+- Lower-latency CLI and API enhancement requests
 
 ## Configuration Options
 
@@ -150,13 +162,6 @@ If you encounter rate limit errors:
 - Implement exponential backoff in your scripts
 - Consider processing resumes in batches
 
-### 5. Optimize Prompt Length
-
-For very long resumes:
-
-- Increase `GEMINI_MAX_TOKENS` if you get timeout errors
-- The system automatically handles prompt length, but very large resumes may need adjustment
-
 ## Troubleshooting
 
 ### API Key Issues
@@ -181,7 +186,6 @@ For very long resumes:
 - Increase `GEMINI_TIMEOUT` in `.env` (e.g., 60000 for 60 seconds)
 - Set `GEMINI_MODEL` in `.env` to a faster model if needed
 - Check your network connection
-- Reduce `GEMINI_MAX_TOKENS` if using very high values
 
 ### Invalid Response Errors
 
@@ -211,14 +215,12 @@ Set the model once in `.env`. CLI and API enhancement requests use this value.
 ```env
 GEMINI_MODEL=gemini-3.1-pro
 GEMINI_TEMPERATURE=0.8
-GEMINI_MAX_TOKENS=1500
 ```
 
 **Production:**
 ```env
 GEMINI_MODEL=gemini-3.1-pro
 GEMINI_TEMPERATURE=0.7
-GEMINI_MAX_TOKENS=2000
 GEMINI_TIMEOUT=60000
 ```
 

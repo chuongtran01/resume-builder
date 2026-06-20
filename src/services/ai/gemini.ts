@@ -36,11 +36,9 @@ export interface GeminiConfig extends AIProviderConfig {
   /** API key for Google AI */
   apiKey: string;
   /** Model to use - supports latest models from official docs */
-  model: 'gemini-3.1-pro' | 'gemini-2.5-pro' | 'gemini-3-flash-preview';
+  model: 'gemini-3.1-pro' | 'gemini-3.5-flash';
   /** Temperature (0-1) for creativity control */
   temperature?: number;
-  /** Maximum tokens to generate */
-  maxTokens?: number;
   /** Request timeout in milliseconds */
   timeout?: number;
   /** Maximum retry attempts */
@@ -54,7 +52,6 @@ export interface GeminiConfig extends AIProviderConfig {
  */
 const DEFAULT_CONFIG: Partial<GeminiConfig> = {
   temperature: 0.7,
-  maxTokens: 2000,
   timeout: 30000,
   maxRetries: 3,
   retryDelayBase: 1000,
@@ -145,7 +142,7 @@ export function createGeminiResumeClient(config: GeminiConfig): GeminiResumeClie
     return {
       name: 'gemini',
       displayName: 'Google Gemini',
-      supportedModels: ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'],
+      supportedModels: ['gemini-3.1-pro', 'gemini-3.5-flash'],
       defaultModel: 'gemini-3.1-pro',
       version: '3.0.0',
     };
@@ -177,11 +174,7 @@ function toGoogleModelId(model: GeminiConfig['model']): Parameters<ReturnType<ty
     return 'gemini-3.1-pro-preview';
   }
 
-  if (model === 'gemini-2.5-pro') {
-    return 'gemini-2.5-pro';
-  }
-
-  return 'gemini-3-flash-preview';
+  return 'gemini-3.5-flash';
 }
 
 async function callWithRetry<T>(

@@ -110,7 +110,7 @@ function buildReviewPromptBase(
   options: PromptBuilderOptions = {}
 ): string {
   const template = buildReviewPromptTemplate();
-  const { includeExamples = true, maxContextLength, compress = false } = options;
+  const { includeExamples = true, compress = false } = options;
 
   // Build system message
   let prompt = `${template.systemMessage}\n\n`;
@@ -149,11 +149,6 @@ function buildReviewPromptBase(
     prompt = compressPrompt(prompt);
   }
 
-  // Check context length
-  if (maxContextLength && prompt.length > maxContextLength) {
-    logger.warn(`Prompt length (${prompt.length}) exceeds max (${maxContextLength}), consider compression`);
-  }
-
   return prompt;
 }
 
@@ -170,7 +165,7 @@ function buildModifyPromptBase(
 
   const mode = options.mode || 'full';
   const template = buildModifyPromptTemplate(mode);
-  const { includeExamples = true, maxContextLength, compress = false } = options;
+  const { includeExamples = true, compress = false } = options;
 
   // Build system message
   let prompt = `${template.systemMessage}\n\n`;
@@ -219,11 +214,6 @@ function buildModifyPromptBase(
   // Compress if requested
   if (compress) {
     prompt = compressPrompt(prompt);
-  }
-
-  // Check context length
-  if (maxContextLength && prompt.length > maxContextLength) {
-    logger.warn(`Prompt length (${prompt.length}) exceeds max (${maxContextLength}), consider compression`);
   }
 
   return prompt;

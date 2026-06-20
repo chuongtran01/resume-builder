@@ -29,7 +29,6 @@ export GEMINI_MODEL="gemini-3.1-pro"
 
 # Gemini parameters
 export GEMINI_TEMPERATURE="0.7"        # 0.0 to 1.0 (creativity control)
-export GEMINI_MAX_TOKENS="2000"       # Maximum tokens to generate
 export GEMINI_TIMEOUT="30000"         # Request timeout in milliseconds
 export GEMINI_MAX_RETRIES="3"         # Maximum retry attempts
 
@@ -87,7 +86,6 @@ You can customize other settings in `.env`:
 GEMINI_API_KEY=your-api-key-here
 GEMINI_MODEL=gemini-3.1-pro
 GEMINI_TEMPERATURE=0.7
-GEMINI_MAX_TOKENS=2000
 GEMINI_TIMEOUT=30000
 GEMINI_MAX_RETRIES=3
 ```
@@ -107,12 +105,11 @@ GEMINI_MAX_RETRIES=3
 - **Security:** Use environment variable reference: `"${GEMINI_API_KEY}"`
 
 ### `providers.gemini.model`
-- **Type:** `"gemini-3.1-pro" | "gemini-2.5-pro" | "gemini-3-flash-preview"`
+- **Type:** `"gemini-3.1-pro" | "gemini-3.5-flash"`
 - **Default:** `"gemini-3.1-pro"`
 - **Description:** Which Gemini model to use
   - `gemini-3.1-pro`: Default model used by the app
-  - `gemini-2.5-pro`: Supported legacy config value
-  - `gemini-3-flash-preview`: Supported legacy config value
+  - `gemini-3.5-flash`: Supported fast Gemini 3.5 model
 
 ### `providers.gemini.temperature`
 - **Type:** `number` (0.0 to 1.0)
@@ -120,11 +117,6 @@ GEMINI_MAX_RETRIES=3
 - **Description:** Controls creativity/randomness
   - Lower (0.0-0.3): More deterministic, focused
   - Higher (0.7-1.0): More creative, varied
-
-### `providers.gemini.maxTokens`
-- **Type:** `number` (positive integer)
-- **Default:** `2000`
-- **Description:** Maximum tokens in AI response
 
 ### `providers.gemini.timeout`
 - **Type:** `number` (milliseconds)
@@ -183,7 +175,6 @@ The configuration is automatically validated when loaded. Common validation erro
 - ❌ `Gemini API key is required` - API key is missing
 - ❌ `Invalid Gemini model` - Model name is incorrect
 - ❌ `Gemini temperature must be a number between 0 and 1` - Temperature out of range
-- ❌ `Gemini maxTokens must be a positive number` - Invalid maxTokens value
 
 ---
 
@@ -287,7 +278,6 @@ cp .env.example .env
 # GEMINI_API_KEY=your-key-here
 # GEMINI_MODEL=gemini-3.1-pro
 # GEMINI_TEMPERATURE=0.7
-# GEMINI_MAX_TOKENS=2000
 # GEMINI_TIMEOUT=30000
 # GEMINI_MAX_RETRIES=3
 

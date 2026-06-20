@@ -236,7 +236,7 @@ export function registerRoutes(app: Express): void {
         const finalGeminiConfig = {
           ...geminiConfig,
           temperature: aiOptions?.temperature ?? geminiConfig.temperature ?? 0.7,
-          maxTokens: aiOptions?.maxTokens ?? geminiConfig.maxTokens,
+          maxTokens: aiOptions?.maxTokens,
           timeout: aiOptions?.timeout ?? geminiConfig.timeout,
           maxRetries: aiOptions?.maxRetries ?? geminiConfig.maxRetries,
         };

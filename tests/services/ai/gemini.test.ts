@@ -41,7 +41,6 @@ describe('createGeminiResumeClient', () => {
     apiKey: 'test-api-key',
     model: 'gemini-3.1-pro',
     temperature: 0.7,
-    maxTokens: 2000,
     timeout: 30000,
   };
 
@@ -130,36 +129,21 @@ describe('createGeminiResumeClient', () => {
           modelId: 'gemini-3.1-pro-preview',
         }),
         temperature: 0.7,
-        maxTokens: 2000,
+        maxTokens: undefined,
         maxRetries: 0,
       });
     });
 
-    it('maps gemini-2.5-pro to the Google provider model id', () => {
+    it('maps gemini-3.5-flash to the Google provider model id', () => {
       createGeminiResumeClient({
         apiKey: 'test-api-key',
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.5-flash',
       });
 
       expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
         expect.objectContaining({
           model: expect.objectContaining({
-            modelId: 'gemini-2.5-pro',
-          }),
-        })
-      );
-    });
-
-    it('maps gemini-3-flash-preview to the Google provider model id', () => {
-      createGeminiResumeClient({
-        apiKey: 'test-api-key',
-        model: 'gemini-3-flash-preview',
-      });
-
-      expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
-        expect.objectContaining({
-          model: expect.objectContaining({
-            modelId: 'gemini-3-flash-preview',
+            modelId: 'gemini-3.5-flash',
           }),
         })
       );
@@ -184,7 +168,7 @@ describe('createGeminiResumeClient', () => {
       expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
         expect.objectContaining({
           temperature: 0.7,
-          maxTokens: 2000,
+          maxTokens: undefined,
         })
       );
     });
@@ -196,8 +180,7 @@ describe('createGeminiResumeClient', () => {
       expect(info.name).toBe('gemini');
       expect(info.displayName).toBe('Google Gemini');
       expect(info.supportedModels).toContain('gemini-3.1-pro');
-      expect(info.supportedModels).toContain('gemini-2.5-pro');
-      expect(info.supportedModels).toContain('gemini-3-flash-preview');
+      expect(info.supportedModels).toContain('gemini-3.5-flash');
       expect(info.defaultModel).toBe('gemini-3.1-pro');
     });
   });
@@ -263,7 +246,7 @@ describe('createGeminiResumeClient', () => {
 
   describe('Error Handling', () => {
     it('handles rate limit errors', async () => {
-      mockGenerator.reviewResume.mockRejectedValueOnce(new Error('429 Rate limit exceeded'));
+      mockGenerator.reviewResume.mockRejectedValue(new Error('429 Rate limit exceeded'));
 
       const request = {
         resume: sampleResume,

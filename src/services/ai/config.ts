@@ -16,11 +16,9 @@ export interface GeminiProviderConfig {
   /** API key for Google AI */
   apiKey: string;
   /** Model to use */
-  model: 'gemini-3.1-pro' | 'gemini-2.5-pro' | 'gemini-3-flash-preview';
+  model: 'gemini-3.1-pro' | 'gemini-3.5-flash';
   /** Temperature (0-1) for creativity control */
   temperature?: number;
-  /** Maximum tokens to generate */
-  maxTokens?: number;
   /** Request timeout in milliseconds */
   timeout?: number;
   /** Maximum retry attempts */
@@ -50,7 +48,6 @@ const ENV_VARS = {
   GEMINI_API_KEY: 'GEMINI_API_KEY',
   GEMINI_MODEL: 'GEMINI_MODEL',
   GEMINI_TEMPERATURE: 'GEMINI_TEMPERATURE',
-  GEMINI_MAX_TOKENS: 'GEMINI_MAX_TOKENS',
   GEMINI_TIMEOUT: 'GEMINI_TIMEOUT',
   GEMINI_MAX_RETRIES: 'GEMINI_MAX_RETRIES',
 } as const;
@@ -101,11 +98,6 @@ function loadFromEnvironment(): Partial<GeminiProviderConfig> | undefined {
     if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
       config.temperature = parsed;
     }
-  }
-
-  const maxTokens = parsePositiveInteger(getEnvVar(ENV_VARS.GEMINI_MAX_TOKENS));
-  if (maxTokens !== undefined) {
-    config.maxTokens = maxTokens;
   }
 
   const timeout = parsePositiveInteger(getEnvVar(ENV_VARS.GEMINI_TIMEOUT));
@@ -181,7 +173,7 @@ function validateConfig(config: GeminiProviderConfig | undefined): ConfigValidat
     errors.push('Gemini API key is required');
   }
 
-  const validModels = ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'];
+  const validModels = ['gemini-3.1-pro', 'gemini-3.5-flash'];
   if (config.model && !validModels.includes(config.model)) {
     errors.push(`Invalid Gemini model: ${config.model}. Must be one of: ${validModels.join(', ')}`);
   }
@@ -189,12 +181,6 @@ function validateConfig(config: GeminiProviderConfig | undefined): ConfigValidat
   if (config.temperature !== undefined) {
     if (typeof config.temperature !== 'number' || config.temperature < 0 || config.temperature > 1) {
       errors.push('Gemini temperature must be a number between 0 and 1');
-    }
-  }
-
-  if (config.maxTokens !== undefined) {
-    if (typeof config.maxTokens !== 'number' || config.maxTokens <= 0) {
-      errors.push('Gemini maxTokens must be a positive number');
     }
   }
 

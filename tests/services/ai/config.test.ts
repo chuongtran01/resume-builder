@@ -22,7 +22,6 @@ describe('Gemini Configuration Management', () => {
     delete process.env.GEMINI_API_KEY;
     delete process.env.GEMINI_MODEL;
     delete process.env.GEMINI_TEMPERATURE;
-    delete process.env.GEMINI_MAX_TOKENS;
     delete process.env.GEMINI_TIMEOUT;
     delete process.env.GEMINI_MAX_RETRIES;
   });
@@ -45,26 +44,34 @@ describe('Gemini Configuration Management', () => {
 
     it('loads configuration from environment variables', async () => {
       process.env.GEMINI_API_KEY = 'test-api-key-123';
-      process.env.GEMINI_MODEL = 'gemini-2.5-pro';
+      process.env.GEMINI_MODEL = 'gemini-3.5-flash';
       process.env.GEMINI_TEMPERATURE = '0.8';
-      process.env.GEMINI_MAX_TOKENS = '3000';
 
       const config = await loadGeminiConfig({
         loadFromFile: false,
       });
 
       expect(config?.apiKey).toBe('test-api-key-123');
-      expect(config?.model).toBe('gemini-2.5-pro');
+      expect(config?.model).toBe('gemini-3.5-flash');
       expect(config?.temperature).toBe(0.8);
-      expect(config?.maxTokens).toBe(3000);
+    });
+
+    it('accepts gemini-3.5-flash from environment variables', async () => {
+      process.env.GEMINI_API_KEY = 'test-api-key-123';
+      process.env.GEMINI_MODEL = 'gemini-3.5-flash';
+
+      const config = await loadGeminiConfig({
+        loadFromFile: false,
+      });
+
+      expect(config?.model).toBe('gemini-3.5-flash');
     });
 
     it('loads configuration from a flat JSON file', async () => {
       const configContent: GeminiProviderConfig = {
         apiKey: 'file-api-key-456',
-        model: 'gemini-3-flash-preview',
+        model: 'gemini-3.5-flash',
         temperature: 0.6,
-        maxTokens: 1500,
       };
 
       await fs.writeJSON(configPath, configContent);
@@ -75,9 +82,8 @@ describe('Gemini Configuration Management', () => {
       });
 
       expect(config?.apiKey).toBe('file-api-key-456');
-      expect(config?.model).toBe('gemini-3-flash-preview');
+      expect(config?.model).toBe('gemini-3.5-flash');
       expect(config?.temperature).toBe(0.6);
-      expect(config?.maxTokens).toBe(1500);
     });
 
     it('loads configuration from a legacy nested JSON file', async () => {
@@ -102,7 +108,7 @@ describe('Gemini Configuration Management', () => {
 
       await fs.writeJSON(configPath, {
         apiKey: '${GEMINI_API_KEY}',
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.5-flash',
       });
 
       const config = await loadGeminiConfig({
@@ -116,7 +122,7 @@ describe('Gemini Configuration Management', () => {
     it('throws if an environment variable reference is not set', async () => {
       await fs.writeJSON(configPath, {
         apiKey: '${MISSING_VAR}',
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.5-flash',
       });
 
       await expect(
@@ -129,7 +135,7 @@ describe('Gemini Configuration Management', () => {
 
     it('merges environment and file config with file taking precedence', async () => {
       process.env.GEMINI_API_KEY = 'env-key';
-      process.env.GEMINI_MODEL = 'gemini-2.5-pro';
+      process.env.GEMINI_MODEL = 'gemini-3.5-flash';
 
       await fs.writeJSON(configPath, {
         apiKey: 'file-key',
@@ -160,7 +166,7 @@ describe('Gemini Configuration Management', () => {
 
     it('validates Gemini API key is required', async () => {
       await fs.writeJSON(configPath, {
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.5-flash',
       });
 
       await expect(
@@ -174,7 +180,7 @@ describe('Gemini Configuration Management', () => {
     it('validates temperature range', async () => {
       await fs.writeJSON(configPath, {
         apiKey: 'test-key',
-        model: 'gemini-2.5-pro',
+        model: 'gemini-3.5-flash',
         temperature: 1.5,
       });
 
@@ -184,21 +190,6 @@ describe('Gemini Configuration Management', () => {
           loadFromEnv: false,
         })
       ).rejects.toThrow(/temperature must be a number between 0 and 1/);
-    });
-
-    it('validates maxTokens is positive', async () => {
-      await fs.writeJSON(configPath, {
-        apiKey: 'test-key',
-        model: 'gemini-2.5-pro',
-        maxTokens: -100,
-      });
-
-      await expect(
-        loadGeminiConfig({
-          configPath,
-          loadFromEnv: false,
-        })
-      ).rejects.toThrow(/maxTokens must be a positive number/);
     });
 
     it('handles missing config files gracefully', async () => {
@@ -238,7 +229,6 @@ describe('Gemini Configuration Management', () => {
     it('uses gemini-3.1-pro when GEMINI_MODEL is not set', async () => {
       process.env.GEMINI_API_KEY = 'test-key';
       process.env.GEMINI_TEMPERATURE = '0.75';
-      process.env.GEMINI_MAX_TOKENS = '2500';
       process.env.GEMINI_TIMEOUT = '45000';
       process.env.GEMINI_MAX_RETRIES = '5';
 
@@ -248,7 +238,6 @@ describe('Gemini Configuration Management', () => {
 
       expect(config?.model).toBe('gemini-3.1-pro');
       expect(config?.temperature).toBe(0.75);
-      expect(config?.maxTokens).toBe(2500);
       expect(config?.timeout).toBe(45000);
       expect(config?.maxRetries).toBe(5);
     });
@@ -256,7 +245,6 @@ describe('Gemini Configuration Management', () => {
     it('ignores invalid numeric environment variables', async () => {
       process.env.GEMINI_API_KEY = 'test-key';
       process.env.GEMINI_TEMPERATURE = 'invalid';
-      process.env.GEMINI_MAX_TOKENS = '-100';
       process.env.GEMINI_TIMEOUT = '0';
 
       const config = await loadGeminiConfig({
@@ -264,7 +252,6 @@ describe('Gemini Configuration Management', () => {
       });
 
       expect(config?.temperature).toBeUndefined();
-      expect(config?.maxTokens).toBeUndefined();
       expect(config?.timeout).toBeUndefined();
     });
   });
