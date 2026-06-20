@@ -196,10 +196,6 @@ export function registerRoutes(app: Express): void {
       const startTime = Date.now();
       const requestId = `req-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
-      // Temporary provider name for this request (will be cleaned up)
-      const tempProviderName = `gemini-${requestId}`;
-      let providerRegistered = false;
-
       try {
         logger.info(`[${requestId}] POST /api/enhanceResume - Starting resume enhancement`);
 
@@ -226,15 +222,12 @@ export function registerRoutes(app: Express): void {
         logger.debug(`[${requestId}] Enhancing resume with ${jobDescription.length} character job description`);
 
         // Load AI configuration and set up provider
-        const { loadAIConfig, getGeminiConfig } = await import('../services/ai/config');
-        const { GeminiProvider } = await import('../services/ai/gemini');
-        const { registerProvider, unregisterProvider } = await import('../services/ai/providerRegistry');
+        const { loadAIConfig } = await import('../services/ai/config');
+        const { createAIProvider } = await import('../services/ai/providerFactory');
 
         // Load base AI config
         const aiConfig = await loadAIConfig({ loadFromEnv: true });
-        const baseGeminiConfig = getGeminiConfig(aiConfig);
-
-        if (!baseGeminiConfig || !baseGeminiConfig.apiKey) {
+        if (!aiConfig.providers?.gemini?.apiKey) {
           res.status(400).json({
             success: false,
             error: 'Configuration error',
@@ -255,26 +248,21 @@ export function registerRoutes(app: Express): void {
           return;
         }
 
-        // Merge base config with request overrides
-        const finalGeminiConfig = {
-          ...baseGeminiConfig,
-          model: aiModel || baseGeminiConfig.model || 'gemini-3-flash-preview',
-          temperature: aiOptions?.temperature !== undefined ? aiOptions.temperature : (baseGeminiConfig.temperature ?? 0.7),
-          maxTokens: aiOptions?.maxTokens !== undefined ? aiOptions.maxTokens : baseGeminiConfig.maxTokens,
-          timeout: aiOptions?.timeout !== undefined ? aiOptions.timeout : baseGeminiConfig.timeout,
-          maxRetries: aiOptions?.maxRetries !== undefined ? aiOptions.maxRetries : baseGeminiConfig.maxRetries,
-        };
-
-        // Create and register provider with request-specific config
-        const geminiProvider = new GeminiProvider(finalGeminiConfig);
-        registerProvider(tempProviderName, geminiProvider);
-        providerRegistered = true;
+        const providerCreation = createAIProvider(aiConfig, providerToUse, {
+          model: aiModel,
+          temperature: aiOptions?.temperature,
+          maxTokens: aiOptions?.maxTokens,
+          timeout: aiOptions?.timeout,
+          maxRetries: aiOptions?.maxRetries,
+        });
+        const geminiProvider = providerCreation.provider;
+        const finalGeminiConfig = providerCreation.config;
 
         logger.info(`[${requestId}] Using AI provider: ${providerToUse}, model: ${finalGeminiConfig.model}, temperature: ${finalGeminiConfig.temperature}`);
 
-        // Create enhancement service with the temporary provider
+        // Create enhancement service with the request-specific provider
         const { AIResumeEnhancementService } = await import('../services/aiResumeEnhancementService');
-        const enhancementService = new AIResumeEnhancementService(tempProviderName);
+        const enhancementService = new AIResumeEnhancementService(geminiProvider);
 
         // Enhance resume
         const enhancementResult = await enhancementService.enhanceResume(
@@ -363,31 +351,11 @@ export function registerRoutes(app: Express): void {
           logger.warn(`[${requestId}] Failed to clean up temporary files: ${err.message}`);
         });
 
-        // Clean up temporary provider
-        if (providerRegistered) {
-          try {
-            unregisterProvider(tempProviderName);
-            logger.debug(`[${requestId}] Cleaned up temporary provider: ${tempProviderName}`);
-          } catch (cleanupError) {
-            logger.warn(`[${requestId}] Failed to clean up temporary provider: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
-          }
-        }
-
         const duration = Date.now() - startTime;
         logger.info(`[${requestId}] Request completed in ${duration}ms`);
       } catch (error) {
         const duration = Date.now() - startTime;
         logger.error(`[${requestId}] Error enhancing resume (${duration}ms): ${error instanceof Error ? error.message : String(error)}`);
-
-        // Clean up temporary provider on error
-        if (providerRegistered) {
-          try {
-            const { unregisterProvider } = await import('../services/ai/providerRegistry');
-            unregisterProvider(tempProviderName);
-          } catch (cleanupError) {
-            logger.warn(`[${requestId}] Failed to clean up temporary provider on error: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}`);
-          }
-        }
 
         // Import error types for proper error handling
         const { PdfGenerationError } = await import('../utils/pdfGenerator');

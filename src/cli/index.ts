@@ -561,66 +561,31 @@ program
       logger.info('\n🤖 Step 3: Initializing AI provider...');
 
       // Load AI configuration
-      const { loadAIConfig, getGeminiConfig } = await import('@services/ai/config');
+      const { loadAIConfig } = await import('@services/ai/config');
       const aiConfig = await loadAIConfig();
 
-      // Get provider name from CLI option or config (default: gemini)
-      const providerName = options.aiProvider || aiConfig.defaultProvider || 'gemini';
+      const providerName = (options.aiProvider || aiConfig.defaultProvider || 'gemini') as 'gemini';
+      const { createAIProvider } = await import('@services/ai/providerFactory');
+      const providerCreation = createAIProvider(aiConfig, providerName, {
+        model: options.aiModel as 'gemini-2.5-pro' | 'gemini-3-flash-preview' | undefined,
+        temperature: options.aiTemperature,
+      });
+      const provider = providerCreation.provider;
+      const finalConfig = providerCreation.config;
 
-      // Initialize and register Gemini provider if needed
-      const { registerProvider, hasProvider } = await import('@services/ai/providerRegistry');
-      const { GeminiProvider } = await import('@services/ai/gemini');
-
-      if (!hasProvider('gemini')) {
-        const geminiConfig = getGeminiConfig(aiConfig);
-        if (!geminiConfig || !geminiConfig.apiKey) {
-          logger.error('❌ Error: Gemini API key not configured');
-          logger.info('💡 Suggestions:');
-          logger.info('   - Set GEMINI_API_KEY environment variable');
-          logger.info('   - Or set GEMINI_API_KEY in .env file');
-          logger.info('   - See AI_CONFIG.md for configuration details');
-          process.exit(1);
-        }
-
-        // Use defaults: model from config (default: gemini-3-flash-preview), temperature from config (default: 0.7)
-        // Override with CLI options if provided
-        const DEFAULT_MODEL: 'gemini-2.5-pro' | 'gemini-3-flash-preview' = 'gemini-3-flash-preview';
-        const DEFAULT_TEMPERATURE = 0.7;
-
-        const finalConfig = {
-          ...geminiConfig,
-          model: (options.aiModel as 'gemini-2.5-pro' | 'gemini-3-flash-preview') || geminiConfig.model || DEFAULT_MODEL,
-          temperature: options.aiTemperature !== undefined ? options.aiTemperature : (geminiConfig.temperature ?? DEFAULT_TEMPERATURE),
-        };
-
-        const geminiProvider = new GeminiProvider(finalConfig);
-        registerProvider('gemini', geminiProvider);
-        logger.success(`   ✅ AI provider initialized: ${providerName}`);
-        logger.info(`   📊 Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
-        logger.info(`   🌡️  Temperature: ${finalConfig.temperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
-      } else {
-        logger.success(`   ✅ Using existing AI provider: ${providerName}`);
-      }
+      logger.success(`   ✅ AI provider initialized: ${providerName}`);
+      logger.info(`   📊 Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
+      logger.info(`   🌡️  Temperature: ${finalConfig.temperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
 
       // Enhance resume using AI
       logger.info('\n🤖 Step 4: Enhancing resume with AI...');
       const { AIResumeEnhancementService } = await import('@services/aiResumeEnhancementService');
-      const { getProvider } = await import('@services/ai/providerRegistry');
 
-      let provider = getProvider(providerName);
-      if (provider) {
-        const providerInfo = provider.getProviderInfo();
-        logger.info(`   Using: ${providerInfo.displayName} (${providerInfo.name})`);
-        // Get the actual model being used (from CLI option, config, or default)
-        const geminiConfig = getGeminiConfig(aiConfig);
-        const actualModel = options.aiModel || geminiConfig?.model || providerInfo.defaultModel;
-        logger.info(`   Model: ${actualModel}${!options.aiModel ? ' (default)' : ''}`);
-      }
+      const providerInfo = provider.getProviderInfo();
+      logger.info(`   Using: ${providerInfo.displayName} (${providerInfo.name})`);
+      logger.info(`   Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
 
-      const aiEnhancementService = new AIResumeEnhancementService(providerName);
-
-      // Get provider again after service initialization (in case it was set as default)
-      provider = getProvider(providerName);
+      const aiEnhancementService = new AIResumeEnhancementService(provider);
       const enhancementResult = await aiEnhancementService.enhanceResume(
         resume,
         jobDescription
@@ -682,15 +647,12 @@ program
 
       // Display provider information
       if (provider) {
-        const providerInfo = provider.getProviderInfo();
-        const geminiConfig = getGeminiConfig(aiConfig);
-        const actualModel = options.aiModel || geminiConfig?.model || providerInfo.defaultModel;
         const actualTemperature = options.aiTemperature !== undefined
           ? options.aiTemperature
-          : (geminiConfig?.temperature ?? 0.7);
+          : (finalConfig.temperature ?? 0.7);
 
         logger.info(`\n🤖 AI Provider: ${providerInfo.displayName}`);
-        logger.info(`   Model: ${actualModel}${!options.aiModel ? ' (default)' : ''}`);
+        logger.info(`   Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
         logger.info(`   Temperature: ${actualTemperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
       }
 
@@ -704,7 +666,6 @@ program
       const { JsonWriteError } = await import('@services/enhancedResumeGenerator');
       const { MarkdownWriteError } = await import('@services/mdGenerator');
       const { AIProviderError, RateLimitError, NetworkError, TimeoutError } = await import('@services/ai/provider.types');
-      const { ProviderNotFoundError } = await import('@services/ai/providerRegistry');
 
       if (error instanceof FileNotFoundError) {
         logger.error(`\n❌ ${error.message}`);
@@ -744,12 +705,6 @@ program
         logger.info('💡 Suggestions:');
         logger.info('   - Check output directory permissions');
         logger.info('   - Ensure you have write access to the output directory');
-      } else if (error instanceof ProviderNotFoundError) {
-        logger.error(`\n❌ ${error.message}`);
-        logger.info('💡 Suggestions:');
-        logger.info('   - Ensure AI provider is properly configured');
-        logger.info('   - Check that GEMINI_API_KEY is set in .env file or environment variables');
-        logger.info('   - See AI_CONFIG.md for configuration details');
       } else if (error instanceof AIProviderError) {
         logger.error(`\n❌ AI Provider Error: ${error.message}`);
         if (error instanceof RateLimitError) {

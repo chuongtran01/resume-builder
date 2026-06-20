@@ -167,6 +167,13 @@ describe('AIResumeEnhancementService', () => {
       expect(getProvider).toHaveBeenCalledWith('gemini');
     });
 
+    it('should create service with provider instance', () => {
+      const service = new AIResumeEnhancementService(mockAIProvider);
+      expect(service).toBeInstanceOf(AIResumeEnhancementService);
+      expect(getProvider).not.toHaveBeenCalled();
+      expect(getDefaultProvider).not.toHaveBeenCalled();
+    });
+
     it('should create service with default provider when no name provided', () => {
       const service = new AIResumeEnhancementService();
       expect(service).toBeInstanceOf(AIResumeEnhancementService);

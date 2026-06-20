@@ -44,11 +44,19 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Create AI Resume Enhancement Service
    * 
-   * @param providerName - Name of AI provider to use (e.g., "gemini"). If not provided, uses default provider.
+   * @param providerOrName - AI provider instance or provider name. If not provided, uses default provider.
    * @throws Error if AI provider cannot be initialized
    */
-  constructor(providerName?: string) {
-    this.providerName = providerName || '';
+  constructor(providerOrName?: string | AIProvider) {
+    if (providerOrName && typeof providerOrName !== 'string') {
+      this.aiProvider = providerOrName;
+      const info = this.aiProvider.getProviderInfo();
+      this.providerName = info.name;
+      logger.info(`Using AI provider: ${info.displayName} (${info.name})`);
+      return;
+    }
+
+    this.providerName = providerOrName || '';
 
     // Get the AI provider
     if (this.providerName) {
