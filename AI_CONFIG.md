@@ -24,9 +24,6 @@ export GEMINI_API_KEY="your-api-key-here"
 
 ### Optional Settings
 ```bash
-# Default AI provider (gemini)
-export DEFAULT_AI_PROVIDER="gemini"
-
 # Gemini model selection
 export GEMINI_MODEL="gemini-3.1-pro"
 
@@ -42,7 +39,6 @@ export GEMINI_MAX_RETRIES="3"         # Maximum retry attempts
 ```bash
 # In ~/.bashrc or ~/.zshrc
 export GEMINI_API_KEY="your-api-key-here"
-export DEFAULT_AI_PROVIDER="gemini"
 export GEMINI_MODEL="gemini-3.1-pro"
 ```
 
@@ -52,7 +48,6 @@ export GEMINI_MODEL="gemini-3.1-pro"
 ```bash
 #!/bin/bash
 export GEMINI_API_KEY="your-api-key-here"
-export DEFAULT_AI_PROVIDER="gemini"
 npm run cli -- enhanceResume --input resume.json --job job.txt
 ```
 
@@ -105,11 +100,6 @@ GEMINI_MAX_RETRIES=3
 
 ## Configuration Options
 
-### `defaultProvider`
-- **Type:** `"gemini"`
-- **Default:** `"gemini"`
-- **Description:** Which AI provider to use by default
-
 ### `providers.gemini.apiKey`
 - **Type:** `string`
 - **Required:** Yes (if using Gemini)
@@ -157,7 +147,7 @@ GEMINI_MAX_RETRIES=3
 The configuration is loaded using the `loadAIConfig()` function:
 
 ```typescript
-import { loadAIConfig, getGeminiConfig, getDefaultProvider } from '@services/ai/config';
+import { loadAIConfig, getGeminiConfig } from '@services/ai/config';
 
 // Load configuration (loads from .env file automatically)
 const config = await loadAIConfig();
@@ -173,8 +163,6 @@ const config = await loadAIConfig({
 // Get specific provider config
 const geminiConfig = getGeminiConfig(config);
 
-// Get default provider
-const defaultProvider = getDefaultProvider(config);
 ```
 
 ---
@@ -260,7 +248,6 @@ The configuration is automatically validated when loaded. Common validation erro
 ```bash
 # Set environment variables
 export GEMINI_API_KEY="your-key-here"
-export DEFAULT_AI_PROVIDER="gemini"
 export GEMINI_MODEL="gemini-3.1-pro"
 
 # Basic usage (uses defaults from environment)

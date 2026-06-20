@@ -20,7 +20,6 @@ jest.mock('../../../src/services/ai/gemini', () => ({
 
 describe('providerFactory', () => {
   const baseConfig: AIConfig = {
-    defaultProvider: 'gemini',
     providers: {
       gemini: {
         apiKey: 'test-key',

@@ -8,7 +8,6 @@ import * as os from 'os';
 import {
   loadAIConfig,
   getGeminiConfig,
-  getDefaultProvider,
   validateAPIKey,
   getProviderConfig,
   createDefaultConfig,
@@ -26,7 +25,6 @@ describe('AI Configuration Management', () => {
     
     // Clear environment variables
     delete process.env.GEMINI_API_KEY;
-    delete process.env.DEFAULT_AI_PROVIDER;
     delete process.env.GEMINI_MODEL;
     delete process.env.GEMINI_TEMPERATURE;
     delete process.env.GEMINI_MAX_TOKENS;
@@ -49,12 +47,11 @@ describe('AI Configuration Management', () => {
         loadFromFile: false,
       });
 
-      expect(config.defaultProvider).toBe('gemini');
+      expect(config.providers).toEqual({});
     });
 
     it('should load configuration from environment variables', async () => {
       process.env.GEMINI_API_KEY = 'test-api-key-123';
-      process.env.DEFAULT_AI_PROVIDER = 'gemini';
       process.env.GEMINI_MODEL = 'gemini-2.5-pro';
       process.env.GEMINI_TEMPERATURE = '0.8';
       process.env.GEMINI_MAX_TOKENS = '3000';
@@ -63,7 +60,6 @@ describe('AI Configuration Management', () => {
         loadFromFile: false,
       });
 
-      expect(config.defaultProvider).toBe('gemini');
       expect(config.providers?.gemini?.apiKey).toBe('test-api-key-123');
       expect(config.providers?.gemini?.model).toBe('gemini-2.5-pro');
       expect(config.providers?.gemini?.temperature).toBe(0.8);
@@ -72,7 +68,6 @@ describe('AI Configuration Management', () => {
 
     it('should load configuration from JSON file', async () => {
       const configContent: AIConfig = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: 'file-api-key-456',
@@ -90,7 +85,6 @@ describe('AI Configuration Management', () => {
         loadFromEnv: false,
       });
 
-      expect(config.defaultProvider).toBe('gemini');
       expect(config.providers?.gemini?.apiKey).toBe('file-api-key-456');
       expect(config.providers?.gemini?.model).toBe('gemini-3-flash-preview');
       expect(config.providers?.gemini?.temperature).toBe(0.6);
@@ -101,7 +95,6 @@ describe('AI Configuration Management', () => {
       process.env.GEMINI_API_KEY = 'env-resolved-key';
       
       const configContent = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: '${GEMINI_API_KEY}',
@@ -122,7 +115,6 @@ describe('AI Configuration Management', () => {
 
     it('should throw error if environment variable reference is not set', async () => {
       const configContent = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: '${MISSING_VAR}',
@@ -143,11 +135,9 @@ describe('AI Configuration Management', () => {
 
     it('should merge environment and file config (file takes precedence)', async () => {
       process.env.GEMINI_API_KEY = 'env-key';
-      process.env.DEFAULT_AI_PROVIDER = 'gemini';
       process.env.GEMINI_MODEL = 'gemini-2.5-pro';
 
       const configContent = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: 'file-key',
@@ -171,7 +161,6 @@ describe('AI Configuration Management', () => {
 
     it('should validate configuration and throw on invalid config', async () => {
       const configContent = {
-        defaultProvider: 'invalid-provider',
         providers: {
           gemini: {
             apiKey: 'test-key',
@@ -192,7 +181,6 @@ describe('AI Configuration Management', () => {
 
     it('should validate Gemini API key is required', async () => {
       const configContent = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             model: 'gemini-2.5-pro',
@@ -213,7 +201,6 @@ describe('AI Configuration Management', () => {
 
     it('should validate temperature range', async () => {
       const configContent = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: 'test-key',
@@ -235,7 +222,6 @@ describe('AI Configuration Management', () => {
 
     it('should validate maxTokens is positive', async () => {
       const configContent = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: 'test-key',
@@ -262,7 +248,7 @@ describe('AI Configuration Management', () => {
       });
 
       // Should return default config
-      expect(config.defaultProvider).toBe('gemini');
+      expect(config.providers).toEqual({});
     });
 
     it('should handle invalid JSON in config file', async () => {
@@ -276,12 +262,11 @@ describe('AI Configuration Management', () => {
       });
 
       // Should return default config when JSON is invalid
-      expect(config.defaultProvider).toBe('gemini');
+      expect(config.providers).toEqual({});
     });
 
     it('should skip validation when validate is false', async () => {
       const configContent = {
-        defaultProvider: 'invalid-provider',
         providers: {
           gemini: {
             model: 'invalid-model',
@@ -299,14 +284,13 @@ describe('AI Configuration Management', () => {
       });
 
       // Should load without validation
-      expect(config.defaultProvider).toBe('invalid-provider');
+      expect(config.providers?.gemini?.model).toBe('invalid-model');
     });
   });
 
   describe('getGeminiConfig', () => {
     it('should return Gemini configuration when present', () => {
       const config: AIConfig = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: 'test-key',
@@ -323,31 +307,11 @@ describe('AI Configuration Management', () => {
 
     it('should return undefined when Gemini config is not present', () => {
       const config: AIConfig = {
-        defaultProvider: 'gemini',
         providers: {},
       };
 
       const geminiConfig = getGeminiConfig(config);
       expect(geminiConfig).toBeUndefined();
-    });
-  });
-
-  describe('getDefaultProvider', () => {
-    it('should return default provider from config', () => {
-      const config: AIConfig = {
-        defaultProvider: 'gemini',
-        providers: {},
-      };
-
-      expect(getDefaultProvider(config)).toBe('gemini');
-    });
-
-    it('should return gemini when default provider is not set', () => {
-      const config: AIConfig = {
-        providers: {},
-      };
-
-      expect(getDefaultProvider(config)).toBe('gemini');
     });
   });
 
@@ -362,7 +326,6 @@ describe('AI Configuration Management', () => {
   describe('getProviderConfig', () => {
     it('should return provider configuration', () => {
       const config: AIConfig = {
-        defaultProvider: 'gemini',
         providers: {
           gemini: {
             apiKey: 'test-key',
@@ -378,7 +341,6 @@ describe('AI Configuration Management', () => {
 
     it('should return undefined for non-existent provider', () => {
       const config: AIConfig = {
-        defaultProvider: 'gemini',
         providers: {},
       };
 
@@ -391,7 +353,6 @@ describe('AI Configuration Management', () => {
     it('should create default configuration', () => {
       const config = createDefaultConfig();
 
-      expect(config.defaultProvider).toBe('gemini');
       expect(config.providers).toEqual({});
     });
   });
@@ -437,7 +398,7 @@ describe('AI Configuration Management', () => {
         loadFromFile: false,
       });
 
-      expect(config.defaultProvider).toBe('gemini');
+      expect(config.providers?.gemini?.apiKey).toBe('test-key');
     });
   });
 });

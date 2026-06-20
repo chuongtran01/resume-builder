@@ -556,7 +556,7 @@ program
       const { loadAIConfig } = await import('@services/ai/config');
       const aiConfig = await loadAIConfig();
 
-      const providerName = (options.aiProvider || aiConfig.defaultProvider || 'gemini') as 'gemini';
+      const providerName = (options.aiProvider || 'gemini') as 'gemini';
       const { createAIProvider } = await import('@services/ai/providerFactory');
       const providerCreation = createAIProvider(aiConfig, providerName, {
         temperature: options.aiTemperature,

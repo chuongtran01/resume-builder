@@ -38,8 +38,6 @@ export interface GeminiProviderConfig {
  * AI configuration structure
  */
 export interface AIConfig {
-  /** Default provider to use */
-  defaultProvider?: 'gemini';
   /** Provider-specific configurations */
   providers?: {
     gemini?: GeminiProviderConfig;
@@ -75,7 +73,6 @@ export interface ConfigLoadOptions {
  */
 const ENV_VARS = {
   GEMINI_API_KEY: 'GEMINI_API_KEY',
-  DEFAULT_AI_PROVIDER: 'DEFAULT_AI_PROVIDER',
   GEMINI_MODEL: 'GEMINI_MODEL',
   GEMINI_TEMPERATURE: 'GEMINI_TEMPERATURE',
   GEMINI_MAX_TOKENS: 'GEMINI_MAX_TOKENS',
@@ -120,15 +117,6 @@ function loadFromEnvironment(): Partial<AIConfig> {
   const config: Partial<AIConfig> = {
     providers: {},
   };
-
-  // Default provider
-  const defaultProviderEnv = getEnvVar(ENV_VARS.DEFAULT_AI_PROVIDER);
-  if (defaultProviderEnv) {
-    const provider = defaultProviderEnv as 'gemini';
-    if (provider === 'gemini') {
-      config.defaultProvider = provider;
-    }
-  }
 
   // Gemini configuration
   const geminiApiKey = getEnvVar(ENV_VARS.GEMINI_API_KEY);
@@ -248,7 +236,6 @@ function mergeConfigs(
   }
 
   const merged: AIConfig = {
-    defaultProvider: fileConfig.defaultProvider ?? envConfig.defaultProvider ?? 'gemini',
     providers,
   };
 
@@ -261,11 +248,6 @@ function mergeConfigs(
 function validateConfig(config: AIConfig): ConfigValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
-
-  // Validate default provider
-  if (config.defaultProvider && config.defaultProvider !== 'gemini') {
-    errors.push(`Invalid defaultProvider: ${config.defaultProvider}. Must be 'gemini'`);
-  }
 
   // Validate Gemini configuration if provider is gemini
   // Only validate if gemini config actually exists (not just default provider)
@@ -309,7 +291,7 @@ function validateConfig(config: AIConfig): ConfigValidationResult {
         errors.push('Gemini maxRetries must be a non-negative number');
       }
     }
-  } else if (config.defaultProvider === 'gemini') {
+  } else {
     // Default provider is gemini but no config provided - this is a warning, not an error
     warnings.push('Gemini is selected as default provider but no configuration found. API key will be required at runtime.');
   }
@@ -391,7 +373,7 @@ export async function loadAIConfig(
     }
   }
 
-  logger.debug(`AI configuration loaded. Default provider: ${mergedConfig.defaultProvider}`);
+  logger.debug('AI configuration loaded.');
 
   return mergedConfig;
 }
@@ -404,16 +386,6 @@ export async function loadAIConfig(
  */
 export function getGeminiConfig(config: AIConfig): GeminiProviderConfig | undefined {
   return config.providers?.gemini;
-}
-
-/**
- * Get default provider name
- * 
- * @param config - AI configuration
- * @returns Default provider name
- */
-export function getDefaultProvider(config: AIConfig): 'gemini' {
-  return config.defaultProvider || 'gemini';
 }
 
 /**
@@ -458,7 +430,6 @@ export function getProviderConfig(
  */
 export function createDefaultConfig(): AIConfig {
   return {
-    defaultProvider: 'gemini',
     providers: {},
   };
 }
