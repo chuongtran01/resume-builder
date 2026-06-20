@@ -23,35 +23,6 @@ export interface PromptContext {
 }
 
 /**
- * Review example for few-shot learning
- */
-export interface ReviewExample {
-  /** Example resume snippet */
-  resumeSnippet: string;
-  /** Example job requirements */
-  jobSnippet: string;
-  /** Example review result */
-  reviewResult: ReviewResult;
-}
-
-/**
- * Enhancement example for few-shot learning
- */
-export interface EnhancementExample {
-  /** Original content */
-  original: string;
-  /** Enhanced content */
-  enhanced: string;
-  /** Explanation of changes */
-  explanation: string;
-}
-
-/**
  * Prompt builder options
  */
-export interface PromptBuilderOptions {
-  /** Include few-shot examples */
-  includeExamples?: boolean;
-  /** Enhancement mode */
-  mode?: 'full' | 'bulletPoints' | 'skills' | 'summary';
-}
+export interface PromptBuilderOptions {}

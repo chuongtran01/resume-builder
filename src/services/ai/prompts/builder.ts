@@ -7,23 +7,12 @@
  */
 
 import type {
-  EnhancementExample,
   PromptContext,
   PromptBuilderOptions,
-  ReviewExample,
 } from './types';
 import type { Resume } from '@resume-types/resume.types';
 import type { ParsedJobDescription } from '@utils/jobParser';
 import type { ReviewResult } from '@services/ai/enhancement.types';
-import {
-  REVIEW_EXAMPLES,
-  REVIEW_FOCUS_AREAS,
-} from './reviewPromptData';
-import {
-  ENHANCEMENT_EXAMPLES,
-  TRUTHFULNESS_RULES,
-  getEnhancementAreasForMode,
-} from './modifyPromptData';
 import { loadPromptTemplateText, renderPromptTemplate } from './templateLoader';
 import { logger } from '@utils/logger';
 import * as crypto from 'crypto';
@@ -120,18 +109,13 @@ export interface PromptValidationResult {
  * Build review prompt messages from templates (base implementation)
  */
 function buildReviewPromptMessagesBase(
-  context: PromptContext,
-  options: PromptBuilderOptions = {}
+  context: PromptContext
 ): PromptMessages {
-  const { includeExamples = true } = options;
   const systemTemplate = loadPromptTemplateText('review.system.md');
   const promptTemplate = loadPromptTemplateText('review.prompt.md');
 
   return {
-    system: `${renderPromptTemplate(systemTemplate, {
-      focusAreas: formatNumberedList(REVIEW_FOCUS_AREAS),
-      examples: includeExamples ? formatReviewExamples(REVIEW_EXAMPLES) : '',
-    })}\n`,
+    system: `${systemTemplate}\n`,
     prompt: `${renderPromptTemplate(promptTemplate, {
       resumeJson: JSON.stringify(context.resume, null, 2),
       jobInfoJson: JSON.stringify(context.jobInfo, null, 2),
@@ -143,64 +127,23 @@ function buildReviewPromptMessagesBase(
  * Build modify prompt messages from templates (base implementation)
  */
 function buildModifyPromptMessagesBase(
-  context: PromptContext,
-  options: PromptBuilderOptions = {}
+  context: PromptContext
 ): PromptMessages {
   if (!context.reviewResult) {
     throw new Error('Review result is required for modify prompt');
   }
 
-  const mode = options.mode || 'full';
-  const { includeExamples = true } = options;
   const systemTemplate = loadPromptTemplateText('modify.system.md');
   const promptTemplate = loadPromptTemplateText('modify.prompt.md');
 
   return {
-    system: `${renderPromptTemplate(systemTemplate, {
-      truthfulnessRules: formatNumberedList(TRUTHFULNESS_RULES),
-      enhancementAreas: formatNumberedList(getEnhancementAreasForMode(mode)),
-      examples: includeExamples ? formatModifyExamples(ENHANCEMENT_EXAMPLES) : '',
-    })}\n`,
+    system: `${systemTemplate}\n`,
     prompt: `${renderPromptTemplate(promptTemplate, {
       resumeJson: JSON.stringify(context.resume, null, 2),
       jobInfoJson: JSON.stringify(context.jobInfo, null, 2),
       reviewResultJson: JSON.stringify(context.reviewResult, null, 2),
     })}\n`,
   };
-}
-
-function formatNumberedList(items: string[]): string {
-  return items.map((item, index) => `${index + 1}. ${item}`).join('\n');
-}
-
-function formatReviewExamples(examples: ReviewExample[]): string {
-  if (examples.length === 0) {
-    return '';
-  }
-
-  const blocks = examples.map((example, index) => [
-    `### Example ${index + 1}:`,
-    `Resume Snippet: ${example.resumeSnippet}`,
-    `Job Requirements: ${example.jobSnippet}`,
-    `Review Result: ${JSON.stringify(example.reviewResult, null, 2)}`,
-  ].join('\n'));
-
-  return `## EXAMPLES\n\n${blocks.join('\n\n')}\n\n`;
-}
-
-function formatModifyExamples(examples: EnhancementExample[]): string {
-  if (examples.length === 0) {
-    return '';
-  }
-
-  const blocks = examples.map((example, index) => [
-    `### Example ${index + 1}:`,
-    `Original: ${example.original}`,
-    `Enhanced: ${example.enhanced}`,
-    `Explanation: ${example.explanation}`,
-  ].join('\n'));
-
-  return `## EXAMPLES\n\n${blocks.join('\n\n')}\n\n`;
 }
 
 // ============================================================================
@@ -257,7 +200,6 @@ export function buildReviewPromptMessages(
     tone = 'professional',
     focusAreas,
     version = PROMPT_VERSION,
-    ...baseOptions
   } = enhancedOptions;
 
   if (useCache) {
@@ -269,7 +211,7 @@ export function buildReviewPromptMessages(
     }
   }
 
-  let messages = buildReviewPromptMessagesBase(context, baseOptions);
+  let messages = buildReviewPromptMessagesBase(context);
 
   if (useCache || validate || tone !== 'professional' || focusAreas) {
     messages = applyMessageTone(messages, tone);
@@ -357,7 +299,6 @@ export function buildModifyPromptMessages(
     tone = 'professional',
     focusAreas,
     version = PROMPT_VERSION,
-    ...baseOptions
   } = enhancedOptions;
 
   if (useCache) {
@@ -369,7 +310,7 @@ export function buildModifyPromptMessages(
     }
   }
 
-  let messages = buildModifyPromptMessagesBase(context, baseOptions);
+  let messages = buildModifyPromptMessagesBase(context);
 
   if (useCache || validate || tone !== 'professional' || focusAreas) {
     messages = applyMessageTone(messages, tone);
@@ -578,9 +519,7 @@ function generateCacheKey(
     resume: JSON.stringify(resume),
     jobInfo: JSON.stringify(jobInfo),
     options: JSON.stringify({
-      mode: options.mode,
       tone: options.tone,
-      includeExamples: options.includeExamples,
     }),
     reviewResult: reviewResult ? JSON.stringify(reviewResult) : undefined,
     version: options.version || PROMPT_VERSION,

@@ -5,9 +5,28 @@ Analyze the provided resume against the job requirements. Identify strengths, we
 IMPORTANT: Only suggest actions for sections that exist in the original resume. Do NOT suggest adding new sections (e.g., do not suggest adding a "summary" section if it doesn't exist in the original resume). You can only add items WITHIN existing sections (e.g., adding skills to the skills section, adding bullet points to experience entries).
 
 ## ANALYSIS FOCUS
-{{focusAreas}}
+1. How well the resume matches the job requirements
+2. Missing keywords or skills from the job description
+3. Opportunities to intelligently infer and add related content (e.g., Java -> backend, React -> frontend)
+4. Areas where the resume could be strengthened through intelligent inference
+5. Prioritized actions to enhance ATS compatibility
+6. Content quality and professional presentation
+7. Keyword density and relevance
+8. Experience alignment with job requirements
+9. ONLY suggest improvements for sections that exist in the original resume - do not suggest adding new sections
 
-{{examples}}
+## EXAMPLES
+
+### Example 1:
+Resume Snippet: {"experience":[{"company":"Tech Corp","role":"Software Engineer","bulletPoints":["Worked on web applications","Fixed bugs","Attended meetings"]}]}
+Job Requirements: {"keywords":["React","TypeScript","Node.js"],"requiredSkills":["JavaScript","React"]}
+Review Result: {"strengths":["Has relevant software engineering experience"],"weaknesses":["Missing specific technologies mentioned in job (React, TypeScript)","Bullet points are too generic and lack impact"],"opportunities":["Can enhance bullet points to highlight React/TypeScript experience","Can add metrics and quantifiable achievements"],"prioritizedActions":[{"type":"enhance","section":"experience[0]","priority":"high","reason":"Bullet points need to incorporate job-relevant keywords naturally","suggestedChange":"Rewrite bullet points to mention React and TypeScript specifically"}],"confidence":0.85,"reasoning":"Good foundation but needs keyword optimization and stronger impact statements"}
+
+### Example 2:
+Resume Snippet: {"experience":[{"company":"Enterprise Solutions","role":"Software Developer","bulletPoints":["Developed applications using Java","Worked with databases","Collaborated with team members"]}],"skills":{"categories":[{"name":"Programming Languages","items":["Java","SQL"]}]}}
+Job Requirements: {"keywords":["backend development","RESTful APIs","microservices","server-side"],"requiredSkills":["Java","backend development","API development"]}
+Review Result: {"strengths":["Has Java experience which is relevant for backend development","Has database experience (SQL)"],"weaknesses":["Missing explicit mention of backend development, APIs, or microservices","Bullet points don't highlight backend-specific work"],"opportunities":["Can intelligently infer \"backend development\" and \"server-side programming\" from Java experience","Can add \"RESTful APIs\" and \"microservices\" as these are commonly associated with Java backend work","Can enhance bullet points to explicitly mention backend architecture and API development"],"prioritizedActions":[{"type":"enhance","section":"experience[0]","priority":"high","reason":"Java experience can be enhanced with backend-related terms that are reasonably inferable","suggestedChange":"Add \"backend development\", \"RESTful APIs\", and \"microservices\" to bullet points based on Java experience"},{"type":"add","section":"skills","priority":"medium","reason":"Can intelligently add related skills: \"backend development\", \"API development\", \"server-side programming\"","suggestedChange":"Add inferred skills: backend development, RESTful APIs, microservices architecture"}],"confidence":0.9,"reasoning":"Strong Java foundation allows for intelligent inference of backend-related terms. These additions are truthful and reasonably inferable from existing Java experience."}
+
 ## OUTPUT FORMAT
 
 Provide your analysis as a JSON object with the following structure:

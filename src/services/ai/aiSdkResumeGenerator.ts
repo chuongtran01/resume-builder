@@ -90,16 +90,11 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
   const generateText = config.generateText || aiGenerateText;
 
   async function reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
-    const promptMessages = buildReviewPromptMessages(
-      {
-        resume: request.resume,
-        jobInfo: request.jobInfo,
-        options: request.options as Record<string, unknown> | undefined,
-      },
-      {
-        includeExamples: true,
-      }
-    );
+    const promptMessages = buildReviewPromptMessages({
+      resume: request.resume,
+      jobInfo: request.jobInfo,
+      options: request.options as Record<string, unknown> | undefined,
+    });
 
     const result = await generateText({
       model: config.model,
@@ -131,19 +126,12 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
     }
 
     const options = request.options as Record<string, unknown> | undefined;
-    const mode = (options?.enhancementMode as 'full' | 'bulletPoints' | 'skills' | 'summary') || 'full';
-    const promptMessages = buildModifyPromptMessages(
-      {
-        resume: request.resume,
-        jobInfo: request.jobInfo,
-        reviewResult: request.reviewResult,
-        options,
-      },
-      {
-        includeExamples: true,
-        mode,
-      }
-    );
+    const promptMessages = buildModifyPromptMessages({
+      resume: request.resume,
+      jobInfo: request.jobInfo,
+      reviewResult: request.reviewResult,
+      options,
+    });
 
     const result = await generateText({
       model: config.model,

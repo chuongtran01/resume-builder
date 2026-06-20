@@ -6,12 +6,62 @@ CRITICAL: Only include sections that exist in the original resume. Do NOT add ne
 
 ## CRITICAL RULES (MUST FOLLOW)
 
-{{truthfulnessRules}}
+1. NEVER add experiences, companies, roles, or dates not present in the original resume
+2. NEVER add sections that do not exist in the original resume (e.g., do not add "summary" if it was not in the original)
+3. NEVER fabricate achievements, metrics, or accomplishments that cannot be reasonably inferred
+4. You CAN intelligently infer and add related content based on existing resume information
+5. You CAN add items WITHIN existing sections (e.g., add skills to the skills section, add bullet points to experience entries)
+6. Examples of allowed intelligent inference:
+   - If resume mentions "Java" -> can add "backend development", "server-side programming", "enterprise applications"
+   - If resume mentions "React" -> can add "frontend development", "user interface", "client-side applications"
+   - If resume mentions "Python" -> can add "data science", "automation", "scripting", "backend development"
+   - If resume mentions "AWS" -> can add "cloud infrastructure", "cloud services", "cloud deployment"
+   - If resume mentions "Docker" -> can add "containerization", "container orchestration", "DevOps"
+7. Maintain truthfulness - all added content must be reasonably inferable from existing resume data
+8. Use natural language - avoid mechanical keyword stuffing
+9. Preserve the original meaning and context of all content
+10. Do not change dates, company names, or factual information
+11. Only enhance, reword, and intelligently expand - never invent completely unrelated content
+12. Match the exact section structure of the original resume - include only sections that were present in the original
 
 ## ENHANCEMENT FOCUS
-{{enhancementAreas}}
+1. Rewriting bullet points to naturally incorporate job-relevant keywords
+2. Intelligently inferring and adding related content based on existing resume information
+3. Reordering skills to prioritize job-relevant ones (only if skills section exists)
+4. Adding related skills that can be reasonably inferred (e.g., Java -> backend, React -> frontend) - only within existing skills section
+5. Enhancing summary to align with job requirements (only if summary section exists in original)
+6. Improving action verbs and impact language
+7. Maintaining professional tone and authenticity
+8. Ensuring ATS-friendly formatting and structure
+9. ONLY enhancing sections that exist in the original resume - do not add new sections
 
-{{examples}}
+## EXAMPLES
+
+### Example 1:
+Original: Worked on web applications using JavaScript
+Enhanced: Developed responsive web applications using JavaScript, React, and modern frontend frameworks
+Explanation: Enhanced to include specific technologies mentioned in job requirements while maintaining truthfulness
+
+### Example 2:
+Original: Developed applications using Java
+Enhanced: Developed scalable backend applications using Java, implementing RESTful APIs and microservices architecture
+Explanation: Intelligently inferred "backend", "RESTful APIs", and "microservices" from Java, as Java is commonly used for backend development
+
+### Example 3:
+Original: Managed team projects
+Enhanced: Led cross-functional team of 5 developers to deliver 3 major product releases, improving deployment efficiency by 40%
+Explanation: Added quantifiable metrics and stronger action verb while preserving original meaning
+
+### Example 4:
+Original: Responsible for database maintenance
+Enhanced: Optimized PostgreSQL database performance, reducing query time by 30% through indexing and query optimization
+Explanation: Transformed passive language into active achievements with specific technical details
+
+### Example 5:
+Original: Worked with Python for data analysis
+Enhanced: Performed data analysis and automation using Python, leveraging pandas and NumPy for data processing and insights
+Explanation: Intelligently inferred "automation", "pandas", and "NumPy" from Python, as these are commonly associated with Python data science work
+
 ## OUTPUT FORMAT
 
 Provide a JSON object with this exact top-level structure:

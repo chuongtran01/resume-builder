@@ -76,17 +76,16 @@ describe('Prompt Builder', () => {
       expect(messages.system).not.toContain('Test User');
     });
 
-    it('controls examples from options', () => {
+    it('loads examples from the review system prompt', () => {
       const context: PromptContext = {
         resume: sampleResume,
         jobInfo: sampleJobInfo,
       };
 
-      const withExamples = buildReviewPromptMessages(context, { includeExamples: true });
-      const withoutExamples = buildReviewPromptMessages(context, { includeExamples: false });
+      const messages = buildReviewPromptMessages(context);
 
-      expect(withExamples.system).toContain('EXAMPLES');
-      expect(withoutExamples.system).not.toContain('Resume Snippet');
+      expect(messages.system).toContain('EXAMPLES');
+      expect(messages.system).toContain('Resume Snippet');
     });
 
     it('supports direct Resume and JobInfo arguments', () => {
@@ -148,24 +147,11 @@ describe('Prompt Builder', () => {
       expect(() => buildModifyPromptMessages(context)).toThrow('Review result is required');
     });
 
-    it('supports different enhancement modes', () => {
-      const full = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'full' });
-      const bulletPoints = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'bulletPoints' });
-      const skills = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'skills' });
-      const summary = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'summary' });
+    it('loads examples from the modify system prompt', () => {
+      const messages = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult);
 
-      expect(full.system).toContain('Rewriting bullet points');
-      expect(bulletPoints.system).toContain('Focus ONLY on rewriting experience bullet points');
-      expect(skills.system).toContain('Focus ONLY on reordering and enhancing skills section');
-      expect(summary.system).toContain('Focus ONLY on enhancing the summary');
-    });
-
-    it('controls examples from options', () => {
-      const withExamples = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { includeExamples: true });
-      const withoutExamples = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { includeExamples: false });
-
-      expect(withExamples.system).toContain('EXAMPLES');
-      expect(withoutExamples.system).not.toContain('Original:');
+      expect(messages.system).toContain('EXAMPLES');
+      expect(messages.system).toContain('Original:');
     });
   });
 

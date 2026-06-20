@@ -5,6 +5,4 @@
  */
 
 export * from './types';
-export * from './reviewPromptData';
-export * from './modifyPromptData';
 export * from './builder';
