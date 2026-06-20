@@ -12,9 +12,7 @@ import type {
 } from '@resume-types/enhancement.types';
 import type { Resume } from '@resume-types/resume.types';
 import type {
-  ReviewRequest,
   ReviewResponse,
-  AIRequest,
   AIResponse,
   ReviewResult,
   ResumeAIClient,
@@ -25,6 +23,10 @@ import {
   buildEnhancementResult,
   flattenSkills,
 } from '@services/ai/enhancementResultBuilder';
+import {
+  buildModifyRequest,
+  buildReviewRequest,
+} from '@services/ai/enhancementRequestBuilder';
 import { logger } from '@utils/logger';
 
 export interface EnhanceResumeInput {
@@ -89,11 +91,11 @@ export async function reviewResume(input: ReviewResumeInput): Promise<ReviewResu
   logger.debug('Starting review phase...');
 
   const parsedJob = parseJobDescription(jobDescription);
-  const reviewRequest: ReviewRequest = {
+  const reviewRequest = buildReviewRequest({
     resume,
     jobInfo: parsedJob,
-    options: options as Record<string, unknown> | undefined,
-  };
+    options,
+  });
 
   try {
     const reviewResponse: ReviewResponse = await aiClient.reviewResume(reviewRequest);
@@ -115,12 +117,12 @@ export async function modifyResume(input: ModifyResumeInput): Promise<Enhancemen
 
   logger.debug('Starting modification phase...');
 
-  const modifyRequest: AIRequest = {
+  const modifyRequest = buildModifyRequest({
     resume,
     jobInfo: parsedJob,
     reviewResult,
-    options: options as Record<string, unknown> | undefined,
-  };
+    options,
+  });
 
   try {
     const aiResponse: AIResponse = await aiClient.modifyResume(modifyRequest);
