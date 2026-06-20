@@ -17,7 +17,7 @@ The Resume Builder API provides REST endpoints for generating ATS-compliant resu
 
 2. **Set up environment variables (optional):**
    - Create a `.env` file if you plan to use AI enhancement features
-   - See [AI_CONFIG.md](./AI_CONFIG.md) for configuration details
+   - See [GEMINI_SETUP.md](./GEMINI_SETUP.md) for configuration details
 
 ### Starting the Server
 
@@ -788,7 +788,7 @@ console.log('Suggestions:', result.suggestions);
 
 ## Resume JSON Schema
 
-The resume object follows a structured schema. See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for complete schema documentation.
+The resume object follows a structured schema.
 
 **Key Sections:**
 - `personalInfo` - Personal contact information (required)

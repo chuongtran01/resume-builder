@@ -236,7 +236,6 @@ GEMINI_TIMEOUT=60000
 
 - [Google Gemini API Documentation](https://ai.google.dev/gemini-api/docs)
 - [Google AI Studio](https://aistudio.google.com/)
-- [AI Configuration Guide](./AI_CONFIG.md) - Detailed configuration options
 - [API Documentation](./API.md) - API endpoint documentation
 
 ## Support
@@ -244,6 +243,6 @@ GEMINI_TIMEOUT=60000
 If you encounter issues:
 
 1. Check this troubleshooting guide
-2. Review [AI_CONFIG.md](./AI_CONFIG.md) for configuration details
+2. Review `.env.example` for supported environment variables
 3. Check the project's GitHub issues
 4. Verify your API key is valid in Google AI Studio

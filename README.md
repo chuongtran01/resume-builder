@@ -33,7 +33,7 @@ cp .env.example .env
 GEMINI_API_KEY=your-api-key-here
 ```
 
-See [AI_CONFIG.md](./AI_CONFIG.md) for detailed configuration options.
+See [GEMINI_SETUP.md](./GEMINI_SETUP.md) for detailed configuration options.
 
 ### CLI Usage
 
@@ -160,7 +160,7 @@ This will:
 5. Generate enhanced JSON, PDF, and Markdown report
 6. Display ATS score improvement and change summary
 
-**Note:** Make sure you have set up your `.env` file with `GEMINI_API_KEY` before running enhancement commands. See [AI_CONFIG.md](./AI_CONFIG.md) for configuration details.
+**Note:** Make sure you have set up your `.env` file with `GEMINI_API_KEY` before running enhancement commands. See [GEMINI_SETUP.md](./GEMINI_SETUP.md) for configuration details.
 
 ### API Usage
 
@@ -229,7 +229,7 @@ resume-builder/
 
 ## Resume JSON Schema
 
-See [PROJECT_PLAN.md](./PROJECT_PLAN.md) for detailed schema documentation.
+See [API.md](./API.md#resume-json-schema) for detailed schema documentation.
 
 ## AI Enhancement Examples
 
@@ -292,7 +292,7 @@ npm run format
 **Error: "Gemini API key not configured"**
 - Make sure you have created a `.env` file in the project root
 - Add `GEMINI_API_KEY=your-api-key-here` to the `.env` file
-- See [AI_CONFIG.md](./AI_CONFIG.md) for detailed configuration instructions
+- See [GEMINI_SETUP.md](./GEMINI_SETUP.md) for detailed configuration instructions
 
 **Error: "Rate limit exceeded"**
 - The Gemini API has rate limits. Wait a few minutes and try again
@@ -325,7 +325,7 @@ npm run format
 - Check that you have write permissions for the output directory
 - Try generating HTML first to isolate PDF-specific issues
 
-For more help, see [AI_CONFIG.md](./AI_CONFIG.md) or check the project issues on GitHub.
+For more help, see [GEMINI_SETUP.md](./GEMINI_SETUP.md) or check the project issues on GitHub.
 
 ## License
 
