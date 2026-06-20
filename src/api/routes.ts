@@ -260,16 +260,14 @@ export function registerRoutes(app: Express): void {
 
         logger.info(`[${requestId}] Using AI provider: ${providerToUse}, model: ${finalGeminiConfig.model}, temperature: ${finalGeminiConfig.temperature}`);
 
-        // Create enhancement service with the request-specific provider
-        const { AIResumeEnhancementService } = await import('../services/aiResumeEnhancementService');
-        const enhancementService = new AIResumeEnhancementService(geminiProvider);
-
         // Enhance resume
-        const enhancementResult = await enhancementService.enhanceResume(
+        const { enhanceResume } = await import('../services/aiResumeEnhancementService');
+        const enhancementResult = await enhanceResume({
           resume,
           jobDescription,
-          options
-        );
+          options,
+          aiClient: geminiProvider,
+        });
 
         // Get provider info for response
         const providerInfo = geminiProvider.getProviderInfo();

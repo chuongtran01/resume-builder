@@ -579,17 +579,17 @@ program
 
       // Enhance resume using AI
       logger.info('\n🤖 Step 4: Enhancing resume with AI...');
-      const { AIResumeEnhancementService } = await import('@services/aiResumeEnhancementService');
+      const { enhanceResume } = await import('@services/aiResumeEnhancementService');
 
       const providerInfo = provider.getProviderInfo();
       logger.info(`   Using: ${providerInfo.displayName} (${providerInfo.name})`);
       logger.info(`   Model: ${finalConfig.model}${!options.aiModel ? ' (default)' : ''}`);
 
-      const aiEnhancementService = new AIResumeEnhancementService(provider);
-      const enhancementResult = await aiEnhancementService.enhanceResume(
+      const enhancementResult = await enhanceResume({
         resume,
-        jobDescription
-      );
+        jobDescription,
+        aiClient: provider,
+      });
       logger.success('   ✅ Resume enhanced successfully');
       logger.info(`   📊 ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
       logger.info(`   📝 Changes: ${enhancementResult.improvements.length} improvements made`);
