@@ -20,13 +20,16 @@ import type {
 import type { ParsedJobDescription } from '@utils/jobParser';
 import { parseJobDescription } from '@utils/jobParser';
 import {
-  buildEnhancementResult,
   flattenSkills,
 } from '@services/ai/enhancementResultBuilder';
 import {
   buildModifyRequest,
   buildReviewRequest,
 } from '@services/ai/enhancementRequestBuilder';
+import {
+  parseModifyResponse,
+  parseReviewResponse,
+} from '@services/ai/enhancementResponseParser';
 import { logger } from '@utils/logger';
 
 export interface EnhanceResumeInput {
@@ -134,45 +137,6 @@ export async function modifyResume(input: ModifyResumeInput): Promise<Enhancemen
     logger.error(`Modification phase failed: ${error instanceof Error ? error.message : String(error)}`);
     throw error;
   }
-}
-
-function parseReviewResponse(response: ReviewResponse): ReviewResult {
-  if (!response || !response.reviewResult) {
-    throw new Error('Invalid review response structure');
-  }
-
-  const reviewResult = response.reviewResult;
-
-  if (!reviewResult || !Array.isArray(reviewResult.strengths) || !Array.isArray(reviewResult.weaknesses)) {
-    throw new Error('Invalid review result structure');
-  }
-
-  return {
-    strengths: reviewResult.strengths || [],
-    weaknesses: reviewResult.weaknesses || [],
-    opportunities: reviewResult.opportunities || [],
-    prioritizedActions: reviewResult.prioritizedActions || [],
-    confidence: reviewResult.confidence ?? 0.5,
-    reasoning: reviewResult.reasoning,
-  };
-}
-
-function parseModifyResponse(
-  originalResume: Resume,
-  response: AIResponse,
-  parsedJob: ParsedJobDescription
-): EnhancementResult {
-  if (!response || !Array.isArray(response.improvements)) {
-    throw new Error('Invalid modification response structure');
-  }
-
-  const enhancedResume = response.enhancedResume;
-
-  if (!enhancedResume || !enhancedResume.personalInfo || !enhancedResume.experience) {
-    throw new Error('Invalid enhanced resume structure');
-  }
-
-  return buildEnhancementResult(originalResume, response, parsedJob);
 }
 
 /**
