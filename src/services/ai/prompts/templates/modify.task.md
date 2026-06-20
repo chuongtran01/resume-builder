@@ -1,0 +1,3 @@
+Enhance the provided resume based on the review findings and job requirements. Your goal is to improve the resume's alignment with the job posting while maintaining complete truthfulness and authenticity. You can intelligently infer and add related content based on what's already in the resume (e.g., if the resume mentions "Java", you can add "backend development" or "server-side programming" since Java is commonly associated with backend work).
+
+CRITICAL: Only include sections that exist in the original resume. Do NOT add new sections (e.g., do not add a "summary" section if it doesn't exist in the original resume). You can only add items WITHIN existing sections (e.g., adding skills to the skills section, adding bullet points to experience entries).
