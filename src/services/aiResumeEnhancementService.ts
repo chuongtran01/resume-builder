@@ -17,12 +17,14 @@ import type {
 import type { Resume } from '@resume-types/resume.types';
 import type {
   AIProvider,
+} from '@services/ai/provider.types';
+import type {
   ReviewRequest,
   ReviewResponse,
   AIRequest,
   AIResponse,
   ReviewResult,
-} from '@services/ai/provider.types';
+} from '@services/ai/enhancement.types';
 import type { ParsedJobDescription } from '@utils/jobParser';
 import { parseJobDescription } from '@utils/jobParser';
 import { getProvider, getDefaultProvider } from '@services/ai/providerRegistry';

@@ -7,7 +7,7 @@
 
 import type { Resume } from '@resume-types/resume.types';
 import type { Improvement } from '@resume-types/enhancement.types';
-import type { AIResponse, ReviewResponse } from '@services/ai/provider.types';
+import type { AIResponse, ReviewResponse } from '@services/ai/enhancement.types';
 import { validateResume } from '@utils/resumeParser';
 import { logger } from '@utils/logger';
 

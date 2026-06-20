@@ -6,7 +6,7 @@
 
 import type { Resume } from '@resume-types/resume.types';
 import type { ParsedJobDescription } from '@utils/jobParser';
-import type { ReviewResult } from '@services/ai/provider.types';
+import type { ReviewResult } from '@services/ai/enhancement.types';
 
 /**
  * Base prompt structure

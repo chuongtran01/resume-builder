@@ -13,12 +13,14 @@ import { GoogleGenAI } from '@google/genai';
 import type {
   AIProvider,
   AIProviderConfig,
+  ProviderInfo,
+} from '@services/ai/provider.types';
+import type {
   AIRequest,
   AIResponse,
   ReviewRequest,
   ReviewResponse,
-  ProviderInfo,
-} from '@services/ai/provider.types';
+} from '@services/ai/enhancement.types';
 import {
   AIProviderError,
   RateLimitError,

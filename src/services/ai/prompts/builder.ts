@@ -11,7 +11,7 @@ import type {
 } from './types';
 import type { Resume } from '@resume-types/resume.types';
 import type { ParsedJobDescription } from '@utils/jobParser';
-import type { ReviewResult } from '@services/ai/provider.types';
+import type { ReviewResult } from '@services/ai/enhancement.types';
 import { buildReviewPromptTemplate } from './review.template';
 import { buildModifyPromptTemplate, getEnhancementAreasForMode } from './modify.template';
 import { logger } from '@utils/logger';
