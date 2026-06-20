@@ -25,12 +25,16 @@ describe('createAISdkResumeClient', () => {
     personalInfo: {
       name: 'John Doe',
       email: 'john@example.com',
+      phone: '555-0100',
+      location: 'Austin, TX',
     },
     experience: [
       {
         company: 'Acme',
         role: 'Engineer',
         startDate: '2020-01',
+        endDate: 'Present',
+        location: 'Remote',
         bulletPoints: ['Built web applications'],
       },
     ],
@@ -155,6 +159,38 @@ describe('createAISdkResumeClient', () => {
         output: expect.any(Object),
       })
     );
+  });
+
+  it('rejects modify output when enhancedResume is not a complete resume', async () => {
+    const reviewResult = {
+      strengths: ['Clear experience'],
+      weaknesses: ['Missing React'],
+      opportunities: ['Add React context'],
+      prioritizedActions: [],
+      confidence: 0.8,
+    };
+
+    mockGenerateText.mockResolvedValueOnce({
+      output: {
+        enhancedResume: {
+          summary: 'React engineer',
+        },
+        improvements: [],
+      },
+      totalUsage: {
+        inputTokens: 120,
+        outputTokens: 80,
+        totalTokens: 200,
+      },
+    } as Awaited<ReturnType<typeof generateText>>);
+
+    const generator = createAISdkResumeClient({
+      model: 'google/gemini-3-flash',
+    });
+
+    await expect(
+      generator.modifyResume({ resume, jobInfo, reviewResult })
+    ).rejects.toThrow('AI SDK modify response did not include a complete enhanced resume');
   });
 
   it('requires a review result before modify generation', async () => {

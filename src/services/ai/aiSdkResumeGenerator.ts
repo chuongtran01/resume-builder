@@ -14,6 +14,7 @@ import type {
 } from './enhancement.types';
 import { buildReviewPrompt, buildModifyPrompt } from '@services/ai/prompts';
 import { InvalidResponseError } from './provider.types';
+import { validateResume } from '@utils/resumeParser';
 
 type GenerateText = typeof aiGenerateText;
 
@@ -57,8 +58,29 @@ const improvementSchema = z.object({
   confidence: z.number().min(0).max(1),
 });
 
+const personalInfoSchema = z.object({
+  name: z.string(),
+  email: z.string(),
+  phone: z.string(),
+  location: z.string(),
+}).passthrough();
+
+const experienceSchema = z.object({
+  company: z.string(),
+  role: z.string(),
+  startDate: z.string(),
+  endDate: z.string(),
+  location: z.string(),
+  bulletPoints: z.array(z.string()),
+}).passthrough();
+
+const resumeSchema = z.object({
+  personalInfo: personalInfoSchema,
+  experience: z.array(experienceSchema).min(1),
+}).passthrough();
+
 const modifyResponseSchema = z.object({
-  enhancedResume: z.unknown(),
+  enhancedResume: resumeSchema,
   improvements: z.array(improvementSchema).default([]),
   reasoning: z.string().optional(),
   confidence: z.number().min(0).max(1).optional(),
@@ -141,11 +163,12 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
 
     const object = result.output;
 
-    if (!object.enhancedResume || typeof object.enhancedResume !== 'object') {
+    const validationErrors = validateResume(object.enhancedResume);
+    if (validationErrors.length > 0) {
       throw new InvalidResponseError(
-        'AI SDK modify response did not include an enhanced resume object',
+        'AI SDK modify response did not include a complete enhanced resume',
         'ai-sdk',
-        object
+        { errors: validationErrors, response: object }
       );
     }
 
