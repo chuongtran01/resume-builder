@@ -98,7 +98,6 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       },
       {
         includeExamples: true,
-        maxContextLength: config.maxTokens ? config.maxTokens * 4 : undefined,
         compress: false,
       }
     );
@@ -142,7 +141,6 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       },
       {
         includeExamples: true,
-        maxContextLength: config.maxTokens ? config.maxTokens * 4 : undefined,
         compress: false,
         mode,
       }

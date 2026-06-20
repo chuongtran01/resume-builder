@@ -76,8 +76,6 @@ export interface EnhancedPromptBuilderOptions extends PromptBuilderOptions {
   useCache?: boolean;
   /** Prompt version */
   version?: string;
-  /** Maximum tokens allowed */
-  maxTokens?: number;
   /** Validate prompt before returning */
   validate?: boolean;
 }
@@ -273,7 +271,6 @@ export function buildReviewPrompt(
   const {
     useCache = false, // Default to false for backward compatibility
     validate = false,
-    maxTokens,
     tone = 'professional',
     focusAreas,
     version = PROMPT_VERSION,
@@ -294,7 +291,7 @@ export function buildReviewPrompt(
   let prompt = buildReviewPromptBase(context, baseOptions);
 
   // Apply enhanced features if requested
-  if (useCache || validate || maxTokens || tone !== 'professional' || focusAreas) {
+  if (useCache || validate || tone !== 'professional' || focusAreas) {
     // Apply tone adjustments
     prompt = applyTone(prompt, tone);
 
@@ -314,12 +311,7 @@ export function buildReviewPrompt(
       }
     }
 
-    // Check token limits
     const tokenCount = estimatePromptTokens(prompt);
-    if (maxTokens && tokenCount > maxTokens) {
-      logger.warn(`Prompt tokens (${tokenCount}) exceed max (${maxTokens}), truncating`);
-      prompt = truncatePrompt(prompt, maxTokens);
-    }
 
     // Cache result
     if (useCache) {
@@ -384,7 +376,6 @@ export function buildModifyPrompt(
   const {
     useCache = false, // Default to false for backward compatibility
     validate = false,
-    maxTokens,
     tone = 'professional',
     focusAreas,
     version = PROMPT_VERSION,
@@ -405,7 +396,7 @@ export function buildModifyPrompt(
   let prompt = buildModifyPromptBase(context, baseOptions);
 
   // Apply enhanced features if requested
-  if (useCache || validate || maxTokens || tone !== 'professional' || focusAreas) {
+  if (useCache || validate || tone !== 'professional' || focusAreas) {
     // Apply tone adjustments
     prompt = applyTone(prompt, tone);
 
@@ -425,12 +416,7 @@ export function buildModifyPrompt(
       }
     }
 
-    // Check token limits
     const tokenCount = estimatePromptTokens(prompt);
-    if (maxTokens && tokenCount > maxTokens) {
-      logger.warn(`Prompt tokens (${tokenCount}) exceed max (${maxTokens}), truncating`);
-      prompt = truncatePrompt(prompt, maxTokens);
-    }
 
     // Cache result
     if (useCache) {
@@ -465,30 +451,6 @@ function compressPrompt(prompt: string): string {
  */
 export function estimatePromptTokens(prompt: string): number {
   return Math.ceil(prompt.length / 4);
-}
-
-/**
- * Truncate prompt if it exceeds max tokens
- */
-export function truncatePrompt(prompt: string, maxTokens: number): string {
-  const maxChars = maxTokens * 4;
-  if (prompt.length <= maxChars) {
-    return prompt;
-  }
-
-  logger.warn(`Truncating prompt from ${prompt.length} chars to ${maxChars} chars`);
-  
-  // Try to truncate at a sentence boundary
-  const truncated = prompt.substring(0, maxChars);
-  const lastPeriod = truncated.lastIndexOf('.');
-  const lastNewline = truncated.lastIndexOf('\n');
-  const cutPoint = Math.max(lastPeriod, lastNewline);
-  
-  if (cutPoint > maxChars * 0.8) {
-    return truncated.substring(0, cutPoint + 1) + '\n\n[Content truncated due to length limit]';
-  }
-  
-  return truncated + '\n\n[Content truncated due to length limit]';
 }
 
 /**

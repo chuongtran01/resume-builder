@@ -90,8 +90,6 @@ export interface EnhancementExample {
 export interface PromptBuilderOptions {
   /** Include few-shot examples */
   includeExamples?: boolean;
-  /** Maximum context length */
-  maxContextLength?: number;
   /** Compress prompt */
   compress?: boolean;
   /** Enhancement mode */

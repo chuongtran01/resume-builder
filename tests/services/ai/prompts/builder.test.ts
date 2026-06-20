@@ -9,7 +9,6 @@ import {
   buildReviewPrompt,
   buildModifyPrompt,
   estimatePromptTokens,
-  truncatePrompt,
   validatePrompt,
   clearPromptCache,
   getPromptCacheStats,
@@ -241,10 +240,11 @@ describe('Prompt Builder', () => {
         expect(prompt).toBeDefined();
       });
 
-      it('should truncate when exceeding max tokens', () => {
-        const prompt = buildReviewPrompt(sampleResume, sampleJobInfo, { maxTokens: 100 });
-        expect(prompt).toBeDefined();
-        expect(prompt.length).toBeLessThanOrEqual(400 + 100); // 100 tokens * 4 chars + buffer
+      it('should ignore legacy maxTokens prompt input limits', () => {
+        const fullPrompt = buildReviewPrompt(sampleResume, sampleJobInfo);
+        const prompt = buildReviewPrompt(sampleResume, sampleJobInfo, { maxTokens: 100 } as never);
+
+        expect(prompt).toBe(fullPrompt);
       });
     });
 
@@ -320,31 +320,6 @@ describe('Prompt Builder', () => {
       const longPrompt = 'A'.repeat(1000);
       const tokens = estimatePromptTokens(longPrompt);
       expect(tokens).toBeCloseTo(250, 0); // 1000 / 4 = 250
-    });
-  });
-
-  describe('truncatePrompt', () => {
-    it('should return prompt unchanged if under limit', () => {
-      const prompt = 'Short prompt';
-      const truncated = truncatePrompt(prompt, 100);
-      expect(truncated).toBe(prompt);
-    });
-
-    it('should truncate prompt if over limit', () => {
-      const longPrompt = 'A'.repeat(1000);
-      const truncated = truncatePrompt(longPrompt, 100); // 100 tokens = 400 chars
-
-      expect(truncated.length).toBeLessThanOrEqual(400 + 50); // Allow some buffer
-      expect(truncated).toContain('truncated');
-    });
-
-    it('should try to truncate at sentence boundary', () => {
-      const prompt = 'Sentence one. Sentence two. Sentence three. ' + 'A'.repeat(1000);
-      const truncated = truncatePrompt(prompt, 50);
-
-      expect(truncated.length).toBeLessThanOrEqual(200 + 50);
-      // Should try to cut at a period
-      expect(truncated).toBeDefined();
     });
   });
 
