@@ -27,6 +27,152 @@ import {
 } from '@services/ai/enhancementResultBuilder';
 import { logger } from '@utils/logger';
 
+export interface EnhanceResumeInput {
+  resume: Resume;
+  jobDescription: string;
+  options?: EnhancementOptions;
+  aiClient: ResumeAIClient;
+}
+
+export interface ReviewResumeInput {
+  resume: Resume;
+  jobDescription: string;
+  options?: EnhancementOptions;
+  aiClient: ResumeAIClient;
+}
+
+export interface ModifyResumeInput {
+  resume: Resume;
+  reviewResult: ReviewResult;
+  parsedJob: ParsedJobDescription;
+  options?: EnhancementOptions;
+  aiClient: ResumeAIClient;
+}
+
+/**
+ * Enhance resume based on job description.
+ */
+export async function enhanceResume(input: EnhanceResumeInput): Promise<EnhancementResult> {
+  const { resume, jobDescription, options, aiClient } = input;
+
+  logger.debug('Starting AI resume enhancement...');
+
+  const parsedJob = parseJobDescription(jobDescription);
+  logger.debug(`Parsed job description: ${parsedJob.keywords.length} keywords found`);
+
+  const reviewResult = await reviewResume({
+    resume,
+    jobDescription,
+    options,
+    aiClient,
+  });
+  logger.debug(`Review complete. Found ${reviewResult.prioritizedActions.length} prioritized actions`);
+
+  const enhancementResult = await modifyResume({
+    resume,
+    reviewResult,
+    parsedJob,
+    options,
+    aiClient,
+  });
+  logger.debug(`Modification complete. Made ${enhancementResult.improvements.length} improvements`);
+
+  return enhancementResult;
+}
+
+/**
+ * Review resume against job requirements.
+ */
+export async function reviewResume(input: ReviewResumeInput): Promise<ReviewResult> {
+  const { resume, jobDescription, options, aiClient } = input;
+
+  logger.debug('Starting review phase...');
+
+  const parsedJob = parseJobDescription(jobDescription);
+  const reviewRequest: ReviewRequest = {
+    resume,
+    jobInfo: parsedJob,
+    options: options as Record<string, unknown> | undefined,
+  };
+
+  try {
+    const reviewResponse: ReviewResponse = await aiClient.reviewResume(reviewRequest);
+    const reviewResult = parseReviewResponse(reviewResponse);
+
+    logger.debug(`Review phase complete. Confidence: ${reviewResult.confidence}`);
+    return reviewResult;
+  } catch (error) {
+    logger.error(`Review phase failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw error;
+  }
+}
+
+/**
+ * Modify resume based on review findings.
+ */
+export async function modifyResume(input: ModifyResumeInput): Promise<EnhancementResult> {
+  const { resume, reviewResult, parsedJob, options, aiClient } = input;
+
+  logger.debug('Starting modification phase...');
+
+  const modifyRequest: AIRequest = {
+    resume,
+    jobInfo: parsedJob,
+    reviewResult,
+    options: options as Record<string, unknown> | undefined,
+  };
+
+  try {
+    const aiResponse: AIResponse = await aiClient.modifyResume(modifyRequest);
+    const enhancementResult = parseModifyResponse(resume, aiResponse, parsedJob);
+
+    logger.debug('Modification phase complete. Enhanced resume generated');
+    return enhancementResult;
+  } catch (error) {
+    logger.error(`Modification phase failed: ${error instanceof Error ? error.message : String(error)}`);
+    throw error;
+  }
+}
+
+function parseReviewResponse(response: ReviewResponse): ReviewResult {
+  if (!response || !response.reviewResult) {
+    throw new Error('Invalid review response structure');
+  }
+
+  const reviewResult = response.reviewResult;
+
+  if (!reviewResult || !Array.isArray(reviewResult.strengths) || !Array.isArray(reviewResult.weaknesses)) {
+    throw new Error('Invalid review result structure');
+  }
+
+  return {
+    strengths: reviewResult.strengths || [],
+    weaknesses: reviewResult.weaknesses || [],
+    opportunities: reviewResult.opportunities || [],
+    prioritizedActions: reviewResult.prioritizedActions || [],
+    confidence: reviewResult.confidence ?? 0.5,
+    reasoning: reviewResult.reasoning,
+  };
+}
+
+function parseModifyResponse(
+  originalResume: Resume,
+  response: AIResponse,
+  parsedJob: ParsedJobDescription
+): EnhancementResult {
+  if (!response || !Array.isArray(response.improvements)) {
+    throw new Error('Invalid modification response structure');
+  }
+
+  const enhancedResume = response.enhancedResume;
+
+  if (!enhancedResume || !enhancedResume.personalInfo || !enhancedResume.experience) {
+    throw new Error('Invalid enhanced resume structure');
+  }
+
+  return buildEnhancementResult(originalResume, response, parsedJob);
+}
+
 /**
  * AI Resume Enhancement Service
  * 
@@ -63,21 +209,12 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     jobDescription: string,
     options?: EnhancementOptions
   ): Promise<EnhancementResult> {
-    logger.debug('Starting AI resume enhancement...');
-
-    // Parse job description
-    const parsedJob = parseJobDescription(jobDescription);
-    logger.debug(`Parsed job description: ${parsedJob.keywords.length} keywords found`);
-
-    // Step 1: Review phase
-    const reviewResult = await this.reviewResume(resume, jobDescription, options);
-    logger.debug(`Review complete. Found ${reviewResult.prioritizedActions.length} prioritized actions`);
-
-    // Step 2: Modify phase
-    const enhancementResult = await this.modifyResume(resume, reviewResult, parsedJob, options);
-    logger.debug(`Modification complete. Made ${enhancementResult.improvements.length} improvements`);
-
-    return enhancementResult;
+    return enhanceResume({
+      resume,
+      jobDescription,
+      options,
+      aiClient: this.aiClient,
+    });
   }
 
   /**
@@ -95,31 +232,12 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     jobDescription: string,
     options?: EnhancementOptions
   ): Promise<ReviewResult> {
-    logger.debug('Starting review phase...');
-
-    // Parse job description
-    const parsedJob = parseJobDescription(jobDescription);
-
-    // Build review request
-    const reviewRequest: ReviewRequest = {
+    return reviewResume({
       resume,
-      jobInfo: parsedJob,
-      options: options as Record<string, unknown> | undefined,
-    };
-
-    try {
-      // Call AI provider for review
-      const reviewResponse: ReviewResponse = await this.aiClient.reviewResume(reviewRequest);
-      
-      // Parse and validate review response
-      const reviewResult = this.parseReviewResponse(reviewResponse);
-      
-      logger.debug(`Review phase complete. Confidence: ${reviewResult.confidence}`);
-      return reviewResult;
-    } catch (error) {
-      logger.error(`Review phase failed: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
-    }
+      jobDescription,
+      options,
+      aiClient: this.aiClient,
+    });
   }
 
   /**
@@ -139,87 +257,13 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     parsedJob: ParsedJobDescription,
     options?: EnhancementOptions
   ): Promise<EnhancementResult> {
-    logger.debug('Starting modification phase...');
-
-    // Build modification request
-    const modifyRequest: AIRequest = {
+    return modifyResume({
       resume,
-      jobInfo: parsedJob,
       reviewResult,
-      options: options as Record<string, unknown> | undefined,
-    };
-
-    try {
-      // Call AI provider for modification
-      const aiResponse: AIResponse = await this.aiClient.modifyResume(modifyRequest);
-      
-      // Parse and validate modification response
-      const enhancementResult = this.parseModifyResponse(resume, aiResponse, parsedJob);
-      
-      logger.debug(`Modification phase complete. Enhanced resume generated`);
-      return enhancementResult;
-    } catch (error) {
-      logger.error(`Modification phase failed: ${error instanceof Error ? error.message : String(error)}`);
-      throw error;
-    }
-  }
-
-  /**
-   * Parse review response from AI provider
-   * 
-   * @param response - Review response from AI provider
-   * @returns Parsed review result
-   */
-  private parseReviewResponse(response: ReviewResponse): ReviewResult {
-    // Validate response structure
-    if (!response || !response.reviewResult) {
-      throw new Error('Invalid review response structure');
-    }
-
-    const reviewResult = response.reviewResult;
-
-    // Validate review result structure
-    if (!reviewResult || !Array.isArray(reviewResult.strengths) || !Array.isArray(reviewResult.weaknesses)) {
-      throw new Error('Invalid review result structure');
-    }
-
-    // Ensure all required fields are present
-    return {
-      strengths: reviewResult.strengths || [],
-      weaknesses: reviewResult.weaknesses || [],
-      opportunities: reviewResult.opportunities || [],
-      prioritizedActions: reviewResult.prioritizedActions || [],
-      confidence: reviewResult.confidence ?? 0.5,
-      reasoning: reviewResult.reasoning,
-    };
-  }
-
-  /**
-   * Parse modification response from AI provider
-   * 
-   * @param originalResume - Original resume before enhancement
-   * @param response - AI response with enhanced resume
-   * @param parsedJob - Parsed job description information
-   * @returns Enhancement result with all metadata
-   */
-  private parseModifyResponse(
-    originalResume: Resume,
-    response: AIResponse,
-    parsedJob: ParsedJobDescription
-  ): EnhancementResult {
-    // Validate response structure
-    if (!response || !Array.isArray(response.improvements)) {
-      throw new Error('Invalid modification response structure');
-    }
-
-    const enhancedResume = response.enhancedResume;
-
-    // Validate resume structure
-    if (!enhancedResume || !enhancedResume.personalInfo || !enhancedResume.experience) {
-      throw new Error('Invalid enhanced resume structure');
-    }
-
-    return buildEnhancementResult(originalResume, response, parsedJob);
+      parsedJob,
+      options,
+      aiClient: this.aiClient,
+    });
   }
 
   // ============================================================================

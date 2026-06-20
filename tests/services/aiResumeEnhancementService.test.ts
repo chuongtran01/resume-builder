@@ -2,7 +2,12 @@
  * Unit tests for AI Resume Enhancement Service
  */
 
-import { AIResumeEnhancementService } from '../../src/services/aiResumeEnhancementService';
+import {
+  AIResumeEnhancementService,
+  enhanceResume,
+  modifyResume,
+  reviewResume,
+} from '../../src/services/aiResumeEnhancementService';
 import type { Resume } from '../../src/types/resume.types';
 import type {
   ReviewResponse,
@@ -149,6 +154,22 @@ describe('AIResumeEnhancementService', () => {
   });
 
   describe('enhanceResume', () => {
+    it('should enhance resume using the functional API', async () => {
+      mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
+      mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
+
+      const result = await enhanceResume({
+        resume: sampleResume,
+        jobDescription: sampleJobDescription,
+        aiClient: mockAIProvider,
+      });
+
+      expect(result.originalResume).toEqual(sampleResume);
+      expect(result.enhancedResume).toBeDefined();
+      expect(mockAIProvider.reviewResume).toHaveBeenCalled();
+      expect(mockAIProvider.modifyResume).toHaveBeenCalled();
+    });
+
     it('should enhance resume using AI provider', async () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
@@ -195,6 +216,19 @@ describe('AIResumeEnhancementService', () => {
   });
 
   describe('reviewResume', () => {
+    it('should review resume using the functional API', async () => {
+      mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
+
+      const result = await reviewResume({
+        resume: sampleResume,
+        jobDescription: sampleJobDescription,
+        aiClient: mockAIProvider,
+      });
+
+      expect(result).toEqual(sampleReviewResult);
+      expect(mockAIProvider.reviewResume).toHaveBeenCalled();
+    });
+
     it('should review resume and return ReviewResult', async () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
 
@@ -239,6 +273,21 @@ describe('AIResumeEnhancementService', () => {
   });
 
   describe('modifyResume', () => {
+    it('should modify resume using the functional API', async () => {
+      mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
+
+      const result = await modifyResume({
+        resume: sampleResume,
+        reviewResult: sampleReviewResult,
+        parsedJob: sampleParsedJob,
+        aiClient: mockAIProvider,
+      });
+
+      expect(result.originalResume).toEqual(sampleResume);
+      expect(result.enhancedResume).toBeDefined();
+      expect(mockAIProvider.modifyResume).toHaveBeenCalled();
+    });
+
     it('should modify resume based on review result', async () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
