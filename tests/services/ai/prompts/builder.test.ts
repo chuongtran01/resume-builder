@@ -103,17 +103,6 @@ describe('Prompt Builder', () => {
         expect(prompt).toBeDefined();
       });
 
-      it('should compress prompt when requested', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-        };
-
-        const normalPrompt = buildReviewPrompt(context, { compress: false });
-        const compressedPrompt = buildReviewPrompt(context, { compress: true });
-
-        expect(compressedPrompt.length).toBeLessThanOrEqual(normalPrompt.length);
-      });
     });
 
     describe('buildModifyPrompt with PromptContext', () => {

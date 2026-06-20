@@ -98,7 +98,6 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       },
       {
         includeExamples: true,
-        compress: false,
       }
     );
 
@@ -141,7 +140,6 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       },
       {
         includeExamples: true,
-        compress: false,
         mode,
       }
     );

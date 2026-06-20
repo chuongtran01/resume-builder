@@ -90,8 +90,6 @@ export interface EnhancementExample {
 export interface PromptBuilderOptions {
   /** Include few-shot examples */
   includeExamples?: boolean;
-  /** Compress prompt */
-  compress?: boolean;
   /** Enhancement mode */
   mode?: 'full' | 'bulletPoints' | 'skills' | 'summary';
 }

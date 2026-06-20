@@ -108,7 +108,7 @@ function buildReviewPromptBase(
   options: PromptBuilderOptions = {}
 ): string {
   const template = buildReviewPromptTemplate();
-  const { includeExamples = true, compress = false } = options;
+  const { includeExamples = true } = options;
 
   // Build system message
   let prompt = `${template.systemMessage}\n\n`;
@@ -142,11 +142,6 @@ function buildReviewPromptBase(
   // Add output format
   prompt += `## OUTPUT FORMAT\n\n${template.outputFormat}\n`;
 
-  // Compress if requested
-  if (compress) {
-    prompt = compressPrompt(prompt);
-  }
-
   return prompt;
 }
 
@@ -163,7 +158,7 @@ function buildModifyPromptBase(
 
   const mode = options.mode || 'full';
   const template = buildModifyPromptTemplate(mode);
-  const { includeExamples = true, compress = false } = options;
+  const { includeExamples = true } = options;
 
   // Build system message
   let prompt = `${template.systemMessage}\n\n`;
@@ -208,11 +203,6 @@ function buildModifyPromptBase(
 
   // Add output format
   prompt += `## OUTPUT FORMAT\n\n${template.outputFormat}\n`;
-
-  // Compress if requested
-  if (compress) {
-    prompt = compressPrompt(prompt);
-  }
 
   return prompt;
 }
@@ -431,19 +421,6 @@ export function buildModifyPrompt(
 // ============================================================================
 // Utility Functions
 // ============================================================================
-
-/**
- * Compress prompt by removing unnecessary whitespace and formatting
- */
-function compressPrompt(prompt: string): string {
-  // Remove extra blank lines
-  let compressed = prompt.replace(/\n{3,}/g, '\n\n');
-  
-  // Remove leading/trailing whitespace from lines
-  compressed = compressed.split('\n').map(line => line.trim()).join('\n');
-  
-  return compressed;
-}
 
 /**
  * Estimate token count for prompt
