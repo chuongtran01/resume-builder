@@ -3,11 +3,11 @@
  */
 
 import { createAIProvider, createGeminiProvider } from '../../../src/services/ai/providerFactory';
-import { GeminiProvider } from '../../../src/services/ai/gemini';
+import { createGeminiResumeClient } from '../../../src/services/ai/gemini';
 import type { AIConfig } from '../../../src/services/ai/config';
 
 jest.mock('../../../src/services/ai/gemini', () => ({
-  GeminiProvider: jest.fn().mockImplementation((config) => ({
+  createGeminiResumeClient: jest.fn().mockImplementation((config) => ({
     config,
     getProviderInfo: jest.fn(() => ({
       name: 'gemini',
@@ -43,7 +43,7 @@ describe('providerFactory', () => {
     expect(result.providerName).toBe('gemini');
     expect(result.provider).toBeDefined();
     expect(result.config).toEqual(baseConfig.providers?.gemini);
-    expect(GeminiProvider).toHaveBeenCalledWith(baseConfig.providers?.gemini);
+    expect(createGeminiResumeClient).toHaveBeenCalledWith(baseConfig.providers?.gemini);
   });
 
   it('applies request overrides when creating a Gemini provider', () => {

@@ -11,6 +11,7 @@ import type {
 import type {
   AIRequest,
   AIResponse,
+  ResumeAIClient,
   ReviewRequest,
   ReviewResponse,
 } from '@services/ai/enhancement.types';
@@ -58,47 +59,44 @@ const DEFAULT_CONFIG: Partial<GeminiConfig> = {
 };
 
 /**
- * Google Gemini AI Provider.
+ * Gemini resume client shape.
  */
-export class GeminiProvider {
-  private config: GeminiConfig;
-  private generator: AISdkResumeGenerator;
+export interface GeminiResumeClient extends ResumeAIClient {
+  enhanceResume(request: AIRequest): Promise<AIResponse>;
+  getProviderInfo(): ProviderInfo;
+}
 
-  constructor(config: GeminiConfig) {
-    if (!config.apiKey) {
-      throw new AIProviderError('API key is required', 'gemini', 'MISSING_API_KEY');
-    }
-
-    this.config = {
-      ...DEFAULT_CONFIG,
-      ...config,
-    } as GeminiConfig;
-
-    this.generator = new AISdkResumeGenerator(this.buildGeneratorConfig());
-
-    logger.info(`Initialized Gemini provider with model: ${this.config.model}`);
+/**
+ * Create a Google Gemini resume client.
+ */
+export function createGeminiResumeClient(config: GeminiConfig): GeminiResumeClient {
+  if (!config.apiKey) {
+    throw new AIProviderError('API key is required', 'gemini', 'MISSING_API_KEY');
   }
 
-  /**
-   * Review resume against job requirements
-   */
-  async reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
+  const finalConfig = {
+    ...DEFAULT_CONFIG,
+    ...config,
+  } as GeminiConfig;
+
+  const generator = new AISdkResumeGenerator(buildGeneratorConfig(finalConfig));
+
+  logger.info(`Initialized Gemini provider with model: ${finalConfig.model}`);
+
+  async function reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
     logger.debug('Starting resume review with Gemini via AI SDK...');
 
     try {
-      const response = await this.callWithRetry(() => this.generator.reviewResume(request));
+      const response = await callWithRetry(finalConfig, () => generator.reviewResume(request));
       logger.info(`Review completed. Tokens: ${response.tokensUsed || 0}`);
       return response;
     } catch (error) {
       logger.error('Error in reviewResume:', error);
-      throw this.handleError(error);
+      throw handleError(finalConfig, error);
     }
   }
 
-  /**
-   * Modify resume based on review findings
-   */
-  async modifyResume(request: AIRequest): Promise<AIResponse> {
+  async function modifyResume(request: AIRequest): Promise<AIResponse> {
     logger.debug('Starting resume modification with Gemini via AI SDK...');
 
     if (!request.reviewResult) {
@@ -109,19 +107,16 @@ export class GeminiProvider {
     }
 
     try {
-      const response = await this.callWithRetry(() => this.generator.modifyResume(request));
+      const response = await callWithRetry(finalConfig, () => generator.modifyResume(request));
       logger.info(`Modification completed. Tokens: ${response.tokensUsed || 0}`);
       return response;
     } catch (error) {
       logger.error('Error in modifyResume:', error);
-      throw this.handleError(error);
+      throw handleError(finalConfig, error);
     }
   }
 
-  /**
-   * Enhance resume (orchestrates review + modify)
-   */
-  async enhanceResume(request: AIRequest): Promise<AIResponse> {
+  async function enhanceResume(request: AIRequest): Promise<AIResponse> {
     logger.debug('Starting full resume enhancement (review + modify)...');
 
     const reviewRequest: ReviewRequest = {
@@ -130,9 +125,9 @@ export class GeminiProvider {
       options: request.options,
     };
 
-    const reviewResponse = await this.reviewResume(reviewRequest);
+    const reviewResponse = await reviewResume(reviewRequest);
 
-    const modifyResponse = await this.modifyResume({
+    const modifyResponse = await modifyResume({
       ...request,
       reviewResult: reviewResponse.reviewResult,
     });
@@ -144,10 +139,7 @@ export class GeminiProvider {
     };
   }
 
-  /**
-   * Get provider information
-   */
-  getProviderInfo(): ProviderInfo {
+  function getProviderInfo(): ProviderInfo {
     return {
       name: 'gemini',
       displayName: 'Google Gemini',
@@ -157,84 +149,94 @@ export class GeminiProvider {
     };
   }
 
-  private buildGeneratorConfig(): AISdkResumeGeneratorConfig {
-    return {
-      model: this.toAISdkModel(this.config.model),
-      temperature: this.config.temperature,
-      maxTokens: this.config.maxTokens,
-      maxRetries: 0,
-    };
+  return {
+    reviewResume,
+    modifyResume,
+    enhanceResume,
+    getProviderInfo,
+  };
+}
+
+function buildGeneratorConfig(config: GeminiConfig): AISdkResumeGeneratorConfig {
+  return {
+    model: toAISdkModel(config.model),
+    temperature: config.temperature,
+    maxTokens: config.maxTokens,
+    maxRetries: 0,
+  };
+}
+
+function toAISdkModel(model: GeminiConfig['model']): LanguageModel {
+  if (model === 'gemini-2.5-pro') {
+    return 'google/gemini-2.5-pro';
   }
 
-  private toAISdkModel(model: GeminiConfig['model']): LanguageModel {
-    if (model === 'gemini-2.5-pro') {
-      return 'google/gemini-2.5-pro';
-    }
+  return 'google/gemini-3-flash';
+}
 
-    return 'google/gemini-3-flash';
-  }
+async function callWithRetry<T>(
+  config: GeminiConfig,
+  operation: () => Promise<T>
+): Promise<T> {
+  const maxRetries = config.maxRetries || 3;
+  let lastError: Error | null = null;
 
-  private async callWithRetry<T>(operation: () => Promise<T>): Promise<T> {
-    const maxRetries = this.config.maxRetries || 3;
-    let lastError: Error | null = null;
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await Promise.race([
+        operation(),
+        createTimeoutPromise(config),
+      ]);
+    } catch (error) {
+      lastError = error as Error;
 
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        return await Promise.race([
-          operation(),
-          this.createTimeoutPromise(),
-        ]);
-      } catch (error) {
-        lastError = error as Error;
-
-        if (error instanceof InvalidResponseError || error instanceof TimeoutError) {
-          throw error;
-        }
-
-        if (attempt < maxRetries - 1) {
-          const delay = (this.config.retryDelayBase || 1000) * Math.pow(2, attempt);
-          logger.warn(`Gemini AI SDK call failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`);
-          await this.sleep(delay);
-        }
-      }
-    }
-
-    throw this.handleError(lastError || new Error('Unknown error'));
-  }
-
-  private createTimeoutPromise(): Promise<never> {
-    return new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new TimeoutError('Request timeout', 'gemini', this.config.timeout));
-      }, this.config.timeout || 30000);
-    });
-  }
-
-  private sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  private handleError(error: unknown): AIProviderError {
-    if (error instanceof AIProviderError) {
-      return error;
-    }
-
-    if (error instanceof Error) {
-      if (error.message.includes('429') || error.message.toLowerCase().includes('rate limit')) {
-        return new RateLimitError('Rate limit exceeded', 'gemini');
+      if (error instanceof InvalidResponseError || error instanceof TimeoutError) {
+        throw error;
       }
 
-      if (error.message.toLowerCase().includes('network') || error.message.includes('ECONNREFUSED')) {
-        return new NetworkError('Network error', 'gemini', error);
+      if (attempt < maxRetries - 1) {
+        const delay = (config.retryDelayBase || 1000) * Math.pow(2, attempt);
+        logger.warn(`Gemini AI SDK call failed (attempt ${attempt + 1}/${maxRetries}), retrying in ${delay}ms...`);
+        await sleep(delay);
       }
+    }
+  }
 
-      if (error.message.toLowerCase().includes('timeout')) {
-        return new TimeoutError('Request timeout', 'gemini', this.config.timeout);
-      }
+  throw handleError(config, lastError || new Error('Unknown error'));
+}
 
-      return new AIProviderError(error.message, 'gemini');
+function createTimeoutPromise(config: GeminiConfig): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(() => {
+      reject(new TimeoutError('Request timeout', 'gemini', config.timeout));
+    }, config.timeout || 30000);
+  });
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function handleError(config: GeminiConfig, error: unknown): AIProviderError {
+  if (error instanceof AIProviderError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    if (error.message.includes('429') || error.message.toLowerCase().includes('rate limit')) {
+      return new RateLimitError('Rate limit exceeded', 'gemini');
     }
 
-    return new AIProviderError('Unknown error occurred', 'gemini');
+    if (error.message.toLowerCase().includes('network') || error.message.includes('ECONNREFUSED')) {
+      return new NetworkError('Network error', 'gemini', error);
+    }
+
+    if (error.message.toLowerCase().includes('timeout')) {
+      return new TimeoutError('Request timeout', 'gemini', config.timeout);
+    }
+
+    return new AIProviderError(error.message, 'gemini');
   }
+
+  return new AIProviderError('Unknown error occurred', 'gemini');
 }

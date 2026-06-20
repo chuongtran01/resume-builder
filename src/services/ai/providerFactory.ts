@@ -3,7 +3,7 @@
  */
 
 import type { GeminiConfig } from '@services/ai/gemini';
-import { GeminiProvider } from '@services/ai/gemini';
+import { createGeminiResumeClient } from '@services/ai/gemini';
 import type { AIConfig } from '@services/ai/config';
 import { getGeminiConfig } from '@services/ai/config';
 import type { ResumeAIClient } from '@services/ai/enhancement.types';
@@ -65,7 +65,7 @@ export function createGeminiProvider(
 
   return {
     providerName: 'gemini',
-    provider: new GeminiProvider(finalConfig),
+    provider: createGeminiResumeClient(finalConfig),
     config: finalConfig,
   };
 }

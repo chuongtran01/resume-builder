@@ -2,7 +2,11 @@
  * Unit tests for Google Gemini AI Provider.
  */
 
-import { GeminiProvider, type GeminiConfig } from '../../../src/services/ai/gemini';
+import {
+  createGeminiResumeClient,
+  type GeminiConfig,
+  type GeminiResumeClient,
+} from '../../../src/services/ai/gemini';
 import {
   InvalidResponseError,
   TimeoutError,
@@ -15,7 +19,7 @@ jest.mock('../../../src/services/ai/aiSdkResumeGenerator', () => ({
   AISdkResumeGenerator: jest.fn(),
 }));
 
-describe('GeminiProvider', () => {
+describe('createGeminiResumeClient', () => {
   const MockAISdkResumeGenerator = AISdkResumeGenerator as jest.MockedClass<typeof AISdkResumeGenerator>;
 
   const mockConfig: GeminiConfig = {
@@ -87,7 +91,7 @@ describe('GeminiProvider', () => {
     reviewResume: jest.Mock;
     modifyResume: jest.Mock;
   };
-  let provider: GeminiProvider;
+  let provider: GeminiResumeClient;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -96,12 +100,13 @@ describe('GeminiProvider', () => {
       modifyResume: jest.fn().mockResolvedValue(modifyResponse),
     };
     MockAISdkResumeGenerator.mockImplementation(() => mockGenerator as unknown as AISdkResumeGenerator);
-    provider = new GeminiProvider(mockConfig);
+    provider = createGeminiResumeClient(mockConfig);
   });
 
-  describe('Constructor', () => {
-    it('creates provider with valid config and maps model to AI SDK gateway id', () => {
-      expect(provider).toBeInstanceOf(GeminiProvider);
+  describe('factory', () => {
+    it('creates client with valid config and maps model to AI SDK gateway id', () => {
+      expect(provider.reviewResume).toEqual(expect.any(Function));
+      expect(provider.modifyResume).toEqual(expect.any(Function));
       expect(MockAISdkResumeGenerator).toHaveBeenCalledWith({
         model: 'google/gemini-2.5-pro',
         temperature: 0.7,
@@ -111,7 +116,7 @@ describe('GeminiProvider', () => {
     });
 
     it('maps gemini-3-flash-preview to the AI SDK gateway model id', () => {
-      new GeminiProvider({
+      createGeminiResumeClient({
         apiKey: 'test-api-key',
         model: 'gemini-3-flash-preview',
       });
@@ -125,7 +130,7 @@ describe('GeminiProvider', () => {
 
     it('throws error if API key is missing', () => {
       expect(() => {
-        new GeminiProvider({
+        createGeminiResumeClient({
           apiKey: '',
           model: 'gemini-2.5-pro',
         });
@@ -137,8 +142,8 @@ describe('GeminiProvider', () => {
         apiKey: 'test-key',
         model: 'gemini-2.5-pro',
       };
-      const p = new GeminiProvider(minimalConfig);
-      expect(p).toBeInstanceOf(GeminiProvider);
+      const p = createGeminiResumeClient(minimalConfig);
+      expect(p.reviewResume).toEqual(expect.any(Function));
       expect(MockAISdkResumeGenerator).toHaveBeenLastCalledWith(
         expect.objectContaining({
           temperature: 0.7,
@@ -230,7 +235,7 @@ describe('GeminiProvider', () => {
     });
 
     it('handles timeout errors', async () => {
-      const shortTimeoutProvider = new GeminiProvider({
+      const shortTimeoutProvider = createGeminiResumeClient({
         ...mockConfig,
         timeout: 1,
       });
