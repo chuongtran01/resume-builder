@@ -2,7 +2,7 @@
  * AI SDK-backed resume review and modification adapter.
  */
 
-import { generateObject as aiGenerateObject } from 'ai';
+import { generateText as aiGenerateText, Output } from 'ai';
 import type { LanguageModel, LanguageModelUsage } from 'ai';
 import { z } from 'zod';
 import type {
@@ -15,14 +15,14 @@ import type {
 import { buildReviewPrompt, buildModifyPrompt } from '@services/ai/prompts';
 import { InvalidResponseError } from './provider.types';
 
-type GenerateObject = typeof aiGenerateObject;
+type GenerateText = typeof aiGenerateText;
 
 export interface AISdkResumeGeneratorConfig {
   model: LanguageModel;
   temperature?: number;
   maxTokens?: number;
   maxRetries?: number;
-  generateObject?: GenerateObject;
+  generateText?: GenerateText;
 }
 
 export type AISdkResumeClient = ResumeAIClient;
@@ -65,7 +65,7 @@ const modifyResponseSchema = z.object({
 });
 
 export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AISdkResumeClient {
-  const generateObject = config.generateObject || aiGenerateObject;
+  const generateText = config.generateText || aiGenerateText;
 
   async function reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
     const prompt = buildReviewPrompt(
@@ -81,11 +81,13 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       }
     );
 
-    const result = await generateObject({
+    const result = await generateText({
       model: config.model,
-      schema: reviewResponseSchema,
-      schemaName: 'ResumeReviewResponse',
-      schemaDescription: 'Structured resume review response',
+      output: Output.object({
+        schema: reviewResponseSchema,
+        name: 'ResumeReviewResponse',
+        description: 'Structured resume review response',
+      }),
       prompt,
       temperature: config.temperature,
       maxOutputTokens: config.maxTokens,
@@ -93,8 +95,8 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
     });
 
     return {
-      reviewResult: result.object.reviewResult,
-      tokensUsed: getTotalTokens(result.usage),
+      reviewResult: result.output.reviewResult,
+      tokensUsed: getTotalTokens(result.totalUsage),
       cost: 0,
     };
   }
@@ -124,18 +126,20 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       }
     );
 
-    const result = await generateObject({
+    const result = await generateText({
       model: config.model,
-      schema: modifyResponseSchema,
-      schemaName: 'ResumeModifyResponse',
-      schemaDescription: 'Structured resume modification response',
+      output: Output.object({
+        schema: modifyResponseSchema,
+        name: 'ResumeModifyResponse',
+        description: 'Structured resume modification response',
+      }),
       prompt,
       temperature: config.temperature,
       maxOutputTokens: config.maxTokens,
       maxRetries: config.maxRetries,
     });
 
-    const object = result.object;
+    const object = result.output;
 
     if (!object.enhancedResume || typeof object.enhancedResume !== 'object') {
       throw new InvalidResponseError(
@@ -150,7 +154,7 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
       improvements: object.improvements,
       reasoning: object.reasoning,
       confidence: object.confidence,
-      tokensUsed: getTotalTokens(result.usage),
+      tokensUsed: getTotalTokens(result.totalUsage),
       cost: 0,
     };
   }

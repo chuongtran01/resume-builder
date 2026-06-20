@@ -6,14 +6,20 @@ import { createAISdkResumeClient } from '../../../src/services/ai/aiSdkResumeGen
 import type { AIRequest, ReviewRequest } from '../../../src/services/ai/enhancement.types';
 import type { Resume } from '../../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../../src/utils/jobParser';
-import { generateObject } from 'ai';
+import { generateText } from 'ai';
 
 jest.mock('ai', () => ({
-  generateObject: jest.fn(),
+  generateText: jest.fn(),
+  Output: {
+    object: jest.fn((spec) => ({
+      name: 'object',
+      spec,
+    })),
+  },
 }));
 
 describe('createAISdkResumeClient', () => {
-  const mockGenerateObject = generateObject as jest.MockedFunction<typeof generateObject>;
+  const mockGenerateText = generateText as jest.MockedFunction<typeof generateText>;
 
   const resume: Resume = {
     personalInfo: {
@@ -38,12 +44,12 @@ describe('createAISdkResumeClient', () => {
   };
 
   beforeEach(() => {
-    mockGenerateObject.mockReset();
+    mockGenerateText.mockReset();
   });
 
   it('generates a review response with AI SDK structured output', async () => {
-    mockGenerateObject.mockResolvedValueOnce({
-      object: {
+    mockGenerateText.mockResolvedValueOnce({
+      output: {
         reviewResult: {
           strengths: ['Clear experience'],
           weaknesses: ['Missing React'],
@@ -60,12 +66,12 @@ describe('createAISdkResumeClient', () => {
           reasoning: 'Good baseline.',
         },
       },
-      usage: {
+      totalUsage: {
         inputTokens: 100,
         outputTokens: 40,
         totalTokens: 140,
       },
-    } as Awaited<ReturnType<typeof generateObject>>);
+    } as Awaited<ReturnType<typeof generateText>>);
 
     const generator = createAISdkResumeClient({
       model: 'google/gemini-3-flash',
@@ -79,13 +85,13 @@ describe('createAISdkResumeClient', () => {
 
     expect(response.reviewResult.strengths).toEqual(['Clear experience']);
     expect(response.tokensUsed).toBe(140);
-    expect(mockGenerateObject).toHaveBeenCalledWith(
+    expect(mockGenerateText).toHaveBeenCalledWith(
       expect.objectContaining({
         model: 'google/gemini-3-flash',
         temperature: 0.2,
         maxOutputTokens: 1000,
         maxRetries: 1,
-        schemaName: 'ResumeReviewResponse',
+        output: expect.any(Object),
       })
     );
   });
@@ -109,8 +115,8 @@ describe('createAISdkResumeClient', () => {
       ],
     };
 
-    mockGenerateObject.mockResolvedValueOnce({
-      object: {
+    mockGenerateText.mockResolvedValueOnce({
+      output: {
         enhancedResume,
         improvements: [
           {
@@ -125,12 +131,12 @@ describe('createAISdkResumeClient', () => {
         reasoning: 'Added truthful keyword context.',
         confidence: 0.9,
       },
-      usage: {
+      totalUsage: {
         inputTokens: 120,
         outputTokens: 80,
         totalTokens: 200,
       },
-    } as Awaited<ReturnType<typeof generateObject>>);
+    } as Awaited<ReturnType<typeof generateText>>);
 
     const generator = createAISdkResumeClient({
       model: 'google/gemini-3-flash',
@@ -144,9 +150,9 @@ describe('createAISdkResumeClient', () => {
     );
     expect(response.improvements).toHaveLength(1);
     expect(response.tokensUsed).toBe(200);
-    expect(mockGenerateObject).toHaveBeenCalledWith(
+    expect(mockGenerateText).toHaveBeenCalledWith(
       expect.objectContaining({
-        schemaName: 'ResumeModifyResponse',
+        output: expect.any(Object),
       })
     );
   });
@@ -159,6 +165,6 @@ describe('createAISdkResumeClient', () => {
     await expect(generator.modifyResume({ resume, jobInfo })).rejects.toThrow(
       'Review result is required for modifyResume'
     );
-    expect(mockGenerateObject).not.toHaveBeenCalled();
+    expect(mockGenerateText).not.toHaveBeenCalled();
   });
 });
