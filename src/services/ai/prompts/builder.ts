@@ -18,15 +18,9 @@ import type { ReviewResult } from '@services/ai/enhancement.types';
 import {
   REVIEW_EXAMPLES,
   REVIEW_FOCUS_AREAS,
-  REVIEW_OUTPUT_FORMAT,
-  REVIEW_SYSTEM_MESSAGE,
-  REVIEW_TASK_DESCRIPTION,
 } from './reviewPromptData';
 import {
   ENHANCEMENT_EXAMPLES,
-  MODIFY_OUTPUT_FORMAT,
-  MODIFY_SYSTEM_MESSAGE,
-  MODIFY_TASK_DESCRIPTION,
   TRUTHFULNESS_RULES,
   getEnhancementAreasForMode,
 } from './modifyPromptData';
@@ -135,11 +129,8 @@ function buildReviewPromptMessagesBase(
 
   return {
     system: `${renderPromptTemplate(systemTemplate, {
-      systemMessage: REVIEW_SYSTEM_MESSAGE,
-      taskDescription: REVIEW_TASK_DESCRIPTION,
       focusAreas: formatNumberedList(REVIEW_FOCUS_AREAS),
       examples: includeExamples ? formatReviewExamples(REVIEW_EXAMPLES) : '',
-      outputFormat: REVIEW_OUTPUT_FORMAT,
     })}\n`,
     prompt: `${renderPromptTemplate(promptTemplate, {
       resumeJson: JSON.stringify(context.resume, null, 2),
@@ -166,12 +157,9 @@ function buildModifyPromptMessagesBase(
 
   return {
     system: `${renderPromptTemplate(systemTemplate, {
-      systemMessage: MODIFY_SYSTEM_MESSAGE,
-      taskDescription: MODIFY_TASK_DESCRIPTION,
       truthfulnessRules: formatNumberedList(TRUTHFULNESS_RULES),
       enhancementAreas: formatNumberedList(getEnhancementAreasForMode(mode)),
       examples: includeExamples ? formatModifyExamples(ENHANCEMENT_EXAMPLES) : '',
-      outputFormat: MODIFY_OUTPUT_FORMAT,
     })}\n`,
     prompt: `${renderPromptTemplate(promptTemplate, {
       resumeJson: JSON.stringify(context.resume, null, 2),

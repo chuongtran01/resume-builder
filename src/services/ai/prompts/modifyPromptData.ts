@@ -1,11 +1,6 @@
 import type { EnhancementExample } from './types';
-import { loadPromptTemplateText } from './templateLoader';
 
 export type EnhancementMode = 'full' | 'bulletPoints' | 'skills' | 'summary';
-
-export const MODIFY_SYSTEM_MESSAGE = loadPromptTemplateText('modify.role.md');
-export const MODIFY_TASK_DESCRIPTION = loadPromptTemplateText('modify.task.md');
-export const MODIFY_OUTPUT_FORMAT = loadPromptTemplateText('modify.output.md');
 
 export const TRUTHFULNESS_RULES = [
   'NEVER add experiences, companies, roles, or dates not present in the original resume',

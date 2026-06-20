@@ -8,10 +8,11 @@ import {
 } from '../../../../src/services/ai/prompts/templateLoader';
 
 describe('templateLoader', () => {
-  it('loads prompt prose from markdown files', () => {
-    const text = loadPromptTemplateText('review.role.md');
+  it('loads prompt prose from system markdown files', () => {
+    const text = loadPromptTemplateText('review.system.md');
 
     expect(text).toContain('expert resume reviewer');
+    expect(text).toContain('OUTPUT FORMAT');
   });
 
   it('throws a clear error when a prompt template is missing', () => {

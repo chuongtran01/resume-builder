@@ -1,9 +1,4 @@
 import type { ReviewExample } from './types';
-import { loadPromptTemplateText } from './templateLoader';
-
-export const REVIEW_SYSTEM_MESSAGE = loadPromptTemplateText('review.role.md');
-export const REVIEW_TASK_DESCRIPTION = loadPromptTemplateText('review.task.md');
-export const REVIEW_OUTPUT_FORMAT = loadPromptTemplateText('review.output.md');
 
 export const REVIEW_FOCUS_AREAS = [
   'How well the resume matches the job requirements',

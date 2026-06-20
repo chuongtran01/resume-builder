@@ -5,22 +5,11 @@
 import {
   ENHANCEMENT_AREAS,
   ENHANCEMENT_EXAMPLES,
-  MODIFY_OUTPUT_FORMAT,
-  MODIFY_SYSTEM_MESSAGE,
-  MODIFY_TASK_DESCRIPTION,
   TRUTHFULNESS_RULES,
   getEnhancementAreasForMode,
 } from '../../../../src/services/ai/prompts/modifyPromptData';
 
 describe('Modify Prompt Data', () => {
-  it('loads the modify role, task, and output format text', () => {
-    expect(MODIFY_SYSTEM_MESSAGE).toContain('expert resume writer');
-    expect(MODIFY_SYSTEM_MESSAGE).toContain('ATS-optimized');
-    expect(MODIFY_TASK_DESCRIPTION).toContain('Enhance');
-    expect(MODIFY_OUTPUT_FORMAT).toContain('JSON');
-    expect(MODIFY_OUTPUT_FORMAT).toContain('enhancedResume');
-  });
-
   it('defines truthfulness rules, enhancement areas, and examples', () => {
     expect(TRUTHFULNESS_RULES.length).toBeGreaterThan(0);
     expect(TRUTHFULNESS_RULES[0]).toContain('NEVER');
