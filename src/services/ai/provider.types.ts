@@ -1,5 +1,5 @@
 /**
- * AI provider metadata and shared error types.
+ * AI client metadata and shared error types.
  */
 
 export type {
@@ -13,26 +13,26 @@ export type {
 } from './enhancement.types';
 
 /**
- * Provider information
+ * AI client information
  */
 export interface ProviderInfo {
-  /** Provider name (e.g., "gemini", "openai", "anthropic") */
+  /** Client name */
   name: string;
-  /** Provider display name */
+  /** Client display name */
   displayName: string;
   /** Supported models */
   supportedModels: string[];
   /** Default model */
   defaultModel: string;
-  /** Provider version */
+  /** Client version */
   version?: string;
 }
 
 /**
- * AI provider configuration
+ * AI client configuration
  */
 export interface AIProviderConfig {
-  /** API key for the provider */
+  /** API key for the client */
   apiKey: string;
   /** Model to use */
   model: string;
@@ -44,12 +44,12 @@ export interface AIProviderConfig {
   timeout?: number;
   /** Enable streaming responses */
   enableStreaming?: boolean;
-  /** Additional provider-specific options */
+  /** Additional client-specific options */
   [key: string]: unknown;
 }
 
 /**
- * Base error class for AI provider errors
+ * Base error class for AI client errors
  */
 export class AIProviderError extends Error {
   constructor(

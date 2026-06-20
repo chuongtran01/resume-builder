@@ -208,7 +208,6 @@ export function registerRoutes(app: Express): void {
             tone?: 'professional' | 'technical' | 'leadership';
             maxSuggestions?: number;
           };
-          aiProvider?: 'gemini';
           aiOptions?: {
             temperature?: number;
             maxTokens?: number;
@@ -216,17 +215,16 @@ export function registerRoutes(app: Express): void {
             maxRetries?: number;
           };
         }>(req);
-        const { resume, jobDescription, options, aiProvider, aiOptions } = body;
+        const { resume, jobDescription, options, aiOptions } = body;
 
         logger.debug(`[${requestId}] Enhancing resume with ${jobDescription.length} character job description`);
 
-        // Load AI configuration and set up provider
-        const { loadAIConfig } = await import('../services/ai/config');
-        const { createAIProvider } = await import('../services/ai/providerFactory');
+        // Load Gemini configuration and set up client
+        const { loadGeminiConfig } = await import('../services/ai/config');
+        const { createGeminiResumeClient } = await import('../services/ai/gemini');
 
-        // Load base AI config
-        const aiConfig = await loadAIConfig({ loadFromEnv: true });
-        if (!aiConfig.providers?.gemini?.apiKey) {
+        const geminiConfig = await loadGeminiConfig({ loadFromEnv: true });
+        if (!geminiConfig?.apiKey) {
           res.status(400).json({
             success: false,
             error: 'Configuration error',
@@ -235,28 +233,16 @@ export function registerRoutes(app: Express): void {
           return;
         }
 
-        // Determine provider to use (default to 'gemini' if not specified)
-        const providerToUse = aiProvider || 'gemini';
+        const finalGeminiConfig = {
+          ...geminiConfig,
+          temperature: aiOptions?.temperature ?? geminiConfig.temperature ?? 0.7,
+          maxTokens: aiOptions?.maxTokens ?? geminiConfig.maxTokens,
+          timeout: aiOptions?.timeout ?? geminiConfig.timeout,
+          maxRetries: aiOptions?.maxRetries ?? geminiConfig.maxRetries,
+        };
+        const geminiClient = createGeminiResumeClient(finalGeminiConfig);
 
-        if (providerToUse !== 'gemini') {
-          res.status(400).json({
-            success: false,
-            error: 'Invalid provider',
-            message: `Provider "${providerToUse}" is not supported. Only "gemini" is currently supported.`,
-          });
-          return;
-        }
-
-        const providerCreation = createAIProvider(aiConfig, providerToUse, {
-          temperature: aiOptions?.temperature,
-          maxTokens: aiOptions?.maxTokens,
-          timeout: aiOptions?.timeout,
-          maxRetries: aiOptions?.maxRetries,
-        });
-        const geminiProvider = providerCreation.provider;
-        const finalGeminiConfig = providerCreation.config;
-
-        logger.info(`[${requestId}] Using AI provider: ${providerToUse}, model: ${finalGeminiConfig.model}, temperature: ${finalGeminiConfig.temperature}`);
+        logger.info(`[${requestId}] Using Gemini model: ${finalGeminiConfig.model}, temperature: ${finalGeminiConfig.temperature}`);
 
         // Enhance resume
         const { enhanceResume } = await import('../services/aiResumeEnhancementService');
@@ -264,11 +250,11 @@ export function registerRoutes(app: Express): void {
           resume,
           jobDescription,
           options,
-          aiClient: geminiProvider,
+          aiClient: geminiClient,
         });
 
         // Get provider info for response
-        const providerInfo = geminiProvider.getProviderInfo();
+        const geminiInfo = geminiClient.getProviderInfo();
 
         logger.info(`[${requestId}] Resume enhanced - ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
 
@@ -324,9 +310,9 @@ export function registerRoutes(app: Express): void {
             mdPath: undefined,
           },
           atsScore: enhancementResult.atsScore,
-          provider: {
-            name: providerInfo.name,
-            displayName: providerInfo.displayName,
+          gemini: {
+            name: geminiInfo.name,
+            displayName: geminiInfo.displayName,
             model: finalGeminiConfig.model,
             temperature: finalGeminiConfig.temperature,
           },
@@ -372,7 +358,7 @@ export function registerRoutes(app: Express): void {
             message: error.message,
           });
         } else if (error instanceof AIProviderError) {
-          // Handle AI provider errors
+          // Handle Gemini errors
           if (error instanceof RateLimitError) {
             res.status(429).json({
               success: false,
@@ -395,7 +381,7 @@ export function registerRoutes(app: Express): void {
           } else {
             res.status(500).json({
               success: false,
-              error: 'AI provider error',
+              error: 'Gemini error',
               message: error.message,
             });
           }

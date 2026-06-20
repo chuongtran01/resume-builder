@@ -415,7 +415,6 @@ program
   .option('-o, --output <path>', 'Output directory for enhanced files', './output')
   .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
-  .option('--ai-provider <provider>', 'AI provider to use (default: gemini)', 'gemini')
   .option('--ai-temperature <temp>', 'AI temperature 0-1 (default: 0.7)', parseFloat)
   .option('-v, --verbose', 'Enable verbose logging', false)
   .action(async (options) => {
@@ -500,13 +499,6 @@ program
         process.exit(1);
       }
 
-      // Validate AI provider
-      if (options.aiProvider && options.aiProvider !== 'gemini') {
-        logger.error(`❌ Error: Invalid AI provider "${options.aiProvider}"`);
-        logger.info('💡 Valid providers are: gemini');
-        process.exit(1);
-      }
-
       // Validate AI temperature if provided
       if (options.aiTemperature !== undefined) {
         if (isNaN(options.aiTemperature) || options.aiTemperature < 0 || options.aiTemperature > 1) {
@@ -549,22 +541,25 @@ program
       }
       logger.success('   ✅ Job description loaded successfully');
 
-      // Step 3: Initialize AI provider and enhance resume
-      logger.info('\n🤖 Step 3: Initializing AI provider...');
+      // Step 3: Initialize Gemini client and enhance resume
+      logger.info('\n🤖 Step 3: Initializing Gemini client...');
 
-      // Load AI configuration
-      const { loadAIConfig } = await import('@services/ai/config');
-      const aiConfig = await loadAIConfig();
+      const { loadGeminiConfig } = await import('@services/ai/config');
+      const geminiConfig = await loadGeminiConfig();
+      if (!geminiConfig?.apiKey) {
+        logger.error('❌ Error: Gemini API key not configured');
+        logger.info('💡 Set GEMINI_API_KEY in your .env file');
+        process.exit(1);
+      }
 
-      const providerName = (options.aiProvider || 'gemini') as 'gemini';
-      const { createAIProvider } = await import('@services/ai/providerFactory');
-      const providerCreation = createAIProvider(aiConfig, providerName, {
-        temperature: options.aiTemperature,
-      });
-      const provider = providerCreation.provider;
-      const finalConfig = providerCreation.config;
+      const { createGeminiResumeClient } = await import('@services/ai/gemini');
+      const finalConfig = {
+        ...geminiConfig,
+        temperature: options.aiTemperature ?? geminiConfig.temperature ?? 0.7,
+      };
+      const geminiClient = createGeminiResumeClient(finalConfig);
 
-      logger.success(`   ✅ AI provider initialized: ${providerName}`);
+      logger.success('   ✅ Gemini client initialized');
       logger.info(`   📊 Model: ${finalConfig.model} (.env)`);
       logger.info(`   🌡️  Temperature: ${finalConfig.temperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
 
@@ -572,14 +567,14 @@ program
       logger.info('\n🤖 Step 4: Enhancing resume with AI...');
       const { enhanceResume } = await import('@services/aiResumeEnhancementService');
 
-      const providerInfo = provider.getProviderInfo();
-      logger.info(`   Using: ${providerInfo.displayName} (${providerInfo.name})`);
+      const geminiInfo = geminiClient.getProviderInfo();
+      logger.info(`   Using: ${geminiInfo.displayName} (${geminiInfo.name})`);
       logger.info(`   Model: ${finalConfig.model} (.env)`);
 
       const enhancementResult = await enhanceResume({
         resume,
         jobDescription,
-        aiClient: provider,
+        aiClient: geminiClient,
       });
       logger.success('   ✅ Resume enhanced successfully');
       logger.info(`   📊 ATS Score: ${enhancementResult.atsScore.before} → ${enhancementResult.atsScore.after} (+${enhancementResult.atsScore.improvement})`);
@@ -636,16 +631,13 @@ program
         logger.warn(`\n   Missing Skills: ${enhancementResult.missingSkills.slice(0, 5).join(', ')}${enhancementResult.missingSkills.length > 5 ? '...' : ''}`);
       }
 
-      // Display provider information
-      if (provider) {
-        const actualTemperature = options.aiTemperature !== undefined
-          ? options.aiTemperature
-          : (finalConfig.temperature ?? 0.7);
+      const actualTemperature = options.aiTemperature !== undefined
+        ? options.aiTemperature
+        : (finalConfig.temperature ?? 0.7);
 
-        logger.info(`\n🤖 AI Provider: ${providerInfo.displayName}`);
-        logger.info(`   Model: ${finalConfig.model} (.env)`);
-        logger.info(`   Temperature: ${actualTemperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
-      }
+      logger.info(`\n🤖 Gemini Client: ${geminiInfo.displayName}`);
+      logger.info(`   Model: ${finalConfig.model} (.env)`);
+      logger.info(`   Temperature: ${actualTemperature}${options.aiTemperature === undefined ? ' (default)' : ''}`);
 
       process.exit(0);
     } catch (error) {
@@ -706,7 +698,7 @@ program
         } else if (error instanceof NetworkError) {
           logger.info('💡 Network error. Please check your internet connection.');
         } else if (error instanceof TimeoutError) {
-          logger.info('💡 Request timeout. The AI provider took too long to respond.');
+          logger.info('💡 Request timeout. Gemini took too long to respond.');
         } else {
           logger.info('💡 Suggestions:');
           logger.info('   - Check your API key is valid');

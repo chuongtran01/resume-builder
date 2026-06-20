@@ -1,6 +1,6 @@
 # AI Configuration Guide
 
-This guide explains how to configure the AI provider settings for the resume builder.
+This guide explains how to configure Gemini settings for the resume builder.
 
 ## Configuration Methods
 
@@ -144,25 +144,21 @@ GEMINI_MAX_RETRIES=3
 
 ## Usage in Code
 
-The configuration is loaded using the `loadAIConfig()` function:
+The configuration is loaded using the `loadGeminiConfig()` function:
 
 ```typescript
-import { loadAIConfig, getGeminiConfig } from '@services/ai/config';
+import { loadGeminiConfig } from '@services/ai/config';
 
 // Load configuration (loads from .env file automatically)
-const config = await loadAIConfig();
+const geminiConfig = await loadGeminiConfig();
 
 // Or load from optional JSON config file (not recommended - use .env instead)
-const config = await loadAIConfig({
+const geminiConfig = await loadGeminiConfig({
   loadFromFile: true,
   configPath: './custom-config.json',
   loadFromEnv: true,  // Also load from .env (default: true)
   validate: true      // Validate configuration (default: true)
 });
-
-// Get specific provider config
-const geminiConfig = getGeminiConfig(config);
-
 ```
 
 ---
@@ -312,7 +308,7 @@ npm run cli -- enhanceResume \
 
 ### Basic Usage (All Defaults)
 
-Uses default AI provider (`gemini`), model from `GEMINI_MODEL` in `.env`, and temperature (`0.7`):
+Uses the Gemini model from `GEMINI_MODEL` in `.env` and temperature (`0.7`):
 
 ```bash
 npm run cli -- enhanceResume \
@@ -342,7 +338,6 @@ npm run cli -- enhanceResume \
   --output ./output \
   --template classic \
   --format pdf \
-  --ai-provider gemini \
   --ai-temperature 0.7 \
   --verbose
 ```
@@ -350,8 +345,8 @@ npm run cli -- enhanceResume \
 ## Next Steps
 
 Once configuration is set up, the AI enhancement service will automatically use it when:
-- You call `loadAIConfig()` in your code
-- The service initializes and looks for the default provider
-- The Gemini provider is registered with the configuration
+- You call `loadGeminiConfig()` in your code
+- The CLI or API initializes the Gemini client
+- The Gemini client is created with the configuration
 
-**Note:** The configuration system is fully integrated into the CLI. You can use environment variables, config files, or CLI options to configure AI settings.
+**Note:** The configuration system is fully integrated into the CLI. Use `.env` or an optional config file for Gemini settings, and use CLI options for request-specific settings like temperature.

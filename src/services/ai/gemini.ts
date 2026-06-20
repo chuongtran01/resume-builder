@@ -26,7 +26,7 @@ import {
   createAISdkResumeClient,
   type AISdkResumeGeneratorConfig,
 } from '@services/ai/aiSdkResumeGenerator';
-import type { LanguageModel } from 'ai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { logger } from '@utils/logger';
 
 /**
@@ -83,7 +83,7 @@ export function createGeminiResumeClient(config: GeminiConfig): GeminiResumeClie
 
   const generator = createAISdkResumeClient(buildGeneratorConfig(finalConfig));
 
-  logger.info(`Initialized Gemini provider with model: ${finalConfig.model}`);
+  logger.info(`Initialized Gemini client with model: ${finalConfig.model}`);
 
   async function reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
     logger.debug('Starting resume review with Gemini via AI SDK...');
@@ -160,24 +160,28 @@ export function createGeminiResumeClient(config: GeminiConfig): GeminiResumeClie
 }
 
 function buildGeneratorConfig(config: GeminiConfig): AISdkResumeGeneratorConfig {
+  const google = createGoogleGenerativeAI({
+    apiKey: config.apiKey,
+  });
+
   return {
-    model: toAISdkModel(config.model),
+    model: google(toGoogleModelId(config.model)),
     temperature: config.temperature,
     maxTokens: config.maxTokens,
     maxRetries: 0,
   };
 }
 
-function toAISdkModel(model: GeminiConfig['model']): LanguageModel {
+function toGoogleModelId(model: GeminiConfig['model']): Parameters<ReturnType<typeof createGoogleGenerativeAI>>[0] {
   if (model === 'gemini-3.1-pro') {
-    return 'google/gemini-3.1-pro';
+    return 'gemini-3.1-pro-preview';
   }
 
   if (model === 'gemini-2.5-pro') {
-    return 'google/gemini-2.5-pro';
+    return 'gemini-2.5-pro';
   }
 
-  return 'google/gemini-3-flash';
+  return 'gemini-3-flash-preview';
 }
 
 async function callWithRetry<T>(

@@ -27,26 +27,25 @@ Phase 3 implements Google Gemini AI model integration for resume enhancement. Th
 
 ---
 
-## 🤖 Task Group 16: AI Provider Abstraction
+## 🤖 Task Group 16: AI Client Types
 
-### Task 16.1: Design AI Provider Interface
+### Task 16.1: Design AI Client Types
 **Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 2 hours
 
 **Description:**
-Create a unified interface for AI providers, designed for Gemini but extensible for future providers.
+Create shared AI request/response and error types for the Gemini-backed enhancement flow.
 
 **Subtasks:**
 - [x] Create `src/services/ai/provider.types.ts` with:
-  - [x] `AIProvider` interface defining common methods
-  - [x] `AIProviderConfig` interface for provider configuration
+  - [x] `AIProviderConfig` interface for AI client configuration
   - [x] `AIRequest` interface for enhancement requests
-  - [x] `AIResponse` interface for provider responses
+  - [x] `AIResponse` interface for AI responses
   - [x] `EnhancementPrompt` interface for structured prompts
   - [x] `ReviewRequest` and `ReviewResponse` interfaces for review phase
   - [x] `ReviewResult` and `PrioritizedAction` interfaces
-  - [x] `ProviderInfo` interface
+  - [x] `ProviderInfo` metadata interface
 - [x] Define methods:
   - [x] `reviewResume(request: ReviewRequest): Promise<ReviewResponse>`
   - [x] `modifyResume(request: AIRequest): Promise<AIResponse>`
@@ -94,8 +93,7 @@ interface AIResponse {
 ```
 
 **Acceptance Criteria:**
-- Interface is provider-agnostic
-- All methods are well-defined with proper types
+- Gemini client types are well-defined
 - Error handling is comprehensive
 - TypeScript compilation passes
 - Documentation is complete
@@ -104,37 +102,31 @@ interface AIResponse {
 
 ---
 
-### Task 16.2: Implement AI Provider Registry
+### Task 16.2: Implement Gemini Client Initialization
 **Status:** ✅  
 **Priority:** High  
 **Estimated Time:** 1.5 hours
 
 **Description:**
-Create a registry system to manage multiple AI providers and allow dynamic provider selection.
+Create direct Gemini client initialization without a provider registry.
 
 **Subtasks:**
-- [x] Create `src/services/ai/providerRegistry.ts`
-- [x] Implement `registerProvider(name: string, provider: AIProvider): void`
-- [x] Implement `getProvider(name: string): AIProvider | undefined`
-- [x] Implement `listProviders(): string[]`
-- [x] Implement `getDefaultProvider(): AIProvider`
-- [x] Add provider validation on registration
-- [x] Add error handling for missing providers
+- [x] Create `src/services/ai/gemini.ts`
+- [x] Load Gemini config directly
+- [x] Initialize Gemini client directly from CLI/API
+- [x] Add error handling for missing Gemini configuration
 - [x] Add logging for provider operations
 - [x] Write unit tests
 - [x] Add `getProviderOrThrow()` for error-throwing retrieval
 - [x] Add `hasProvider()` for existence checking
-- [x] Add `unregisterProvider()` for provider removal
-- [x] Add `clearRegistry()` for clearing all providers
-- [x] Add `getProviderCount()` for counting providers
-- [x] Add `setDefaultProvider()` for setting default
+- [x] Remove provider registry from current architecture
+- [x] Initialize Gemini directly from CLI/API
 
 **Files to Create:**
-- `src/services/ai/providerRegistry.ts`
+- `src/services/ai/gemini.ts`
 
 **Key Functions:**
-- `registerProvider(name, provider): void`
-- `getProvider(name): AIProvider | undefined`
+- `createGeminiResumeClient(config): GeminiResumeClient`
 - `listProviders(): string[]`
 - `getDefaultProvider(): AIProvider`
 
@@ -374,20 +366,20 @@ Create the main AI enhancement service that uses real AI models to enhance resum
 - [x] Create `src/services/aiResumeEnhancementService.ts`
 - [x] Implement `AIResumeEnhancementService` class:
   - [x] Implement `ResumeEnhancementService` interface
-  - [x] Accept AI provider in constructor
+  - [x] Accept AI client in request options
   - [x] Integrate job description parser
-  - [x] Integrate prompt builder (through AI provider)
+  - [x] Integrate prompt builder through the AI client
 - [x] Implement `reviewResume` method (Step 1):
   - [x] Parse job description
   - [x] Extract job information
   - [x] Build review prompt
-  - [x] Call AI provider for review
+  - [x] Call AI client for review
   - [x] Parse review response (strengths, weaknesses, opportunities, prioritized actions)
   - [x] Return `ReviewResult`
 - [x] Implement `modifyResume` method (Step 2):
   - [x] Accept resume and review result
   - [x] Build modification prompt based on review
-  - [x] Call AI provider for modification
+  - [x] Call AI client for modification
   - [x] Parse enhanced resume from response
   - [x] Validate response structure
 - [x] Implement `enhanceResume` method (orchestrates review + modify):
@@ -410,7 +402,7 @@ Create the main AI enhancement service that uses real AI models to enhance resum
   - [x] Abstract review/modify methods
   - [x] Support for tool-based approach (future)
 - [x] Add error handling:
-  - [x] AI provider errors
+  - [x] AI client errors
   - [x] Parsing errors
   - [x] Validation errors
 - [x] Add logging for debugging
@@ -802,7 +794,7 @@ Implement usage monitoring to track API calls, errors, and performance metrics.
 **Estimated Time:** 2.5 hours
 
 **Description:**
-Create a configuration system for managing AI provider settings, API keys, and options.
+Create a configuration system for managing Gemini settings, API keys, and options.
 
 **Subtasks:**
 - [x] Create `src/services/ai/config.ts`
@@ -816,15 +808,13 @@ Create a configuration system for managing AI provider settings, API keys, and o
   - [x] Key rotation support
   - [x] Key validation
   - [x] Support for multiple keys
-- [x] Implement provider configuration:
-  - [x] Default provider selection
-  - [x] Provider-specific settings
+- [x] Implement Gemini configuration:
   - [x] Model selection
   - [x] Temperature and other parameters
 - [ ] Implement cost limit configuration:
   - [ ] Daily limits
   - [ ] Monthly limits
-  - [ ] Per-provider limits
+  - [ ] Gemini request limits
   - **Note:** Delayed per user request
 - [x] Add configuration validation
 - [x] Write unit tests
@@ -836,15 +826,10 @@ Create a configuration system for managing AI provider settings, API keys, and o
 **Configuration Format:**
 ```json
 {
-  "defaultProvider": "gemini",
-  "providers": {
-    "gemini": {
-      "apiKey": "${GEMINI_API_KEY}",
-      "model": "gemini-pro",
-      "temperature": 0.7,
-      "maxTokens": 2000
-    }
-  },
+  "apiKey": "${GEMINI_API_KEY}",
+  "model": "gemini-3.1-pro",
+  "temperature": 0.7,
+  "maxTokens": 2000,
   "costLimits": {
     "daily": 10.00,
     "monthly": 300.00
@@ -856,7 +841,7 @@ Create a configuration system for managing AI provider settings, API keys, and o
 - Configuration loading works correctly
 - API keys are securely managed
 - Validation is comprehensive
-- Gemini provider is configurable
+- Gemini client is configurable
 - Unit tests pass
 
 **Dependencies:** Task 16.1
@@ -869,7 +854,7 @@ Create a configuration system for managing AI provider settings, API keys, and o
 **Estimated Time:** 2 hours
 
 **Description:**
-Implement fallback mechanism for AI provider failures. When the primary AI provider fails, the system should handle errors gracefully and provide clear feedback to users.
+Implement clear handling for Gemini failures.
 
 **Subtasks:**
 - [x] Create `src/services/ai/fallbackManager.ts`
@@ -917,21 +902,19 @@ Implement fallback mechanism for AI provider failures. When the primary AI provi
 **Estimated Time:** 2 hours
 
 **Description:**
-Update the CLI `enhanceResume` command to support AI provider selection and configuration.
+Update the CLI `enhanceResume` command to support Gemini configuration.
 
 **Subtasks:**
 - [x] Update `src/cli/index.ts`:
-  - [x] Add `--ai-provider` option (gemini)
-  - [x] Add `--ai-model` option (gemini-2.5-pro, gemini-3-flash-preview)
   - [x] Add `--ai-temperature` option (0-1)
   - [x] Remove mock service references
-- [x] Implement provider selection logic:
-  - [x] Load provider from config or CLI option
-  - [x] Initialize selected provider
-  - [x] Handle provider errors
+- [x] Implement Gemini initialization logic:
+  - [x] Load Gemini settings from config
+  - [x] Initialize Gemini client
+  - [x] Handle Gemini errors
 - [x] Update help text and documentation
-- [x] Add provider status display
-- [x] Add error handling for AI provider failures
+- [x] Add Gemini status display
+- [x] Add error handling for Gemini failures
 - [ ] Write integration tests
 
 **Files to Modify:**
@@ -942,15 +925,13 @@ Update the CLI `enhanceResume` command to support AI provider selection and conf
 enhanceResume \
   --input resume.json \
   --job job-description.txt \
-  --ai-provider gemini \
-  --ai-model gemini-3-flash-preview \
   --ai-temperature 0.7 \
   --output ./output
 ```
 
 **Acceptance Criteria:**
 - CLI options work correctly
-- Provider selection works
+- Gemini initialization works
 - Error handling is good
 - Help text is clear
 - Integration tests pass
@@ -965,23 +946,21 @@ enhanceResume \
 **Estimated Time:** 2 hours
 
 **Description:**
-Update the API `/api/enhanceResume` endpoint to support AI provider selection and configuration.
+Update the API `/api/enhanceResume` endpoint to support Gemini configuration.
 
 **Subtasks:**
 - [x] Update `src/api/routes.ts`:
-  - [x] Add `aiProvider` to request body schema
-  - [x] Add `aiModel` to request body schema
   - [x] Add `aiOptions` to request body schema
   - [x] Update validation schema
-- [x] Implement provider selection:
-  - [x] Load provider from request or config
-  - [x] Initialize selected provider
-  - [x] Handle provider errors
+- [x] Implement Gemini initialization:
+  - [x] Load Gemini settings from config
+  - [x] Initialize Gemini client
+  - [x] Handle Gemini errors
 - [x] Update response format:
-  - [x] Include provider used
+  - [x] Include Gemini metadata
   - [x] Include cost information (if enabled) - Note: Cost calculation removed for later phases
   - [x] Include quality scores (if enabled) - Note: Quality scoring deferred to Task 20.3
-- [x] Add error handling for provider failures
+- [x] Add error handling for Gemini failures
 - [x] Update API documentation
 - [ ] Write integration tests - *Deferred to Task 24.2 (Integration Tests)*
 
@@ -997,8 +976,6 @@ Update the API `/api/enhanceResume` endpoint to support AI provider selection an
   "options": {
     "focusAreas": ["bulletPoints"]
   },
-  "aiProvider": "gemini",
-  "aiModel": "gemini-3-flash-preview",
   "aiOptions": {
     "temperature": 0.7,
     "maxTokens": 2000,
@@ -1009,14 +986,14 @@ Update the API `/api/enhanceResume` endpoint to support AI provider selection an
 ```
 
 **Files Modified:**
-- ✅ `src/api/routes.ts` - Updated endpoint to support AI provider configuration
-- ✅ `src/api/middleware.ts` - Updated request schema to include AI provider options
-- ✅ `API.md` - Updated documentation with AI provider options and error responses
+- ✅ `src/api/routes.ts` - Updated endpoint to support Gemini configuration
+- ✅ `src/api/middleware.ts` - Updated request schema to include Gemini options
+- ✅ `API.md` - Updated documentation with Gemini options and error responses
 
 **Acceptance Criteria:**
-- API accepts AI provider options
-- Provider selection works
-- Response includes provider info
+- API accepts Gemini options
+- Gemini initialization works
+- Response includes Gemini metadata
 - Error handling is comprehensive
 - Integration tests pass
 
@@ -1035,7 +1012,7 @@ Update the API `/api/enhanceResume` endpoint to support AI provider selection an
 Write comprehensive unit tests for all AI-related components.
 
 **Subtasks:**
-- [x] Test AI provider interface implementations ✅ (gemini.test.ts)
+- [x] Test Gemini client implementation ✅ (gemini.test.ts)
 - [x] Test prompt building and validation ✅ (prompts/*.test.ts)
 - [x] Test AI enhancement service ✅ (aiResumeEnhancementService.test.ts)
 - [x] Test truthfulness validator ✅ (truthfulnessValidator.test.ts)
@@ -1045,20 +1022,19 @@ Write comprehensive unit tests for all AI-related components.
 - [ ] Test usage monitor - *Skipped (does not exist)*
 - [x] Test configuration management ✅ (config.test.ts)
 - [x] Test fallback mechanism ✅ (fallbackManager.test.ts)
-- [x] Test provider registry ✅ (providerRegistry.test.ts)
-- [x] Test provider types ✅ (provider.types.test.ts)
+- [x] Remove obsolete provider registry tests ✅
+- [x] Test shared AI client error types ✅ (provider.types.test.ts)
 - [x] Test error scenarios ✅ (covered in all test files)
 - [x] Test edge cases ✅ (covered in all test files)
 - [ ] Achieve >80% code coverage - *To be verified with coverage report*
 
 **Files Created:**
-- ✅ `tests/services/ai/gemini.test.ts` - Comprehensive Gemini provider tests
+- ✅ `tests/services/ai/gemini.test.ts` - Comprehensive Gemini client tests
 - ✅ `tests/services/ai/config.test.ts` - Configuration management tests
 - ✅ `tests/services/ai/fallbackManager.test.ts` - Fallback mechanism tests
 - ✅ `tests/services/ai/responseValidator.test.ts` - Response format validator tests
 - ✅ `tests/services/ai/truthfulnessValidator.test.ts` - Truthfulness validator tests
-- ✅ `tests/services/ai/providerRegistry.test.ts` - Provider registry tests
-- ✅ `tests/services/ai/provider.types.test.ts` - Provider types tests
+- ✅ `tests/services/ai/provider.types.test.ts` - Shared AI client error type tests
 - ✅ `tests/services/ai/prompts/builder.test.ts` - Prompt building tests
 - ✅ `tests/services/ai/prompts/review.template.test.ts` - Review template tests
 - ✅ `tests/services/ai/prompts/modify.template.test.ts` - Modify template tests
@@ -1128,18 +1104,18 @@ Update project documentation to include Phase 3 AI integration features.
 
 **Subtasks:**
 - [x] Update `README.md`:
-  - [x] Add AI provider selection examples ✅
+  - [x] Add Gemini configuration examples ✅
   - [x] Add configuration instructions ✅
   - [x] Add cost tracking information - *Note: Cost tracking removed for later phases*
   - [x] Add troubleshooting for AI issues ✅
 - [x] Update `API.md`:
-  - [x] Document AI provider options ✅
+  - [x] Document Gemini options ✅
   - [x] Add AI-specific request/response examples ✅
   - [x] Document cost tracking in responses - *Note: Cost tracking removed, documented as such*
   - [ ] Document quality scores - *Deferred (Task 20.3 not yet implemented)*
 - [x] Create `GEMINI_SETUP.md`:
   - [x] Document Gemini setup instructions ✅
-  - [x] Document model selection (gemini-2.5-pro, gemini-3-flash-preview) ✅
+  - [x] Document model configuration (`GEMINI_MODEL`) ✅
   - [x] Document pricing information ✅
   - [x] Document best practices ✅
 - [x] Update `PROJECT_PLAN.md`:
@@ -1151,8 +1127,8 @@ Update project documentation to include Phase 3 AI integration features.
 **Files Created/Modified:**
 - ✅ `GEMINI_SETUP.md` (new) - Comprehensive Gemini setup guide with model selection, best practices, and troubleshooting
 - ✅ `README.md` (updated) - Added troubleshooting section and AI enhancement examples
-- ✅ `API.md` (updated) - Documented AI provider options and noted cost tracking removal
-- ✅ `PROJECT_PLAN.md` (updated) - Updated model names (gemini-2.5-pro, gemini-3-flash-preview) and removed mock fallback references
+- ✅ `API.md` (updated) - Documented Gemini options and noted cost tracking removal
+- ✅ `PROJECT_PLAN.md` (updated) - Updated model names and removed mock fallback references
 
 **Acceptance Criteria:**
 - ✅ Documentation is comprehensive
@@ -1221,11 +1197,11 @@ All ──> 24.3 (Documentation)
 
 Before marking Phase 3 as complete, verify:
 
-- [x] Gemini AI provider is fully integrated and working
+- [x] Gemini AI client is fully integrated and working
 - [x] AI enhancement produces natural, high-quality results
 - [x] Truthfulness validation prevents fabrication
 - [ ] Cost tracking and monitoring are functional
-- [ ] CLI and API support AI provider selection
+- [x] CLI and API use Gemini directly
 - [ ] Configuration management is secure and flexible
 - [ ] All unit tests pass (>80% coverage)
 - [ ] Integration tests pass

@@ -183,7 +183,7 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.modifyResume).toHaveBeenCalled();
     });
 
-    it('should enhance resume using AI provider', async () => {
+    it('should enhance resume using AI client', async () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
@@ -199,7 +199,7 @@ describe('AIResumeEnhancementService', () => {
       expect(mockAIProvider.modifyResume).toHaveBeenCalled();
     });
 
-    it('should throw error when AI provider fails', async () => {
+    it('should throw error when AI client fails', async () => {
       mockAIProvider.reviewResume.mockRejectedValue(new Error('API Error'));
 
       const service = createTestWorkflow(mockAIProvider);

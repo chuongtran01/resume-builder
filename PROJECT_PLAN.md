@@ -141,10 +141,10 @@ The AI enhancement process uses extracted information from the job description t
    - Validation layer ensures no fabrication
 
 **Supported AI Model:**
-- **Google Gemini** - Via Google AI API (gemini-3-flash-preview, gemini-2.5-pro)
+- **Google Gemini** - Via Google AI API (`gemini-3.1-pro` by default)
 
 **Deliverables:**
-- AI provider abstraction layer (`src/services/ai/`)
+- Gemini AI client (`src/services/ai/`)
 - Google Gemini integration (`src/services/ai/gemini.ts`)
 - AI enhancement service implementation (`src/services/aiResumeEnhancementService.ts`)
 - Sequential review → modify workflow (designed for future agent upgrade)
@@ -153,12 +153,11 @@ The AI enhancement process uses extracted information from the job description t
 - Rate limiting and error handling
 - Configuration management for API keys
 - Quality assurance and validation layer
-- Fallback mechanism to Phase 2 mock service
 
 **Implementation Strategy:**
 
-1. **AI Provider Abstraction:**
-   - Create unified interface for AI providers (designed for Gemini, extensible for future)
+1. **Gemini Client Integration:**
+   - Create direct Gemini client integration
    - Support for streaming and non-streaming responses
    - Error handling and retry logic
    - Cost tracking per request
@@ -188,14 +187,12 @@ The AI enhancement process uses extracted information from the job description t
 **Configuration:**
 ```typescript
 {
-  aiProvider: 'gemini',
-  model: 'gemini-3-flash-preview' | 'gemini-2.5-pro',
+  model: 'gemini-3.1-pro' | 'gemini-2.5-pro' | 'gemini-3-flash-preview',
   apiKey: string,
   temperature: number, // 0-1 for creativity control
   maxTokens: number,
   enableStreaming: boolean,
   // Note: Fallback to mock service removed - AI-only enhancement
-  enhancementMode: 'sequential' | 'agent' // Sequential (default) or agent-based (future)
 }
 ```
 
@@ -216,9 +213,8 @@ resume-builder/
 │   │   ├── resumeGenerator.ts  # Main generator service
 │   │   ├── resumeEnhancementService.ts  # Mock AI service (Phase 2)
 │   │   ├── aiResumeEnhancementService.ts  # Real AI service (Phase 3)
-│   │   ├── ai/                 # AI provider integrations (Phase 3)
-│   │   │   ├── provider.types.ts  # AI provider interface
-│   │   │   ├── providerRegistry.ts  # Provider registry
+│   │   ├── ai/                 # Gemini AI integration (Phase 3)
+│   │   │   ├── provider.types.ts  # Shared AI client metadata/errors
 │   │   │   └── gemini.ts       # Google Gemini integration
 │   │   └── atsValidator.ts     # ATS compliance checker
 │   │
@@ -701,14 +697,13 @@ Accepts resume JSON and job description, returns enhanced resume with change tra
 - ✅ Prepare architecture for AI integration
 
 ### Phase 3: Real AI Model Integration (Gemini)
-- Design AI provider abstraction layer
+- Design Gemini client integration
 - Implement Google Gemini integration
 - Create prompt engineering system
 - Build quality assurance and validation layer
 - Add cost tracking and usage monitoring
-- Implement fallback mechanism
 - Add configuration management
-- Update CLI and API to support Gemini provider
+- Update CLI and API to use Gemini directly
 
 ---
 
@@ -731,8 +726,8 @@ Accepts resume JSON and job description, returns enhanced resume with change tra
 - ✅ Enhancement workflow is testable
 
 ### Phase 3 Ready When:
-- ✅ AI provider abstraction layer is implemented
-- ✅ Google Gemini provider is integrated
+- ✅ Gemini client integration is implemented
+- ✅ Google Gemini is integrated
 - ✅ Natural language enhancement produces high-quality results
 - ✅ Truthfulness validation is robust
 - ✅ Cost tracking and monitoring are in place

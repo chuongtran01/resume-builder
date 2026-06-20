@@ -17,13 +17,25 @@ import {
   createAISdkResumeClient,
   type AISdkResumeClient,
 } from '../../../src/services/ai/aiSdkResumeGenerator';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
 jest.mock('../../../src/services/ai/aiSdkResumeGenerator', () => ({
   createAISdkResumeClient: jest.fn(),
 }));
 
+jest.mock('@ai-sdk/google', () => ({
+  createGoogleGenerativeAI: jest.fn((options) => {
+    return jest.fn((modelId: string) => ({
+      provider: 'google',
+      modelId,
+      options,
+    }));
+  }),
+}));
+
 describe('createGeminiResumeClient', () => {
   const mockCreateAISdkResumeClient = createAISdkResumeClient as jest.MockedFunction<typeof createAISdkResumeClient>;
+  const mockCreateGoogleGenerativeAI = createGoogleGenerativeAI as jest.MockedFunction<typeof createGoogleGenerativeAI>;
 
   const mockConfig: GeminiConfig = {
     apiKey: 'test-api-key',
@@ -107,18 +119,23 @@ describe('createGeminiResumeClient', () => {
   });
 
   describe('factory', () => {
-    it('creates client with valid config and maps model to AI SDK gateway id', () => {
+    it('creates client with valid config and maps model to Google provider id', () => {
       expect(provider.reviewResume).toEqual(expect.any(Function));
       expect(provider.modifyResume).toEqual(expect.any(Function));
+      expect(mockCreateGoogleGenerativeAI).toHaveBeenCalledWith({
+        apiKey: 'test-api-key',
+      });
       expect(mockCreateAISdkResumeClient).toHaveBeenCalledWith({
-        model: 'google/gemini-3.1-pro',
+        model: expect.objectContaining({
+          modelId: 'gemini-3.1-pro-preview',
+        }),
         temperature: 0.7,
         maxTokens: 2000,
         maxRetries: 0,
       });
     });
 
-    it('maps gemini-2.5-pro to the AI SDK gateway model id', () => {
+    it('maps gemini-2.5-pro to the Google provider model id', () => {
       createGeminiResumeClient({
         apiKey: 'test-api-key',
         model: 'gemini-2.5-pro',
@@ -126,12 +143,14 @@ describe('createGeminiResumeClient', () => {
 
       expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          model: 'google/gemini-2.5-pro',
+          model: expect.objectContaining({
+            modelId: 'gemini-2.5-pro',
+          }),
         })
       );
     });
 
-    it('maps gemini-3-flash-preview to the AI SDK gateway model id', () => {
+    it('maps gemini-3-flash-preview to the Google provider model id', () => {
       createGeminiResumeClient({
         apiKey: 'test-api-key',
         model: 'gemini-3-flash-preview',
@@ -139,7 +158,9 @@ describe('createGeminiResumeClient', () => {
 
       expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
         expect.objectContaining({
-          model: 'google/gemini-3-flash',
+          model: expect.objectContaining({
+            modelId: 'gemini-3-flash-preview',
+          }),
         })
       );
     });

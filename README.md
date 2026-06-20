@@ -117,7 +117,6 @@ npm run dev -- enhanceResume \
   --output ./output \
   --template classic \
   --format pdf \
-  --ai-provider gemini \
   --ai-temperature 0.7 \
   --verbose
 ```
@@ -128,7 +127,6 @@ npm run dev -- enhanceResume \
 - `--output, -o` - Output directory for enhanced files (default: `./output`)
 - `--template, -t` - Template name: `classic` or `modern` (default: `classic`)
 - `--format, -f` - Output format: `pdf` or `html` (default: `pdf`)
-- `--ai-provider <provider>` - AI provider to use (default: `gemini`)
 - `--ai-temperature <temp>` - AI temperature 0-1 (default: `0.7`)
 - `--verbose, -v` - Enable verbose logging
 
@@ -156,7 +154,7 @@ npm run dev -- enhanceResume \
 
 This will:
 1. Load and parse your resume
-2. Initialize AI provider (Gemini) with configured settings from `.env` file
+2. Initialize the Gemini client with configured settings from `.env` file
 3. Analyze the job description using AI
 4. Enhance resume with AI-powered improvements
 5. Generate enhanced JSON, PDF, and Markdown report

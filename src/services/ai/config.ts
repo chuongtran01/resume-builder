@@ -1,8 +1,7 @@
 /**
- * AI Configuration Management
- * 
- * Manages AI provider settings, API keys, and configuration options.
- * Supports loading from environment variables and config files.
+ * Gemini configuration management.
+ *
+ * Loads Gemini settings from .env and optional JSON config files.
  */
 
 import * as fs from 'fs-extra';
@@ -10,17 +9,13 @@ import * as path from 'path';
 import { config as loadDotenv } from 'dotenv';
 import { logger } from '@utils/logger';
 
-// Load .env file and get parsed result (only from .env, not system env)
 const envResult = loadDotenv();
 const envVars = envResult.parsed || {};
 
-/**
- * Gemini provider configuration
- */
 export interface GeminiProviderConfig {
   /** API key for Google AI */
   apiKey: string;
-  /** Model to use - supports latest models from official docs */
+  /** Model to use */
   model: 'gemini-3.1-pro' | 'gemini-2.5-pro' | 'gemini-3-flash-preview';
   /** Temperature (0-1) for creativity control */
   temperature?: number;
@@ -34,29 +29,12 @@ export interface GeminiProviderConfig {
   retryDelayBase?: number;
 }
 
-/**
- * AI configuration structure
- */
-export interface AIConfig {
-  /** Provider-specific configurations */
-  providers?: {
-    gemini?: GeminiProviderConfig;
-    // Future: other providers can be added here
-  };
-}
-
-/**
- * Configuration validation result
- */
 export interface ConfigValidationResult {
   valid: boolean;
   errors: string[];
   warnings: string[];
 }
 
-/**
- * Configuration loading options
- */
 export interface ConfigLoadOptions {
   /** Config file path (optional - only used if loadFromFile is true, .env is preferred) */
   configPath?: string;
@@ -68,9 +46,6 @@ export interface ConfigLoadOptions {
   validate?: boolean;
 }
 
-/**
- * Environment variable names
- */
 const ENV_VARS = {
   GEMINI_API_KEY: 'GEMINI_API_KEY',
   GEMINI_MODEL: 'GEMINI_MODEL',
@@ -80,24 +55,14 @@ const ENV_VARS = {
   GEMINI_MAX_RETRIES: 'GEMINI_MAX_RETRIES',
 } as const;
 
-/**
- * Get environment variable value from .env file, with fallback to process.env
- * (process.env takes precedence for testing purposes)
- */
 function getEnvVar(name: string): string | undefined {
-  // Check process.env first (allows tests to override .env file values)
   if (process.env[name] !== undefined) {
     return process.env[name];
   }
-  // Fallback to .env file
   return envVars[name];
 }
 
-/**
- * Resolve environment variable value (supports ${VAR} syntax)
- */
 function resolveEnvVar(value: string): string {
-  // Check if value is an environment variable reference
   const envMatch = value.match(/^\$\{([^}]+)\}$/);
   if (envMatch && envMatch[1]) {
     const envVar = envMatch[1];
@@ -110,84 +75,72 @@ function resolveEnvVar(value: string): string {
   return value;
 }
 
-/**
- * Load configuration from .env file only (not system environment variables)
- */
-function loadFromEnvironment(): Partial<AIConfig> {
-  const config: Partial<AIConfig> = {
-    providers: {},
+function parsePositiveInteger(value: string | undefined): number | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  const parsed = parseInt(value, 10);
+  return !isNaN(parsed) && parsed > 0 ? parsed : undefined;
+}
+
+function loadFromEnvironment(): Partial<GeminiProviderConfig> | undefined {
+  const apiKey = getEnvVar(ENV_VARS.GEMINI_API_KEY);
+  if (!apiKey) {
+    return undefined;
+  }
+
+  const config: Partial<GeminiProviderConfig> = {
+    apiKey,
+    model: (getEnvVar(ENV_VARS.GEMINI_MODEL) as GeminiProviderConfig['model']) || 'gemini-3.1-pro',
   };
 
-  // Gemini configuration
-  const geminiApiKey = getEnvVar(ENV_VARS.GEMINI_API_KEY);
-  if (geminiApiKey) {
-    config.providers!.gemini = {
-      apiKey: geminiApiKey,
-      model: (getEnvVar(ENV_VARS.GEMINI_MODEL) as GeminiProviderConfig['model']) || 'gemini-3.1-pro',
-    };
-
-    // Optional Gemini settings
-    const tempEnv = getEnvVar(ENV_VARS.GEMINI_TEMPERATURE);
-    if (tempEnv && config.providers?.gemini) {
-      const temp = parseFloat(tempEnv);
-      if (!isNaN(temp) && temp >= 0 && temp <= 1) {
-        config.providers.gemini.temperature = temp;
-      }
+  const temperature = getEnvVar(ENV_VARS.GEMINI_TEMPERATURE);
+  if (temperature) {
+    const parsed = parseFloat(temperature);
+    if (!isNaN(parsed) && parsed >= 0 && parsed <= 1) {
+      config.temperature = parsed;
     }
+  }
 
-    const maxTokensEnv = getEnvVar(ENV_VARS.GEMINI_MAX_TOKENS);
-    if (maxTokensEnv && config.providers?.gemini) {
-      const maxTokens = parseInt(maxTokensEnv, 10);
-      if (!isNaN(maxTokens) && maxTokens > 0) {
-        config.providers.gemini.maxTokens = maxTokens;
-      }
-    }
+  const maxTokens = parsePositiveInteger(getEnvVar(ENV_VARS.GEMINI_MAX_TOKENS));
+  if (maxTokens !== undefined) {
+    config.maxTokens = maxTokens;
+  }
 
-    const timeoutEnv = getEnvVar(ENV_VARS.GEMINI_TIMEOUT);
-    if (timeoutEnv && config.providers?.gemini) {
-      const timeout = parseInt(timeoutEnv, 10);
-      if (!isNaN(timeout) && timeout > 0) {
-        config.providers.gemini.timeout = timeout;
-      }
-    }
+  const timeout = parsePositiveInteger(getEnvVar(ENV_VARS.GEMINI_TIMEOUT));
+  if (timeout !== undefined) {
+    config.timeout = timeout;
+  }
 
-    const maxRetriesEnv = getEnvVar(ENV_VARS.GEMINI_MAX_RETRIES);
-    if (maxRetriesEnv && config.providers?.gemini) {
-      const maxRetries = parseInt(maxRetriesEnv, 10);
-      if (!isNaN(maxRetries) && maxRetries >= 0) {
-        config.providers.gemini.maxRetries = maxRetries;
-      }
+  const maxRetriesEnv = getEnvVar(ENV_VARS.GEMINI_MAX_RETRIES);
+  if (maxRetriesEnv) {
+    const maxRetries = parseInt(maxRetriesEnv, 10);
+    if (!isNaN(maxRetries) && maxRetries >= 0) {
+      config.maxRetries = maxRetries;
     }
   }
 
   return config;
 }
 
-/**
- * Load configuration from JSON file
- */
-async function loadFromFile(configPath: string): Promise<Partial<AIConfig>> {
+async function loadFromFile(configPath: string): Promise<Partial<GeminiProviderConfig> | undefined> {
   const fullPath = path.resolve(configPath);
-
-  // Check if file exists
   const exists = await fs.pathExists(fullPath);
   if (!exists) {
     logger.debug(`Config file not found: ${fullPath}`);
-    return {};
+    return undefined;
   }
 
   try {
     const content = await fs.readFile(fullPath, 'utf-8');
-    const config = JSON.parse(content) as Partial<AIConfig>;
+    const parsed = JSON.parse(content) as Partial<GeminiProviderConfig> & {
+      gemini?: Partial<GeminiProviderConfig>;
+    };
+    const config: Partial<GeminiProviderConfig> | undefined = parsed.gemini ?? parsed;
 
-    // Resolve environment variable references in API keys
-    if (config.providers?.gemini?.apiKey) {
-      try {
-        config.providers.gemini.apiKey = resolveEnvVar(config.providers.gemini.apiKey);
-      } catch (error) {
-        // Re-throw env var resolution errors so they can be caught by caller
-        throw error;
-      }
+    if (config?.apiKey) {
+      config.apiKey = resolveEnvVar(config.apiKey);
     }
 
     return config;
@@ -199,122 +152,70 @@ async function loadFromFile(configPath: string): Promise<Partial<AIConfig>> {
   }
 }
 
-/**
- * Merge configurations (file config takes precedence over env config)
- */
 function mergeConfigs(
-  envConfig: Partial<AIConfig>,
-  fileConfig: Partial<AIConfig>
-): AIConfig {
-  // Deep merge gemini config (file takes precedence over env)
-  let geminiConfig: GeminiProviderConfig | undefined;
-  const envGemini = envConfig.providers?.gemini;
-  const fileGemini = fileConfig.providers?.gemini;
-
-  // If either has a config, merge them (file takes precedence)
-  if (envGemini || fileGemini) {
-    // Start with env config, then override with file config (file takes precedence)
-    geminiConfig = {
-      ...envGemini,
-      ...fileGemini,
-      // Ensure apiKey is present (file takes precedence)
-      apiKey: (fileGemini?.apiKey || envGemini?.apiKey || '') as string,
-      // Ensure model is present (file takes precedence)
-      model: (fileGemini?.model || envGemini?.model || 'gemini-3.1-pro') as GeminiProviderConfig['model'],
-    };
+  envConfig: Partial<GeminiProviderConfig> | undefined,
+  fileConfig: Partial<GeminiProviderConfig> | undefined
+): GeminiProviderConfig | undefined {
+  if (!envConfig && !fileConfig) {
+    return undefined;
   }
 
-  // Build providers object with proper merging
-  const providers: AIConfig['providers'] = {
-    ...(envConfig.providers || {}),
-    ...(fileConfig.providers || {}),
+  return {
+    ...envConfig,
+    ...fileConfig,
+    apiKey: fileConfig?.apiKey || envConfig?.apiKey || '',
+    model: (fileConfig?.model || envConfig?.model || 'gemini-3.1-pro') as GeminiProviderConfig['model'],
   };
-
-  // Ensure merged gemini config takes precedence (file overrides env)
-  if (geminiConfig) {
-    providers.gemini = geminiConfig;
-  }
-
-  const merged: AIConfig = {
-    providers,
-  };
-
-  return merged;
 }
 
-/**
- * Validate configuration
- */
-function validateConfig(config: AIConfig): ConfigValidationResult {
+function validateConfig(config: GeminiProviderConfig | undefined): ConfigValidationResult {
   const errors: string[] = [];
   const warnings: string[] = [];
 
-  // Validate Gemini configuration if provider is gemini
-  // Only validate if gemini config actually exists (not just default provider)
-  if (config.providers?.gemini) {
-    const geminiConfig = config.providers.gemini;
-    // Validate API key
-    if (!geminiConfig.apiKey || geminiConfig.apiKey.trim() === '') {
-      errors.push('Gemini API key is required');
-    }
-
-    // Validate model
-    const validModels = ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'];
-    if (geminiConfig.model && !validModels.includes(geminiConfig.model)) {
-      errors.push(`Invalid Gemini model: ${geminiConfig.model}. Must be one of: ${validModels.join(', ')}`);
-    }
-
-    // Validate temperature
-    if (geminiConfig.temperature !== undefined) {
-      if (typeof geminiConfig.temperature !== 'number' || geminiConfig.temperature < 0 || geminiConfig.temperature > 1) {
-        errors.push('Gemini temperature must be a number between 0 and 1');
-      }
-    }
-
-    // Validate maxTokens
-    if (geminiConfig.maxTokens !== undefined) {
-      if (typeof geminiConfig.maxTokens !== 'number' || geminiConfig.maxTokens <= 0) {
-        errors.push('Gemini maxTokens must be a positive number');
-      }
-    }
-
-    // Validate timeout
-    if (geminiConfig.timeout !== undefined) {
-      if (typeof geminiConfig.timeout !== 'number' || geminiConfig.timeout <= 0) {
-        errors.push('Gemini timeout must be a positive number');
-      }
-    }
-
-    // Validate maxRetries
-    if (geminiConfig.maxRetries !== undefined) {
-      if (typeof geminiConfig.maxRetries !== 'number' || geminiConfig.maxRetries < 0) {
-        errors.push('Gemini maxRetries must be a non-negative number');
-      }
-    }
-  } else {
-    // Default provider is gemini but no config provided - this is a warning, not an error
-    warnings.push('Gemini is selected as default provider but no configuration found. API key will be required at runtime.');
+  if (!config) {
+    warnings.push('Gemini configuration not found. API key will be required at runtime.');
+    return { valid: true, errors, warnings };
   }
 
-  // Additional warnings (already handled above for missing config case)
+  if (!config.apiKey || config.apiKey.trim() === '') {
+    errors.push('Gemini API key is required');
+  }
 
-  return {
-    valid: errors.length === 0,
-    errors,
-    warnings,
-  };
+  const validModels = ['gemini-3.1-pro', 'gemini-2.5-pro', 'gemini-3-flash-preview'];
+  if (config.model && !validModels.includes(config.model)) {
+    errors.push(`Invalid Gemini model: ${config.model}. Must be one of: ${validModels.join(', ')}`);
+  }
+
+  if (config.temperature !== undefined) {
+    if (typeof config.temperature !== 'number' || config.temperature < 0 || config.temperature > 1) {
+      errors.push('Gemini temperature must be a number between 0 and 1');
+    }
+  }
+
+  if (config.maxTokens !== undefined) {
+    if (typeof config.maxTokens !== 'number' || config.maxTokens <= 0) {
+      errors.push('Gemini maxTokens must be a positive number');
+    }
+  }
+
+  if (config.timeout !== undefined) {
+    if (typeof config.timeout !== 'number' || config.timeout <= 0) {
+      errors.push('Gemini timeout must be a positive number');
+    }
+  }
+
+  if (config.maxRetries !== undefined) {
+    if (typeof config.maxRetries !== 'number' || config.maxRetries < 0) {
+      errors.push('Gemini maxRetries must be a non-negative number');
+    }
+  }
+
+  return { valid: errors.length === 0, errors, warnings };
 }
 
-/**
- * Load AI configuration
- * 
- * @param options - Configuration loading options
- * @returns Loaded and validated configuration
- * @throws {Error} If configuration is invalid
- */
-export async function loadAIConfig(
+export async function loadGeminiConfig(
   options: ConfigLoadOptions = {}
-): Promise<AIConfig> {
+): Promise<GeminiProviderConfig | undefined> {
   const {
     configPath,
     loadFromEnv = true,
@@ -322,45 +223,39 @@ export async function loadAIConfig(
     validate = true,
   } = options;
 
-  // Auto-enable loadFromFile if configPath is provided
   const shouldLoadFromFileAuto = shouldLoadFromFile ?? (configPath !== undefined);
 
-  logger.debug('Loading AI configuration');
+  logger.debug('Loading Gemini configuration');
 
-  // Load from environment variables
-  let envConfig: Partial<AIConfig> = {};
+  let envConfig: Partial<GeminiProviderConfig> | undefined;
   if (loadFromEnv) {
     try {
       envConfig = loadFromEnvironment();
-      logger.debug('Configuration loaded from environment variables');
+      logger.debug('Gemini configuration loaded from environment variables');
     } catch (error) {
-      logger.warn(`Failed to load configuration from environment: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.warn(`Failed to load Gemini configuration from environment: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  // Load from config file (optional - only if explicitly enabled or configPath provided)
-  let fileConfig: Partial<AIConfig> = {};
+  let fileConfig: Partial<GeminiProviderConfig> | undefined;
   if (shouldLoadFromFileAuto) {
     if (!configPath) {
       throw new Error('configPath is required when loadFromFile is true');
     }
+
     try {
-      const loadedConfig = await loadFromFile(configPath);
-      fileConfig = loadedConfig;
-      logger.debug(`Configuration loaded from file: ${configPath}`);
+      fileConfig = await loadFromFile(configPath);
+      logger.debug(`Gemini configuration loaded from file: ${configPath}`);
     } catch (error) {
-      // Re-throw errors from env var resolution (they indicate configuration issues)
       if (error instanceof Error && error.message.includes('Environment variable')) {
         throw error;
       }
-      logger.warn(`Failed to load configuration from file: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      logger.warn(`Failed to load Gemini configuration from file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
-  // Merge configurations (file takes precedence)
   const mergedConfig = mergeConfigs(envConfig, fileConfig);
 
-  // Validate configuration
   if (validate) {
     const validation = validateConfig(mergedConfig);
     if (!validation.valid) {
@@ -373,63 +268,15 @@ export async function loadAIConfig(
     }
   }
 
-  logger.debug('AI configuration loaded.');
+  logger.debug('Gemini configuration loaded.');
 
   return mergedConfig;
 }
 
-/**
- * Get Gemini provider configuration
- * 
- * @param config - AI configuration
- * @returns Gemini provider configuration or undefined
- */
-export function getGeminiConfig(config: AIConfig): GeminiProviderConfig | undefined {
-  return config.providers?.gemini;
-}
-
-/**
- * Validate API key format (basic validation)
- */
-export function validateAPIKey(apiKey: string, provider: 'gemini'): boolean {
+export function validateAPIKey(apiKey: string): boolean {
   if (!apiKey || apiKey.trim() === '') {
     return false;
   }
 
-  // Basic format validation
-  if (provider === 'gemini') {
-    // Gemini API keys typically start with specific patterns
-    // This is a basic check - actual validation happens when using the key
-    return apiKey.length > 10;
-  }
-
-  return true;
-}
-
-/**
- * Get configuration for a specific provider
- * 
- * @param config - AI configuration
- * @param provider - Provider name
- * @returns Provider configuration
- */
-export function getProviderConfig(
-  config: AIConfig,
-  provider: 'gemini'
-): GeminiProviderConfig | undefined {
-  if (provider === 'gemini') {
-    return config.providers?.gemini;
-  }
-  return undefined;
-}
-
-/**
- * Create default configuration
- * 
- * @returns Default configuration
- */
-export function createDefaultConfig(): AIConfig {
-  return {
-    providers: {},
-  };
+  return apiKey.length > 10;
 }

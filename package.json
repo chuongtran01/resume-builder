@@ -43,6 +43,7 @@
   },
   "homepage": "",
   "dependencies": {
+    "@ai-sdk/google": "^3.0.83",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "ai": "^6.0.208",

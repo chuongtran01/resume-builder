@@ -93,7 +93,7 @@ export interface ReviewRequest {
 }
 
 /**
- * Review response from AI provider
+ * Review response from AI client
  */
 export interface ReviewResponse {
   /** Review result with analysis */
