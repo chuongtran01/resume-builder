@@ -9,10 +9,6 @@ import type {
   ResumeEnhancementService,
   EnhancementResult,
   EnhancementOptions,
-  Improvement,
-  KeywordSuggestion,
-  AtsScore,
-  ChangeDetail,
 } from '@resume-types/enhancement.types';
 import type { Resume } from '@resume-types/resume.types';
 import type {
@@ -28,7 +24,10 @@ import type {
 import type { ParsedJobDescription } from '@utils/jobParser';
 import { parseJobDescription } from '@utils/jobParser';
 import { getProvider, getDefaultProvider } from '@services/ai/providerRegistry';
-import { validateAtsCompliance } from '@services/atsValidator';
+import {
+  buildEnhancementResult,
+  flattenSkills,
+} from '@services/ai/enhancementResultBuilder';
 import { logger } from '@utils/logger';
 
 /**
@@ -220,64 +219,6 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   }
 
   /**
-   * Filter enhanced resume to only include sections that exist in the original resume
-   * 
-   * @param originalResume - Original resume
-   * @param enhancedResume - Enhanced resume from AI
-   * @returns Filtered enhanced resume with only original sections
-   */
-  private filterEnhancedResumeSections(
-    originalResume: Resume,
-    enhancedResume: Resume
-  ): Resume {
-    // Start with required fields
-    const filtered: Resume = {
-      personalInfo: enhancedResume.personalInfo, // Always required
-      experience: enhancedResume.experience, // Always required
-    };
-
-    // Only include optional sections that exist in the original resume
-    if ('summary' in originalResume && originalResume.summary !== undefined) {
-      filtered.summary = enhancedResume.summary;
-    }
-
-    if ('education' in originalResume && originalResume.education !== undefined) {
-      filtered.education = enhancedResume.education;
-    }
-
-    if ('skills' in originalResume && originalResume.skills !== undefined) {
-      filtered.skills = enhancedResume.skills;
-    }
-
-    if ('projects' in originalResume && originalResume.projects !== undefined) {
-      filtered.projects = enhancedResume.projects;
-    }
-
-    if ('certifications' in originalResume && originalResume.certifications !== undefined) {
-      filtered.certifications = enhancedResume.certifications;
-    }
-
-    if ('languages' in originalResume && originalResume.languages !== undefined) {
-      filtered.languages = enhancedResume.languages;
-    }
-
-    if ('awards' in originalResume && originalResume.awards !== undefined) {
-      filtered.awards = enhancedResume.awards;
-    }
-
-    // Log if any sections were filtered out
-    const originalSections = Object.keys(originalResume).filter(key => key !== 'personalInfo');
-    const enhancedSections = Object.keys(enhancedResume).filter(key => key !== 'personalInfo');
-    const filteredOut = enhancedSections.filter(section => !originalSections.includes(section));
-    
-    if (filteredOut.length > 0) {
-      logger.warn(`Filtered out sections that were not in original resume: ${filteredOut.join(', ')}`);
-    }
-
-    return filtered;
-  }
-
-  /**
    * Parse modification response from AI provider
    * 
    * @param originalResume - Original resume before enhancement
@@ -295,325 +236,14 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
       throw new Error('Invalid modification response structure');
     }
 
-    let enhancedResume = response.enhancedResume;
+    const enhancedResume = response.enhancedResume;
 
     // Validate resume structure
     if (!enhancedResume || !enhancedResume.personalInfo || !enhancedResume.experience) {
       throw new Error('Invalid enhanced resume structure');
     }
 
-    // Filter out sections that don't exist in the original resume
-    enhancedResume = this.filterEnhancedResumeSections(originalResume, enhancedResume);
-
-    // Track changes
-    const changes = this.trackChanges(originalResume, enhancedResume);
-
-    // Generate improvements from changes
-    const improvements = this.generateImprovements(changes, response.improvements);
-
-    // Generate keyword suggestions
-    const keywordSuggestions = this.generateKeywordSuggestions(parsedJob, enhancedResume);
-
-    // Identify missing skills
-    const missingSkills = this.identifyMissingSkills(parsedJob.requiredSkills, enhancedResume);
-
-    // Calculate ATS scores
-    const atsScoreBefore = validateAtsCompliance(originalResume).score;
-    const atsScoreAfter = validateAtsCompliance(enhancedResume).score;
-    const atsScore: AtsScore = {
-      before: atsScoreBefore,
-      after: atsScoreAfter,
-      improvement: atsScoreAfter - atsScoreBefore,
-    };
-
-    // Generate recommendations
-    const recommendations = this.generateRecommendations(
-      originalResume,
-      enhancedResume,
-      parsedJob,
-      missingSkills,
-      response.reasoning
-    );
-
-    return {
-      originalResume,
-      enhancedResume,
-      improvements,
-      keywordSuggestions,
-      missingSkills,
-      atsScore,
-      recommendations,
-    };
-  }
-
-  /**
-   * Track changes between original and enhanced resume
-   * 
-   * @param original - Original resume
-   * @param enhanced - Enhanced resume
-   * @returns Array of change details
-   */
-  private trackChanges(original: Resume, enhanced: Resume): ChangeDetail[] {
-    const changes: ChangeDetail[] = [];
-
-    // Track experience changes
-    if (original.experience && enhanced.experience) {
-      for (let i = 0; i < Math.max(original.experience.length, enhanced.experience.length); i++) {
-        const origExp = original.experience[i];
-        const enhExp = enhanced.experience[i];
-
-        if (!origExp && enhExp) {
-          // New experience added (should not happen, but track it)
-          logger.warn(`New experience added at index ${i}: ${enhExp.company}`);
-          continue;
-        }
-
-        if (origExp && !enhExp) {
-          // Experience removed (should not happen, but track it)
-          logger.warn(`Experience removed at index ${i}: ${origExp.company}`);
-          continue;
-        }
-
-        if (origExp && enhExp) {
-          // Compare bullet points
-          const origBullets = origExp.bulletPoints || [];
-          const enhBullets = enhExp.bulletPoints || [];
-
-          for (let j = 0; j < Math.max(origBullets.length, enhBullets.length); j++) {
-            const origBullet = origBullets[j];
-            const enhBullet = enhBullets[j];
-
-            if (origBullet !== enhBullet) {
-              changes.push({
-                old: origBullet || '',
-                new: enhBullet || '',
-                section: `experience[${i}].bulletPoints[${j}]`,
-                type: 'bulletPoint',
-              });
-            }
-          }
-
-          // Compare role if changed
-          if (origExp.role !== enhExp.role) {
-            changes.push({
-              old: origExp.role,
-              new: enhExp.role || '',
-              section: `experience[${i}].role`,
-              type: 'bulletPoint',
-            });
-          }
-        }
-      }
-    }
-
-    // Track skills changes
-    if (original.skills && enhanced.skills) {
-      const origSkills = this.flattenSkills(original.skills);
-      const enhSkills = this.flattenSkills(enhanced.skills);
-
-      // Check for reordering or changes
-      const origSkillsStr = origSkills.join(', ');
-      const enhSkillsStr = enhSkills.join(', ');
-
-      if (origSkillsStr !== enhSkillsStr) {
-        // Skills were reordered or modified
-        changes.push({
-          old: origSkillsStr,
-          new: enhSkillsStr,
-          section: 'skills',
-          type: 'skill',
-        });
-      }
-    }
-
-    // Track summary changes
-    if (original.summary && enhanced.summary && original.summary !== enhanced.summary) {
-      changes.push({
-        old: original.summary,
-        new: enhanced.summary,
-        section: 'summary',
-        type: 'summary',
-      });
-    }
-
-    return changes;
-  }
-
-  /**
-   * Flatten skills object into array of skill names
-   */
-  private flattenSkills(skills: Resume['skills']): string[] {
-    if (!skills) return [];
-    
-    // Handle file references
-    if (typeof skills === 'string' && skills.startsWith('file:')) {
-      // File reference - can't flatten without loading the file
-      // Return empty array for now
-      return [];
-    }
-    
-    // Handle Skills object with categories
-    if (typeof skills === 'object' && skills !== null && 'categories' in skills) {
-      const skillsObj = skills as { categories?: Array<{ items?: string[] }> };
-      if (Array.isArray(skillsObj.categories)) {
-        const allSkills: string[] = [];
-        for (const category of skillsObj.categories) {
-          if (category.items && Array.isArray(category.items)) {
-            allSkills.push(...category.items);
-          }
-        }
-        return allSkills;
-      }
-    }
-    
-    return [];
-  }
-
-  /**
-   * Generate improvements list from changes and AI response
-   * 
-   * @param changes - Tracked changes
-   * @param aiImprovements - Improvements from AI response
-   * @returns Array of improvements
-   */
-  private generateImprovements(
-    changes: ChangeDetail[],
-    aiImprovements?: Improvement[]
-  ): Improvement[] {
-    const improvements: Improvement[] = [];
-
-    // Use AI-provided improvements if available
-    if (aiImprovements && aiImprovements.length > 0) {
-      return aiImprovements;
-    }
-
-    // Otherwise, generate from changes
-    for (const change of changes) {
-      improvements.push({
-        type: change.type || 'bulletPoint',
-        section: change.section || 'unknown',
-        original: change.old,
-        suggested: change.new,
-        reason: `Enhanced to better match job requirements`,
-        confidence: 0.8,
-      });
-    }
-
-    return improvements;
-  }
-
-  /**
-   * Generate keyword suggestions based on job description
-   * 
-   * @param parsedJob - Parsed job description
-   * @param enhancedResume - Enhanced resume
-   * @returns Array of keyword suggestions
-   */
-  private generateKeywordSuggestions(
-    parsedJob: ParsedJobDescription,
-    enhancedResume: Resume
-  ): KeywordSuggestion[] {
-    const suggestions: KeywordSuggestion[] = [];
-
-    for (const keyword of parsedJob.keywords) {
-      // Check if keyword is already in resume
-      const resumeText = JSON.stringify(enhancedResume).toLowerCase();
-      const isPresent = resumeText.includes(keyword.toLowerCase());
-
-      if (!isPresent) {
-        suggestions.push({
-          keyword,
-          category: 'technical',
-          suggestedPlacement: ['bulletPoints', 'summary'],
-          importance: parsedJob.requiredSkills.includes(keyword) ? 'high' : 'medium',
-        });
-      }
-    }
-
-    return suggestions;
-  }
-
-  /**
-   * Identify missing skills from job requirements
-   * 
-   * @param requiredSkills - Required skills from job description
-   * @param resume - Resume to check
-   * @returns Array of missing skill names
-   */
-  private identifyMissingSkills(requiredSkills: string[], resume: Resume): string[] {
-    if (!requiredSkills || requiredSkills.length === 0) {
-      return [];
-    }
-
-    const resumeSkills = this.flattenSkills(resume.skills);
-    const resumeSkillsLower = resumeSkills.map(s => s.toLowerCase());
-
-    return requiredSkills.filter(skill => {
-      const skillLower = skill.toLowerCase();
-      return !resumeSkillsLower.some(rs => rs.includes(skillLower) || skillLower.includes(rs));
-    });
-  }
-
-  /**
-   * Generate recommendations based on enhancement results
-   * 
-   * @param original - Original resume
-   * @param enhanced - Enhanced resume
-   * @param parsedJob - Parsed job description
-   * @param missingSkills - Missing skills identified
-   * @param aiReasoning - Reasoning from AI (if available)
-   * @returns Array of recommendation strings
-   */
-  private generateRecommendations(
-    original: Resume,
-    enhanced: Resume,
-    parsedJob: ParsedJobDescription,
-    missingSkills: string[],
-    aiReasoning?: string
-  ): string[] {
-    const recommendations: string[] = [];
-
-    // Add AI reasoning if available
-    if (aiReasoning) {
-      recommendations.push(aiReasoning);
-    }
-
-    // Add missing skills recommendations
-    if (missingSkills.length > 0) {
-      recommendations.push(
-        `Consider adding these skills to your resume: ${missingSkills.join(', ')}`
-      );
-    }
-
-    // Add keyword recommendations
-    const keywordSuggestions = this.generateKeywordSuggestions(parsedJob, enhanced);
-    if (keywordSuggestions.length > 0) {
-      const highPriorityKeywords = keywordSuggestions
-        .filter(ks => ks.importance === 'high')
-        .map(ks => ks.keyword);
-      
-      if (highPriorityKeywords.length > 0) {
-        recommendations.push(
-          `Incorporate these high-priority keywords: ${highPriorityKeywords.join(', ')}`
-        );
-      }
-    }
-
-    // Add ATS score recommendation
-    const atsScoreBefore = validateAtsCompliance(original).score;
-    const atsScoreAfter = validateAtsCompliance(enhanced).score;
-    
-    if (atsScoreAfter > atsScoreBefore) {
-      recommendations.push(
-        `ATS score improved from ${atsScoreBefore} to ${atsScoreAfter}`
-      );
-    } else if (atsScoreAfter < atsScoreBefore) {
-      recommendations.push(
-        `Warning: ATS score decreased from ${atsScoreBefore} to ${atsScoreAfter}. Review changes carefully.`
-      );
-    }
-
-    return recommendations;
+    return buildEnhancementResult(originalResume, response, parsedJob);
   }
 
   // ============================================================================
@@ -719,7 +349,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     }
 
     // Analyze skills
-    const resumeSkills = this.flattenSkills(resume.skills);
+    const resumeSkills = flattenSkills(resume.skills);
     const resumeSkillsLower = resumeSkills.map(s => s.toLowerCase());
     
     const missingSkills: string[] = [];
