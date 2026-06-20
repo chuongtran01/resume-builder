@@ -18,6 +18,8 @@ describe('enhancementResultBuilder', () => {
     personalInfo: {
       name: 'John Doe',
       email: 'john@example.com',
+      phone: '555-0100',
+      location: 'Austin, TX',
     },
     summary: 'Software engineer',
     experience: [
@@ -25,9 +27,17 @@ describe('enhancementResultBuilder', () => {
         company: 'Acme',
         role: 'Engineer',
         startDate: '2020-01',
+        endDate: 'Present',
+        location: 'Remote',
         bulletPoints: ['Built web applications'],
       },
     ],
+    education: {
+      institution: 'University',
+      degree: 'BS',
+      field: 'Computer Science',
+      graduationDate: '2019-05',
+    },
     skills: {
       categories: [
         {
@@ -36,6 +46,12 @@ describe('enhancementResultBuilder', () => {
         },
       ],
     },
+    projects: [
+      {
+        name: 'Portfolio',
+        bulletPoints: ['Built a TypeScript portfolio site'],
+      },
+    ],
   };
 
   const parsedJob: ParsedJobDescription = {
@@ -49,9 +65,11 @@ describe('enhancementResultBuilder', () => {
     const response: AIResponse = {
       enhancedResume: {
         ...originalResume,
-        projects: [
+        awards: [
           {
-            name: 'Generated Project',
+            name: 'Generated Award',
+            issuer: 'AI',
+            date: '2026-01',
             description: 'This section should not be added.',
           },
         ],
@@ -61,8 +79,25 @@ describe('enhancementResultBuilder', () => {
 
     const result = buildEnhancementResult(originalResume, response, parsedJob);
 
-    expect(result.enhancedResume.projects).toBeUndefined();
+    expect(result.enhancedResume.awards).toBeUndefined();
     expect(result.enhancedResume.summary).toBe(originalResume.summary);
+  });
+
+  it('preserves original optional sections when AI omits them', () => {
+    const response: AIResponse = {
+      enhancedResume: {
+        personalInfo: originalResume.personalInfo,
+        experience: originalResume.experience,
+      },
+      improvements: [],
+    };
+
+    const result = buildEnhancementResult(originalResume, response, parsedJob);
+
+    expect(result.enhancedResume.summary).toBe(originalResume.summary);
+    expect(result.enhancedResume.education).toBe(originalResume.education);
+    expect(result.enhancedResume.skills).toBe(originalResume.skills);
+    expect(result.enhancedResume.projects).toBe(originalResume.projects);
   });
 
   it('builds metadata from enhanced resume changes', () => {

@@ -67,31 +67,31 @@ export function filterEnhancedResumeSections(
   };
 
   if ('summary' in originalResume && originalResume.summary !== undefined) {
-    filtered.summary = enhancedResume.summary;
+    filtered.summary = enhancedResume.summary ?? originalResume.summary;
   }
 
   if ('education' in originalResume && originalResume.education !== undefined) {
-    filtered.education = enhancedResume.education;
+    filtered.education = enhancedResume.education ?? originalResume.education;
   }
 
   if ('skills' in originalResume && originalResume.skills !== undefined) {
-    filtered.skills = enhancedResume.skills;
+    filtered.skills = enhancedResume.skills ?? originalResume.skills;
   }
 
   if ('projects' in originalResume && originalResume.projects !== undefined) {
-    filtered.projects = enhancedResume.projects;
+    filtered.projects = enhancedResume.projects ?? originalResume.projects;
   }
 
   if ('certifications' in originalResume && originalResume.certifications !== undefined) {
-    filtered.certifications = enhancedResume.certifications;
+    filtered.certifications = enhancedResume.certifications ?? originalResume.certifications;
   }
 
   if ('languages' in originalResume && originalResume.languages !== undefined) {
-    filtered.languages = enhancedResume.languages;
+    filtered.languages = enhancedResume.languages ?? originalResume.languages;
   }
 
   if ('awards' in originalResume && originalResume.awards !== undefined) {
-    filtered.awards = enhancedResume.awards;
+    filtered.awards = enhancedResume.awards ?? originalResume.awards;
   }
 
   const originalSections = Object.keys(originalResume).filter(key => key !== 'personalInfo');
