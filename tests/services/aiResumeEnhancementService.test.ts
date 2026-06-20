@@ -3,7 +3,6 @@
  */
 
 import {
-  AIResumeEnhancementService,
   enhanceResume,
   modifyResume,
   reviewResume,
@@ -29,6 +28,27 @@ jest.mock('../../src/services/atsValidator', () => ({
 
 import { parseJobDescription } from '../../src/utils/jobParser';
 import { validateAtsCompliance } from '../../src/services/atsValidator';
+
+function createTestWorkflow(aiClient: ResumeAIClient) {
+  return {
+    enhanceResume: (
+      resume: Resume,
+      jobDescription: string,
+      options?: EnhancementOptions
+    ) => enhanceResume({ resume, jobDescription, options, aiClient }),
+    reviewResume: (
+      resume: Resume,
+      jobDescription: string,
+      options?: EnhancementOptions
+    ) => reviewResume({ resume, jobDescription, options, aiClient }),
+    modifyResume: (
+      resume: Resume,
+      reviewResult: ReviewResult,
+      parsedJob: ParsedJobDescription,
+      options?: EnhancementOptions
+    ) => modifyResume({ resume, reviewResult, parsedJob, options, aiClient }),
+  };
+}
 
 describe('AIResumeEnhancementService', () => {
   const sampleResume: Resume = {
@@ -146,13 +166,6 @@ describe('AIResumeEnhancementService', () => {
     (validateAtsCompliance as jest.Mock).mockReturnValue({ score: 75 });
   });
 
-  describe('Constructor', () => {
-    it('should create service with provider instance', () => {
-      const service = new AIResumeEnhancementService(mockAIProvider);
-      expect(service).toBeInstanceOf(AIResumeEnhancementService);
-    });
-  });
-
   describe('enhanceResume', () => {
     it('should enhance resume using the functional API', async () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
@@ -174,7 +187,7 @@ describe('AIResumeEnhancementService', () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.enhanceResume(sampleResume, sampleJobDescription);
 
       expect(result).toBeDefined();
@@ -189,7 +202,7 @@ describe('AIResumeEnhancementService', () => {
     it('should throw error when AI provider fails', async () => {
       mockAIProvider.reviewResume.mockRejectedValue(new Error('API Error'));
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.enhanceResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('API Error');
@@ -204,7 +217,7 @@ describe('AIResumeEnhancementService', () => {
         tone: 'professional',
       };
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await service.enhanceResume(sampleResume, sampleJobDescription, options);
 
       expect(mockAIProvider.reviewResume).toHaveBeenCalledWith(
@@ -232,7 +245,7 @@ describe('AIResumeEnhancementService', () => {
     it('should review resume and return ReviewResult', async () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.reviewResume(sampleResume, sampleJobDescription);
 
       expect(result).toBeDefined();
@@ -247,7 +260,7 @@ describe('AIResumeEnhancementService', () => {
     it('should throw error when review fails', async () => {
       mockAIProvider.reviewResume.mockRejectedValue(new Error('Review failed'));
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.reviewResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('Review failed');
@@ -256,7 +269,7 @@ describe('AIResumeEnhancementService', () => {
     it('should parse job description before review', async () => {
       mockAIProvider.reviewResume.mockResolvedValue(sampleReviewResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await service.reviewResume(sampleResume, sampleJobDescription);
 
       expect(parseJobDescription).toHaveBeenCalledWith(sampleJobDescription);
@@ -265,7 +278,7 @@ describe('AIResumeEnhancementService', () => {
     it('should throw error when review response is invalid', async () => {
       mockAIProvider.reviewResume.mockResolvedValue({} as ReviewResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.reviewResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('Invalid review response structure');
@@ -291,7 +304,7 @@ describe('AIResumeEnhancementService', () => {
     it('should modify resume based on review result', async () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -308,7 +321,7 @@ describe('AIResumeEnhancementService', () => {
     it('should throw error when modification fails', async () => {
       mockAIProvider.modifyResume.mockRejectedValue(new Error('Modification failed'));
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Modification failed');
@@ -319,7 +332,7 @@ describe('AIResumeEnhancementService', () => {
         enhancedResume: sampleAIResponse.enhancedResume,
       } as AIResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Invalid modification response structure');
@@ -328,7 +341,7 @@ describe('AIResumeEnhancementService', () => {
     it('should track changes between original and enhanced resume', async () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -344,7 +357,7 @@ describe('AIResumeEnhancementService', () => {
         .mockReturnValueOnce({ score: 70 }) // Before
         .mockReturnValueOnce({ score: 80 }); // After
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -360,7 +373,7 @@ describe('AIResumeEnhancementService', () => {
     it('should generate keyword suggestions', async () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -379,7 +392,7 @@ describe('AIResumeEnhancementService', () => {
         requiredSkills: ['JavaScript', 'React', 'Vue.js'], // Vue.js not in resume
       };
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -393,7 +406,7 @@ describe('AIResumeEnhancementService', () => {
     it('should generate recommendations', async () => {
       mockAIProvider.modifyResume.mockResolvedValue(sampleAIResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -431,7 +444,7 @@ describe('AIResumeEnhancementService', () => {
 
       mockAIProvider.modifyResume.mockResolvedValue(aiResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -465,7 +478,7 @@ describe('AIResumeEnhancementService', () => {
 
       mockAIProvider.modifyResume.mockResolvedValue(aiResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -509,7 +522,7 @@ describe('AIResumeEnhancementService', () => {
 
       mockAIProvider.modifyResume.mockResolvedValue(aiResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         sampleResume,
         sampleReviewResult,
@@ -536,7 +549,7 @@ describe('AIResumeEnhancementService', () => {
 
       mockAIProvider.reviewResume.mockResolvedValue(invalidResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.reviewResume(sampleResume, sampleJobDescription)
       ).rejects.toThrow('Invalid review result structure');
@@ -550,7 +563,7 @@ describe('AIResumeEnhancementService', () => {
 
       mockAIProvider.modifyResume.mockResolvedValue(invalidResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Invalid enhanced resume structure');
@@ -567,7 +580,7 @@ describe('AIResumeEnhancementService', () => {
 
       mockAIProvider.modifyResume.mockResolvedValue(invalidResponse);
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       await expect(
         service.modifyResume(sampleResume, sampleReviewResult, sampleParsedJob)
       ).rejects.toThrow('Invalid enhanced resume structure');
@@ -586,7 +599,7 @@ describe('AIResumeEnhancementService', () => {
         enhancedResume: resumeWithoutSkills,
       });
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         resumeWithoutSkills,
         sampleReviewResult,
@@ -608,7 +621,7 @@ describe('AIResumeEnhancementService', () => {
         enhancedResume: resumeWithFileRef,
       });
 
-      const service = new AIResumeEnhancementService(mockAIProvider);
+      const service = createTestWorkflow(mockAIProvider);
       const result = await service.modifyResume(
         resumeWithFileRef,
         sampleReviewResult,

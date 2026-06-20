@@ -3,26 +3,23 @@
  * Tests for Task 19.2: Natural Language Enhancement Logic
  */
 
-import { AIResumeEnhancementService } from '../../src/services/aiResumeEnhancementService';
+import {
+  buildEnhancementContext,
+  checkOverModification,
+  enhanceBulletPoints,
+  enhanceSummary,
+  reorderSkills,
+  validateNaturalLanguageFlow,
+  verifyMeaningPreserved,
+} from '../../src/services/aiResumeEnhancementService';
 import type { Resume } from '../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../src/utils/jobParser';
-import type { ResumeAIClient } from '../../src/services/ai/enhancement.types';
 
-describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () => {
-  let service: AIResumeEnhancementService;
+describe('Natural Language Enhancement Logic', () => {
   let sampleResume: Resume;
   let sampleJobInfo: ParsedJobDescription;
-  let mockAIProvider: jest.Mocked<ResumeAIClient>;
 
   beforeEach(() => {
-    // Create mock AI provider
-    mockAIProvider = {
-      reviewResume: jest.fn(),
-      modifyResume: jest.fn(),
-    } as jest.Mocked<ResumeAIClient>;
-
-    // Create service with mock provider
-    service = new AIResumeEnhancementService(mockAIProvider);
     sampleResume = {
       personalInfo: {
         name: 'John Doe',
@@ -80,7 +77,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
 
   describe('buildEnhancementContext', () => {
     it('should build enhancement context with relevant sections', () => {
-      const context = service.buildEnhancementContext(sampleResume, sampleJobInfo);
+      const context = buildEnhancementContext(sampleResume, sampleJobInfo);
 
       expect(context).toBeDefined();
       expect(context.resume).toEqual(sampleResume);
@@ -90,7 +87,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     });
 
     it('should identify experience sections with relevance scores', () => {
-      const context = service.buildEnhancementContext(sampleResume, sampleJobInfo);
+      const context = buildEnhancementContext(sampleResume, sampleJobInfo);
 
       expect(context.relevantSections.experience.length).toBeGreaterThan(0);
       expect(context.relevantSections.experience[0]).toHaveProperty('index');
@@ -104,14 +101,14 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
         requiredSkills: ['React', 'TypeScript', 'Vue', 'Angular'], // Vue and Angular not in resume
       };
 
-      const context = service.buildEnhancementContext(sampleResume, jobInfoWithMissingSkills);
+      const context = buildEnhancementContext(sampleResume, jobInfoWithMissingSkills);
 
       expect(context.relevantSections.skills.missing.length).toBeGreaterThan(0);
       expect(context.opportunities.some((opp: { type: string }) => opp.type === 'skill')).toBe(true);
     });
 
     it('should identify summary enhancement opportunities', () => {
-      const context = service.buildEnhancementContext(sampleResume, sampleJobInfo);
+      const context = buildEnhancementContext(sampleResume, sampleJobInfo);
 
       expect(context.relevantSections.summary).toBeDefined();
       expect(context.relevantSections.summary).toHaveProperty('relevance');
@@ -119,7 +116,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     });
 
     it('should identify bullet point enhancement opportunities', () => {
-      const context = service.buildEnhancementContext(sampleResume, sampleJobInfo);
+      const context = buildEnhancementContext(sampleResume, sampleJobInfo);
 
       const bulletPointOpportunities = context.opportunities.filter(
         (opp: { type: string }) => opp.type === 'bulletPoint'
@@ -131,7 +128,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
   describe('enhanceBulletPoints', () => {
     it('should return array of same length', () => {
       const bullets = ['Bullet 1', 'Bullet 2', 'Bullet 3'];
-      const enhanced = service.enhanceBulletPoints(bullets, sampleJobInfo);
+      const enhanced = enhanceBulletPoints(bullets, sampleJobInfo);
 
       expect(enhanced).toHaveLength(bullets.length);
     });
@@ -143,21 +140,21 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
         keywords: ['ModernTech', 'NewFramework'],
       };
 
-      const enhanced = service.enhanceBulletPoints(bullets, jobInfo);
+      const enhanced = enhanceBulletPoints(bullets, jobInfo);
 
       expect(enhanced).toEqual(bullets);
     });
 
     it('should handle empty bullet points', () => {
       const bullets: string[] = [];
-      const enhanced = service.enhanceBulletPoints(bullets, sampleJobInfo);
+      const enhanced = enhanceBulletPoints(bullets, sampleJobInfo);
 
       expect(enhanced).toEqual([]);
     });
 
     it('should handle null/undefined bullets', () => {
       const bullets = ['Valid bullet', '', 'Another valid'];
-      const enhanced = service.enhanceBulletPoints(bullets, sampleJobInfo);
+      const enhanced = enhanceBulletPoints(bullets, sampleJobInfo);
 
       expect(enhanced[1]).toBe('');
     });
@@ -174,7 +171,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
         ],
       };
 
-      const reordered = service.reorderSkills(skills, sampleJobInfo);
+      const reordered = reorderSkills(skills, sampleJobInfo);
 
       expect(reordered).toBeDefined();
       if (typeof reordered === 'object' && reordered !== null && 'categories' in reordered) {
@@ -194,13 +191,13 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
 
     it('should handle file reference skills', () => {
       const skills = 'file:./skills.json';
-      const reordered = service.reorderSkills(skills, sampleJobInfo);
+      const reordered = reorderSkills(skills, sampleJobInfo);
 
       expect(reordered).toBe(skills);
     });
 
     it('should handle undefined skills', () => {
-      const reordered = service.reorderSkills(undefined, sampleJobInfo);
+      const reordered = reorderSkills(undefined, sampleJobInfo);
 
       expect(reordered).toBeUndefined();
     });
@@ -215,7 +212,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
         ],
       };
 
-      const reordered = service.reorderSkills(skills, sampleJobInfo);
+      const reordered = reorderSkills(skills, sampleJobInfo);
 
       if (typeof reordered === 'object' && reordered !== null && 'categories' in reordered) {
         const originalItems = skills.categories[0]?.items || [];
@@ -230,21 +227,21 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
   describe('enhanceSummary', () => {
     it('should return original summary when keywords are present', () => {
       const summary = 'Experienced React and TypeScript developer';
-      const enhanced = service.enhanceSummary(summary, sampleJobInfo);
+      const enhanced = enhanceSummary(summary, sampleJobInfo);
 
       expect(enhanced).toBe(summary);
     });
 
     it('should return original summary when missing keywords (AI will enhance)', () => {
       const summary = 'Experienced software engineer';
-      const enhanced = service.enhanceSummary(summary, sampleJobInfo);
+      const enhanced = enhanceSummary(summary, sampleJobInfo);
 
       // Method returns original - AI will do the actual enhancement
       expect(enhanced).toBe(summary);
     });
 
     it('should handle empty summary', () => {
-      const enhanced = service.enhanceSummary('', sampleJobInfo);
+      const enhanced = enhanceSummary('', sampleJobInfo);
 
       expect(enhanced).toBe('');
     });
@@ -258,7 +255,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
       // Enhanced extracts: "50", "react", "built" (3 terms)
       // Matching: "50", "react" (2 terms) = 67% < 70%
       // Need more overlap - use case where more terms match
-      const preserved = service.verifyMeaningPreserved(
+      const preserved = verifyMeaningPreserved(
         'Developed React applications with 50 percent improvement',
         'Built React applications with 50 percent improvement'
       );
@@ -271,13 +268,13 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
       const original = 'Developed web applications using JavaScript and React';
       const enhanced = 'Worked on various projects';
 
-      const preserved = service.verifyMeaningPreserved(original, enhanced);
+      const preserved = verifyMeaningPreserved(original, enhanced);
 
       expect(preserved).toBe(false);
     });
 
     it('should return false for empty strings', () => {
-      const preserved = service.verifyMeaningPreserved('', 'Enhanced text');
+      const preserved = verifyMeaningPreserved('', 'Enhanced text');
 
       expect(preserved).toBe(false);
     });
@@ -286,7 +283,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
       const original = 'Improved performance by 50% using optimization techniques';
       const enhanced = 'Enhanced system performance by 50% through advanced optimization techniques';
 
-      const preserved = service.verifyMeaningPreserved(original, enhanced);
+      const preserved = verifyMeaningPreserved(original, enhanced);
 
       expect(preserved).toBe(true);
     });
@@ -297,7 +294,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
       const original = 'Developed web applications using JavaScript';
       const enhanced = 'Built responsive web applications using JavaScript and modern frameworks';
 
-      const isReasonable = service.checkOverModification(original, enhanced);
+      const isReasonable = checkOverModification(original, enhanced);
 
       expect(isReasonable).toBe(true);
     });
@@ -306,13 +303,13 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
       const original = 'Developed web applications using JavaScript';
       const enhanced = 'Managed team projects and improved efficiency';
 
-      const isReasonable = service.checkOverModification(original, enhanced);
+      const isReasonable = checkOverModification(original, enhanced);
 
       expect(isReasonable).toBe(false);
     });
 
     it('should return false for empty strings', () => {
-      const isReasonable = service.checkOverModification('', 'Enhanced text');
+      const isReasonable = checkOverModification('', 'Enhanced text');
 
       expect(isReasonable).toBe(false);
     });
@@ -322,7 +319,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     it('should return true for natural text', () => {
       const text = 'Developed responsive web applications using React and TypeScript. Improved performance by 40%.';
 
-      const isValid = service.validateNaturalLanguageFlow(text);
+      const isValid = validateNaturalLanguageFlow(text);
 
       expect(isValid).toBe(true);
     });
@@ -330,13 +327,13 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     it('should return false for keyword stuffing', () => {
       const text = 'React React React React React React React React React React React';
 
-      const isValid = service.validateNaturalLanguageFlow(text);
+      const isValid = validateNaturalLanguageFlow(text);
 
       expect(isValid).toBe(false);
     });
 
     it('should return false for empty text', () => {
-      const isValid = service.validateNaturalLanguageFlow('');
+      const isValid = validateNaturalLanguageFlow('');
 
       expect(isValid).toBe(false);
     });
@@ -344,7 +341,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     it('should return false for extremely short sentences', () => {
       const text = 'Hi.';
 
-      const isValid = service.validateNaturalLanguageFlow(text);
+      const isValid = validateNaturalLanguageFlow(text);
 
       expect(isValid).toBe(false);
     });
@@ -352,7 +349,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     it('should return false for extremely long sentences', () => {
       const text = 'A'.repeat(300) + '.';
 
-      const isValid = service.validateNaturalLanguageFlow(text);
+      const isValid = validateNaturalLanguageFlow(text);
 
       expect(isValid).toBe(false);
     });
@@ -360,7 +357,7 @@ describe('AIResumeEnhancementService - Natural Language Enhancement Logic', () =
     it('should return true for well-structured professional text', () => {
       const text = 'Led a team of 5 developers to deliver 3 major product releases. Improved deployment efficiency by 40% through automation.';
 
-      const isValid = service.validateNaturalLanguageFlow(text);
+      const isValid = validateNaturalLanguageFlow(text);
 
       expect(isValid).toBe(true);
     });

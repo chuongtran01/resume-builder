@@ -6,7 +6,6 @@
  */
 
 import type {
-  ResumeEnhancementService,
   EnhancementResult,
   EnhancementOptions,
 } from '@resume-types/enhancement.types';
@@ -139,102 +138,9 @@ export async function modifyResume(input: ModifyResumeInput): Promise<Enhancemen
   }
 }
 
-/**
- * AI Resume Enhancement Service
- * 
- * Uses real AI models to enhance resumes through a sequential two-step process:
- * 1. Review: Analyze resume against job requirements
- * 2. Modify: Apply enhancements based on review findings
- */
-export class AIResumeEnhancementService implements ResumeEnhancementService {
-  private aiClient: ResumeAIClient;
-
-  /**
-   * Create AI Resume Enhancement Service
-   * 
-   * @param aiClient - Client used to review and modify resumes.
-   */
-  constructor(aiClient: ResumeAIClient) {
-    this.aiClient = aiClient;
-  }
-
-  /**
-   * Enhance resume based on job description
-   * 
-   * Orchestrates the sequential two-step process:
-   * 1. Review: Analyze resume against job requirements
-   * 2. Modify: Apply enhancements based on review findings
-   * 
-   * @param resume - Original resume data
-   * @param jobDescription - Job description to match against
-   * @param options - Enhancement options
-   * @returns Promise resolving to enhancement result
-   */
-  async enhanceResume(
-    resume: Resume,
-    jobDescription: string,
-    options?: EnhancementOptions
-  ): Promise<EnhancementResult> {
-    return enhanceResume({
-      resume,
-      jobDescription,
-      options,
-      aiClient: this.aiClient,
-    });
-  }
-
-  /**
-   * Review resume against job requirements (Step 1)
-   * 
-   * Analyzes the resume and identifies strengths, weaknesses, opportunities, and prioritized actions.
-   * 
-   * @param resume - Original resume data
-   * @param jobDescription - Job description to match against
-   * @param options - Enhancement options
-   * @returns Promise resolving to review result
-   */
-  async reviewResume(
-    resume: Resume,
-    jobDescription: string,
-    options?: EnhancementOptions
-  ): Promise<ReviewResult> {
-    return reviewResume({
-      resume,
-      jobDescription,
-      options,
-      aiClient: this.aiClient,
-    });
-  }
-
-  /**
-   * Modify resume based on review findings (Step 2)
-   * 
-   * Applies enhancements to the resume based on the review analysis.
-   * 
-   * @param resume - Original resume data
-   * @param reviewResult - Review findings from Step 1
-   * @param parsedJob - Parsed job description information
-   * @param options - Enhancement options
-   * @returns Promise resolving to enhancement result
-   */
-  async modifyResume(
-    resume: Resume,
-    reviewResult: ReviewResult,
-    parsedJob: ParsedJobDescription,
-    options?: EnhancementOptions
-  ): Promise<EnhancementResult> {
-    return modifyResume({
-      resume,
-      reviewResult,
-      parsedJob,
-      options,
-      aiClient: this.aiClient,
-    });
-  }
-
-  // ============================================================================
-  // Natural Language Enhancement Logic
-  // ============================================================================
+// ============================================================================
+// Natural Language Enhancement Logic
+// ============================================================================
 
   /**
    * Build enhancement context from resume and job info
@@ -245,10 +151,10 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param jobInfo - Parsed job description
    * @returns Enhancement context with relevant sections and opportunities
    */
-  buildEnhancementContext(
-    resume: Resume,
-    jobInfo: ParsedJobDescription
-  ): {
+export function buildEnhancementContext(
+  resume: Resume,
+  jobInfo: ParsedJobDescription
+): {
     resume: Resume;
     jobInfo: ParsedJobDescription;
     relevantSections: {
@@ -262,7 +168,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
       reason: string;
       priority: 'high' | 'medium' | 'low';
     }>;
-  } {
+} {
     const context: {
       resume: Resume;
       jobInfo: ParsedJobDescription;
@@ -304,7 +210,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
           if (bulletText.includes(keywordLower)) {
             matchingKeywords.push(keyword);
             relevanceScore += 2;
-          } else if (this.isKeywordRelevant(keyword, bulletText)) {
+          } else if (isKeywordRelevant(keyword, bulletText)) {
             relevanceScore += 1;
           }
         }
@@ -405,7 +311,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Check if keyword is relevant to a text snippet
    */
-  private isKeywordRelevant(keyword: string, text: string): boolean {
+function isKeywordRelevant(keyword: string, text: string): boolean {
     const keywordLower = keyword.toLowerCase();
     const textLower = text.toLowerCase();
 
@@ -442,10 +348,10 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param jobInfo - Parsed job description
    * @returns Enhanced bullet points (for validation/guidance)
    */
-  enhanceBulletPoints(
-    bullets: string[],
-    jobInfo: ParsedJobDescription
-  ): string[] {
+export function enhanceBulletPoints(
+  bullets: string[],
+  jobInfo: ParsedJobDescription
+): string[] {
     const enhanced: string[] = [];
 
     for (const bullet of bullets) {
@@ -460,7 +366,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
       // Find relevant keywords that aren't already present
       const relevantKeywords = jobInfo.keywords.filter(keyword => {
         const keywordLower = keyword.toLowerCase();
-        return !bulletLower.includes(keywordLower) && this.isKeywordRelevant(keyword, bullet);
+        return !bulletLower.includes(keywordLower) && isKeywordRelevant(keyword, bullet);
       });
 
       // Natural enhancement suggestions (for validation, not direct modification)
@@ -468,7 +374,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
       if (relevantKeywords.length > 0) {
         // Check if we can naturally incorporate the most relevant keyword
         const topKeyword = relevantKeywords[0];
-        if (topKeyword && this.canNaturallyIncorporate(bullet, topKeyword)) {
+        if (topKeyword && canNaturallyIncorporate(bullet, topKeyword)) {
           // This is a suggestion - actual enhancement should be done by AI
           // We're just validating that natural incorporation is possible
           enhancedBullet = bullet; // Keep original, AI will enhance
@@ -484,7 +390,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Check if a keyword can be naturally incorporated into text
    */
-  private canNaturallyIncorporate(text: string, keyword: string): boolean {
+function canNaturallyIncorporate(text: string, keyword: string): boolean {
     // Check if keyword fits naturally in the context
     const textLower = text.toLowerCase();
     const keywordLower = keyword.toLowerCase();
@@ -515,10 +421,10 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param jobInfo - Parsed job description
    * @returns Reordered skills (for validation/guidance)
    */
-  reorderSkills(
-    skills: Resume['skills'],
-    jobInfo: ParsedJobDescription
-  ): Resume['skills'] {
+export function reorderSkills(
+  skills: Resume['skills'],
+  jobInfo: ParsedJobDescription
+): Resume['skills'] {
     if (!skills || typeof skills === 'string') {
       return skills; // File reference or undefined
     }
@@ -539,7 +445,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
       // Score each skill based on job relevance
       const scoredSkills = category.items.map(skill => ({
         skill,
-        score: this.calculateSkillRelevance(skill, jobInfo),
+        score: calculateSkillRelevance(skill, jobInfo),
       }));
 
       // Sort by relevance (highest first)
@@ -551,8 +457,8 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
 
     // Also reorder categories themselves by average relevance
     reorderedSkills.categories.sort((a, b) => {
-      const aScore = this.calculateCategoryRelevance(a, jobInfo);
-      const bScore = this.calculateCategoryRelevance(b, jobInfo);
+      const aScore = calculateCategoryRelevance(a, jobInfo);
+      const bScore = calculateCategoryRelevance(b, jobInfo);
       return bScore - aScore;
     });
 
@@ -562,7 +468,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Calculate skill relevance score
    */
-  private calculateSkillRelevance(skill: string, jobInfo: ParsedJobDescription): number {
+function calculateSkillRelevance(skill: string, jobInfo: ParsedJobDescription): number {
     const skillLower = skill.toLowerCase();
     let score = 0;
 
@@ -593,16 +499,16 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Calculate category relevance score
    */
-  private calculateCategoryRelevance(
-    category: { name: string; items?: string[] },
-    jobInfo: ParsedJobDescription
-  ): number {
+function calculateCategoryRelevance(
+  category: { name: string; items?: string[] },
+  jobInfo: ParsedJobDescription
+): number {
     if (!category.items || category.items.length === 0) {
       return 0;
     }
 
     const totalScore = category.items.reduce((sum, skill) => {
-      return sum + this.calculateSkillRelevance(skill, jobInfo);
+      return sum + calculateSkillRelevance(skill, jobInfo);
     }, 0);
 
     return totalScore / category.items.length;
@@ -617,7 +523,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param jobInfo - Parsed job description
    * @returns Enhanced summary (for validation/guidance)
    */
-  enhanceSummary(summary: string, jobInfo: ParsedJobDescription): string {
+export function enhanceSummary(summary: string, jobInfo: ParsedJobDescription): string {
     if (!summary) {
       return '';
     }
@@ -653,7 +559,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param enhanced - Enhanced text
    * @returns True if meaning is preserved, false otherwise
    */
-  verifyMeaningPreserved(original: string, enhanced: string): boolean {
+export function verifyMeaningPreserved(original: string, enhanced: string): boolean {
     if (!original || !enhanced) {
       return false;
     }
@@ -663,8 +569,8 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
     const enhancedLower = enhanced.toLowerCase();
 
     // Extract key terms (nouns, numbers, action verbs)
-    const originalTerms = this.extractKeyTerms(originalLower);
-    const enhancedTerms = this.extractKeyTerms(enhancedLower);
+    const originalTerms = extractKeyTerms(originalLower);
+    const enhancedTerms = extractKeyTerms(enhancedLower);
 
     // At least 70% of key terms should be preserved
     const preservedTerms = originalTerms.filter(term => enhancedTerms.includes(term));
@@ -676,7 +582,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Extract key terms from text
    */
-  private extractKeyTerms(text: string): string[] {
+function extractKeyTerms(text: string): string[] {
     // Extract numbers, technical terms, and important nouns
     const terms: string[] = [];
 
@@ -710,13 +616,13 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param enhanced - Enhanced text
    * @returns True if modification is reasonable, false if over-modified
    */
-  checkOverModification(original: string, enhanced: string): boolean {
+export function checkOverModification(original: string, enhanced: string): boolean {
     if (!original || !enhanced) {
       return false;
     }
 
     // Calculate similarity ratio
-    const similarity = this.calculateSimilarity(original, enhanced);
+    const similarity = calculateSimilarity(original, enhanced);
 
     // If less than 30% similar, might be over-modified
     return similarity >= 0.3;
@@ -725,7 +631,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
   /**
    * Calculate text similarity (simple word overlap)
    */
-  private calculateSimilarity(text1: string, text2: string): number {
+function calculateSimilarity(text1: string, text2: string): number {
     const words1 = new Set(text1.toLowerCase().split(/\s+/));
     const words2 = new Set(text2.toLowerCase().split(/\s+/));
 
@@ -745,7 +651,7 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
    * @param text - Text to validate
    * @returns True if text flows naturally, false otherwise
    */
-  validateNaturalLanguageFlow(text: string): boolean {
+export function validateNaturalLanguageFlow(text: string): boolean {
     if (!text) {
       return false;
     }
@@ -780,4 +686,3 @@ export class AIResumeEnhancementService implements ResumeEnhancementService {
 
     return true;
   }
-}
