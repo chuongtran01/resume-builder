@@ -1,24 +1,11 @@
-/**
- * Review Prompt Template
- * 
- * Structured prompt template for Step 1: Review phase.
- * Analyzes resume against job requirements and provides structured feedback.
- */
-
-import type { ReviewPromptTemplate, ReviewExample } from './types';
+import type { ReviewExample } from './types';
 import { loadPromptTemplateText } from './templateLoader';
 
-/**
- * Markdown-backed prompt prose for resume review
- */
-const SYSTEM_MESSAGE = loadPromptTemplateText('review.system.md');
-const TASK_DESCRIPTION = loadPromptTemplateText('review.task.md');
-const OUTPUT_FORMAT = loadPromptTemplateText('review.output.md');
+export const REVIEW_SYSTEM_MESSAGE = loadPromptTemplateText('review.role.md');
+export const REVIEW_TASK_DESCRIPTION = loadPromptTemplateText('review.task.md');
+export const REVIEW_OUTPUT_FORMAT = loadPromptTemplateText('review.output.md');
 
-/**
- * Focus areas for review
- */
-const FOCUS_AREAS = [
+export const REVIEW_FOCUS_AREAS = [
   'How well the resume matches the job requirements',
   'Missing keywords or skills from the job description',
   'Opportunities to intelligently infer and add related content (e.g., Java → backend, React → frontend)',
@@ -30,10 +17,7 @@ const FOCUS_AREAS = [
   'ONLY suggest improvements for sections that exist in the original resume - do not suggest adding new sections',
 ];
 
-/**
- * Few-shot examples for review
- */
-const REVIEW_EXAMPLES: ReviewExample[] = [
+export const REVIEW_EXAMPLES: ReviewExample[] = [
   {
     resumeSnippet: JSON.stringify({
       experience: [
@@ -75,7 +59,6 @@ const REVIEW_EXAMPLES: ReviewExample[] = [
       reasoning: 'Good foundation but needs keyword optimization and stronger impact statements',
     },
   },
-  // Example: Intelligent inference opportunity
   {
     resumeSnippet: JSON.stringify({
       experience: [
@@ -137,27 +120,3 @@ const REVIEW_EXAMPLES: ReviewExample[] = [
     },
   },
 ];
-
-/**
- * Build review prompt template
- */
-export function buildReviewPromptTemplate(): ReviewPromptTemplate {
-  return {
-    systemMessage: SYSTEM_MESSAGE,
-    context: {
-      resume: {} as any, // Will be filled by builder
-      jobInfo: {} as any, // Will be filled by builder
-    },
-    taskDescription: TASK_DESCRIPTION,
-    outputFormat: OUTPUT_FORMAT,
-    focusAreas: FOCUS_AREAS,
-    examples: REVIEW_EXAMPLES,
-  };
-}
-
-/**
- * Get review prompt template (for direct use)
- */
-export function getReviewPromptTemplate(): ReviewPromptTemplate {
-  return buildReviewPromptTemplate();
-}

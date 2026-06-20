@@ -1,24 +1,13 @@
-/**
- * Modify Prompt Template
- * 
- * Structured prompt template for Step 2: Modify phase.
- * Enhances resume based on review findings while maintaining truthfulness.
- */
-
-import type { ModifyPromptTemplate, EnhancementExample } from './types';
+import type { EnhancementExample } from './types';
 import { loadPromptTemplateText } from './templateLoader';
 
-/**
- * Markdown-backed prompt prose for resume enhancement
- */
-const SYSTEM_MESSAGE = loadPromptTemplateText('modify.system.md');
-const TASK_DESCRIPTION = loadPromptTemplateText('modify.task.md');
-const OUTPUT_FORMAT = loadPromptTemplateText('modify.output.md');
+export type EnhancementMode = 'full' | 'bulletPoints' | 'skills' | 'summary';
 
-/**
- * Truthfulness requirements
- */
-const TRUTHFULNESS_RULES = [
+export const MODIFY_SYSTEM_MESSAGE = loadPromptTemplateText('modify.role.md');
+export const MODIFY_TASK_DESCRIPTION = loadPromptTemplateText('modify.task.md');
+export const MODIFY_OUTPUT_FORMAT = loadPromptTemplateText('modify.output.md');
+
+export const TRUTHFULNESS_RULES = [
   'NEVER add experiences, companies, roles, or dates not present in the original resume',
   'NEVER add sections that do not exist in the original resume (e.g., do not add "summary" if it was not in the original)',
   'NEVER fabricate achievements, metrics, or accomplishments that cannot be reasonably inferred',
@@ -38,10 +27,7 @@ const TRUTHFULNESS_RULES = [
   'Match the exact section structure of the original resume - include only sections that were present in the original',
 ];
 
-/**
- * Enhancement focus areas
- */
-const ENHANCEMENT_AREAS = [
+export const ENHANCEMENT_AREAS = [
   'Rewriting bullet points to naturally incorporate job-relevant keywords',
   'Intelligently inferring and adding related content based on existing resume information',
   'Reordering skills to prioritize job-relevant ones (only if skills section exists)',
@@ -53,10 +39,7 @@ const ENHANCEMENT_AREAS = [
   'ONLY enhancing sections that exist in the original resume - do not add new sections',
 ];
 
-/**
- * Few-shot examples for enhancement
- */
-const ENHANCEMENT_EXAMPLES: EnhancementExample[] = [
+export const ENHANCEMENT_EXAMPLES: EnhancementExample[] = [
   {
     original: 'Worked on web applications using JavaScript',
     enhanced: 'Developed responsive web applications using JavaScript, React, and modern frontend frameworks',
@@ -84,43 +67,7 @@ const ENHANCEMENT_EXAMPLES: EnhancementExample[] = [
   },
 ];
 
-/**
- * Build modify prompt template
- */
-export function buildModifyPromptTemplate(
-  mode: 'full' | 'bulletPoints' | 'skills' | 'summary' = 'full'
-): ModifyPromptTemplate {
-  return {
-    systemMessage: SYSTEM_MESSAGE,
-    context: {
-      resume: {} as any, // Will be filled by builder
-      jobInfo: {} as any, // Will be filled by builder
-      reviewResult: undefined, // Will be filled by builder
-    },
-    taskDescription: TASK_DESCRIPTION,
-    outputFormat: OUTPUT_FORMAT,
-    truthfulnessRules: TRUTHFULNESS_RULES,
-    enhancementAreas: ENHANCEMENT_AREAS,
-    examples: ENHANCEMENT_EXAMPLES,
-    mode,
-  };
-}
-
-/**
- * Get modify prompt template (for direct use)
- */
-export function getModifyPromptTemplate(
-  mode: 'full' | 'bulletPoints' | 'skills' | 'summary' = 'full'
-): ModifyPromptTemplate {
-  return buildModifyPromptTemplate(mode);
-}
-
-/**
- * Get mode-specific enhancement areas
- */
-export function getEnhancementAreasForMode(
-  mode: 'full' | 'bulletPoints' | 'skills' | 'summary'
-): string[] {
+export function getEnhancementAreasForMode(mode: EnhancementMode): string[] {
   switch (mode) {
     case 'bulletPoints':
       return [

@@ -92,6 +92,8 @@ describe('createAISdkResumeClient', () => {
     expect(mockGenerateText).toHaveBeenCalledWith(
       expect.objectContaining({
         model: 'google/gemini-3-flash',
+        system: expect.stringContaining('expert resume reviewer'),
+        prompt: expect.stringContaining('RESUME'),
         temperature: 0.2,
         maxOutputTokens: 1000,
         maxRetries: 1,
@@ -156,6 +158,8 @@ describe('createAISdkResumeClient', () => {
     expect(response.tokensUsed).toBe(200);
     expect(mockGenerateText).toHaveBeenCalledWith(
       expect.objectContaining({
+        system: expect.stringContaining('expert resume writer'),
+        prompt: expect.stringContaining('REVIEW FINDINGS'),
         output: expect.any(Object),
       })
     );

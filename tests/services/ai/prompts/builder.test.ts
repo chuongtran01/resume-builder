@@ -1,13 +1,11 @@
 /**
  * Unit tests for Prompt Builder
- * 
- * Tests both basic prompt building functionality and enhanced features
- * (caching, validation, tone adjustments, focus area filtering).
  */
 
 import {
-  buildReviewPrompt,
-  buildModifyPrompt,
+  buildReviewPromptMessages,
+  buildModifyPromptMessages,
+  combinePromptMessages,
   estimatePromptTokens,
   validatePrompt,
   clearPromptCache,
@@ -59,374 +57,233 @@ describe('Prompt Builder', () => {
     clearPromptCache();
   });
 
-  // ============================================================================
-  // Basic Prompt Building (PromptContext API)
-  // ============================================================================
+  describe('buildReviewPromptMessages', () => {
+    it('builds separate system and caller prompts with context', () => {
+      const context: PromptContext = {
+        resume: sampleResume,
+        jobInfo: sampleJobInfo,
+      };
 
-  describe('Basic Prompt Building (PromptContext API)', () => {
-    describe('buildReviewPrompt with PromptContext', () => {
-      it('should build review prompt with context', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-        };
+      const messages = buildReviewPromptMessages(context);
 
-        const prompt = buildReviewPrompt(context);
-
-        expect(prompt).toBeDefined();
-        expect(prompt.length).toBeGreaterThan(0);
-        expect(prompt).toContain('RESUME');
-        expect(prompt).toContain('JOB REQUIREMENTS');
-        expect(prompt).toContain('Test User');
-        expect(prompt).toContain('React');
-      });
-
-      it('should include examples when requested', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-        };
-
-        const prompt = buildReviewPrompt(context, { includeExamples: true });
-        expect(prompt).toContain('EXAMPLES');
-      });
-
-      it('should exclude examples when not requested', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-        };
-
-        const prompt = buildReviewPrompt(context, { includeExamples: false });
-        // Examples section should not be prominent (may still appear in template structure)
-        // But the actual examples content should be minimal
-        expect(prompt).toBeDefined();
-      });
-
+      expect(messages.system).toContain('expert resume reviewer');
+      expect(messages.system).toContain('ANALYSIS FOCUS');
+      expect(messages.system).toContain('OUTPUT FORMAT');
+      expect(messages.prompt).toContain('RESUME');
+      expect(messages.prompt).toContain('JOB REQUIREMENTS');
+      expect(messages.prompt).toContain('Test User');
+      expect(messages.prompt).toContain('React');
+      expect(messages.system).not.toContain('Test User');
     });
 
-    describe('buildModifyPrompt with PromptContext', () => {
-      it('should build modify prompt with context and review result', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-          reviewResult: sampleReviewResult,
-        };
+    it('controls examples from options', () => {
+      const context: PromptContext = {
+        resume: sampleResume,
+        jobInfo: sampleJobInfo,
+      };
 
-        const prompt = buildModifyPrompt(context);
+      const withExamples = buildReviewPromptMessages(context, { includeExamples: true });
+      const withoutExamples = buildReviewPromptMessages(context, { includeExamples: false });
 
-        expect(prompt).toBeDefined();
-        expect(prompt.length).toBeGreaterThan(0);
-        expect(prompt).toContain('ORIGINAL RESUME');
-        expect(prompt).toContain('JOB REQUIREMENTS');
-        expect(prompt).toContain('REVIEW FINDINGS');
-        expect(prompt).toContain('CRITICAL RULES');
-      });
+      expect(withExamples.system).toContain('EXAMPLES');
+      expect(withoutExamples.system).not.toContain('Resume Snippet');
+    });
 
-      it('should throw error if review result is missing', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-          // reviewResult missing
-        };
+    it('supports direct Resume and JobInfo arguments', () => {
+      const messages = buildReviewPromptMessages(sampleResume, sampleJobInfo);
 
-        expect(() => buildModifyPrompt(context)).toThrow('Review result is required');
-      });
+      expect(messages.prompt).toContain('Test User');
+      expect(messages.prompt).toContain('React');
+    });
 
-      it('should support different enhancement modes', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-          reviewResult: sampleReviewResult,
-        };
+    it('applies tone adjustments to the system prompt', () => {
+      const professional = buildReviewPromptMessages(sampleResume, sampleJobInfo, { tone: 'professional' });
+      const concise = buildReviewPromptMessages(sampleResume, sampleJobInfo, { tone: 'concise' });
+      const detailed = buildReviewPromptMessages(sampleResume, sampleJobInfo, { tone: 'detailed' });
 
-        const fullPrompt = buildModifyPrompt(context, { mode: 'full' });
-        const bulletPointsPrompt = buildModifyPrompt(context, { mode: 'bulletPoints' });
-        const skillsPrompt = buildModifyPrompt(context, { mode: 'skills' });
-        const summaryPrompt = buildModifyPrompt(context, { mode: 'summary' });
+      expect(concise.system.length).toBeLessThanOrEqual(professional.system.length);
+      expect(detailed.system).toContain('Please provide detailed analysis');
+      expect(concise.prompt).toBe(professional.prompt);
+    });
 
-        expect(fullPrompt).toBeDefined();
-        expect(bulletPointsPrompt).toBeDefined();
-        expect(skillsPrompt).toBeDefined();
-        expect(summaryPrompt).toBeDefined();
+    it('filters focus areas in the system prompt', () => {
+      const filter: FocusAreaFilter = {
+        include: ['keywords', 'skills'],
+        maxAreas: 2,
+      };
 
-        // Mode-specific prompts should have different content
-        expect(bulletPointsPrompt).toContain('bullet points');
-        expect(skillsPrompt).toContain('skills');
-        expect(summaryPrompt).toContain('summary');
-      });
+      const messages = buildReviewPromptMessages(sampleResume, sampleJobInfo, { focusAreas: filter });
 
-      it('should include examples when requested', () => {
-        const context: PromptContext = {
-          resume: sampleResume,
-          jobInfo: sampleJobInfo,
-          reviewResult: sampleReviewResult,
-        };
-
-        const prompt = buildModifyPrompt(context, { includeExamples: true });
-        expect(prompt).toContain('EXAMPLES');
-      });
+      expect(messages.system).toContain('ANALYSIS FOCUS');
+      expect(messages.prompt).toContain('Test User');
     });
   });
 
-  // ============================================================================
-  // Enhanced Prompt Building (Direct Resume/JobInfo API)
-  // ============================================================================
+  describe('buildModifyPromptMessages', () => {
+    it('builds separate system and caller prompts with review findings', () => {
+      const context: PromptContext = {
+        resume: sampleResume,
+        jobInfo: sampleJobInfo,
+        reviewResult: sampleReviewResult,
+      };
 
-  describe('Enhanced Prompt Building (Direct Resume/JobInfo API)', () => {
-    describe('buildReviewPrompt with Resume and JobInfo', () => {
-      it('should build review prompt with basic options', () => {
-        const prompt = buildReviewPrompt(sampleResume, sampleJobInfo);
+      const messages = buildModifyPromptMessages(context);
 
-        expect(prompt).toBeDefined();
-        expect(prompt.length).toBeGreaterThan(0);
-        expect(prompt).toContain('RESUME');
-        expect(prompt).toContain('JOB REQUIREMENTS');
-        expect(prompt).toContain('Test User');
-      });
-
-      it('should apply tone adjustments', () => {
-        const professionalPrompt = buildReviewPrompt(sampleResume, sampleJobInfo, { tone: 'professional' });
-        const concisePrompt = buildReviewPrompt(sampleResume, sampleJobInfo, { tone: 'concise' });
-        const detailedPrompt = buildReviewPrompt(sampleResume, sampleJobInfo, { tone: 'detailed' });
-
-        expect(professionalPrompt).toBeDefined();
-        expect(concisePrompt).toBeDefined();
-        expect(detailedPrompt).toBeDefined();
-
-        // Concise should be shorter or have examples removed
-        expect(concisePrompt.length).toBeLessThanOrEqual(professionalPrompt.length);
-      });
-
-      it('should filter focus areas', () => {
-        const filter: FocusAreaFilter = {
-          include: ['keywords', 'skills'],
-          maxAreas: 2,
-        };
-
-        const prompt = buildReviewPrompt(sampleResume, sampleJobInfo, { focusAreas: filter });
-        expect(prompt).toBeDefined();
-      });
-
-      it('should use cache when enabled', () => {
-        const prompt1 = buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true });
-        const prompt2 = buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true });
-
-        expect(prompt1).toBe(prompt2);
-      });
-
-      it('should not use cache when disabled', () => {
-        const prompt1 = buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: false });
-        const prompt2 = buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: false });
-
-        // Prompts should be the same content-wise, but may be different objects
-        expect(prompt1).toBeDefined();
-        expect(prompt2).toBeDefined();
-      });
-
-      it('should validate prompt when requested', () => {
-        const prompt = buildReviewPrompt(sampleResume, sampleJobInfo, { validate: true });
-        expect(prompt).toBeDefined();
-      });
-
-      it('should ignore legacy maxTokens prompt input limits', () => {
-        const fullPrompt = buildReviewPrompt(sampleResume, sampleJobInfo);
-        const prompt = buildReviewPrompt(sampleResume, sampleJobInfo, { maxTokens: 100 } as never);
-
-        expect(prompt).toBe(fullPrompt);
-      });
+      expect(messages.system).toContain('expert resume writer');
+      expect(messages.system).toContain('CRITICAL RULES');
+      expect(messages.system).toContain('ENHANCEMENT FOCUS');
+      expect(messages.prompt).toContain('ORIGINAL RESUME');
+      expect(messages.prompt).toContain('JOB REQUIREMENTS');
+      expect(messages.prompt).toContain('REVIEW FINDINGS');
+      expect(messages.prompt).toContain('Missing keywords');
+      expect(messages.system).not.toContain('Test User');
     });
 
-    describe('buildModifyPrompt with Resume, JobInfo, and ReviewResult', () => {
-      it('should build modify prompt with review result', () => {
-        const prompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult);
+    it('throws when review result is missing', () => {
+      const context: PromptContext = {
+        resume: sampleResume,
+        jobInfo: sampleJobInfo,
+      };
 
-        expect(prompt).toBeDefined();
-        expect(prompt.length).toBeGreaterThan(0);
-        expect(prompt).toContain('ORIGINAL RESUME');
-        expect(prompt).toContain('REVIEW FINDINGS');
-        expect(prompt).toContain('CRITICAL RULES');
-      });
+      expect(() => buildModifyPromptMessages(context)).toThrow('Review result is required');
+    });
 
-      it('should apply tone adjustments', () => {
-        const professionalPrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { tone: 'professional' });
-        const concisePrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { tone: 'concise' });
+    it('supports different enhancement modes', () => {
+      const full = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'full' });
+      const bulletPoints = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'bulletPoints' });
+      const skills = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'skills' });
+      const summary = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'summary' });
 
-        expect(professionalPrompt).toBeDefined();
-        expect(concisePrompt).toBeDefined();
-      });
+      expect(full.system).toContain('Rewriting bullet points');
+      expect(bulletPoints.system).toContain('Focus ONLY on rewriting experience bullet points');
+      expect(skills.system).toContain('Focus ONLY on reordering and enhancing skills section');
+      expect(summary.system).toContain('Focus ONLY on enhancing the summary');
+    });
 
-      it('should support different enhancement modes', () => {
-        const fullPrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'full' });
-        const bulletPointsPrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'bulletPoints' });
-        const skillsPrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'skills' });
-        const summaryPrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { mode: 'summary' });
+    it('controls examples from options', () => {
+      const withExamples = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { includeExamples: true });
+      const withoutExamples = buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { includeExamples: false });
 
-        expect(fullPrompt).toBeDefined();
-        expect(bulletPointsPrompt).toBeDefined();
-        expect(skillsPrompt).toBeDefined();
-        expect(summaryPrompt).toBeDefined();
-
-        expect(bulletPointsPrompt).toContain('bullet points');
-        expect(skillsPrompt).toContain('skills');
-        expect(summaryPrompt).toContain('summary');
-      });
-
-      it('should use cache when enabled', () => {
-        const prompt1 = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { useCache: true });
-        const prompt2 = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { useCache: true });
-
-        expect(prompt1).toBe(prompt2);
-      });
-
-      it('should validate prompt when requested', () => {
-        const prompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { validate: true });
-        expect(prompt).toBeDefined();
-      });
+      expect(withExamples.system).toContain('EXAMPLES');
+      expect(withoutExamples.system).not.toContain('Original:');
     });
   });
 
-  // ============================================================================
-  // Utility Functions
-  // ============================================================================
+  describe('combinePromptMessages', () => {
+    it('combines system and caller prompts for diagnostics', () => {
+      const messages = buildReviewPromptMessages(sampleResume, sampleJobInfo);
+      const combined = combinePromptMessages(messages);
+
+      expect(combined).toContain(messages.system);
+      expect(combined).toContain(messages.prompt);
+    });
+  });
 
   describe('estimatePromptTokens', () => {
-    it('should estimate tokens correctly', () => {
+    it('estimates tokens from character count', () => {
       const prompt = 'This is a test prompt with some content.';
       const tokens = estimatePromptTokens(prompt);
 
       expect(tokens).toBeGreaterThan(0);
-      // Rough estimation: 1 token ≈ 4 characters
       expect(tokens).toBeCloseTo(prompt.length / 4, 0);
     });
 
-    it('should handle empty prompt', () => {
-      const tokens = estimatePromptTokens('');
-      expect(tokens).toBe(0);
-    });
-
-    it('should handle long prompt', () => {
-      const longPrompt = 'A'.repeat(1000);
-      const tokens = estimatePromptTokens(longPrompt);
-      expect(tokens).toBeCloseTo(250, 0); // 1000 / 4 = 250
+    it('handles empty and long prompts', () => {
+      expect(estimatePromptTokens('')).toBe(0);
+      expect(estimatePromptTokens('A'.repeat(1000))).toBeCloseTo(250, 0);
     });
   });
 
-  // ============================================================================
-  // Prompt Validation
-  // ============================================================================
-
   describe('validatePrompt', () => {
-    it('should validate review prompt structure', () => {
-      const validPrompt = buildReviewPrompt(sampleResume, sampleJobInfo, { validate: false });
-      const validation = validatePrompt(validPrompt, 'review');
+    it('validates review prompt structure', () => {
+      const prompt = combinePromptMessages(
+        buildReviewPromptMessages(sampleResume, sampleJobInfo, { validate: false })
+      );
+      const validation = validatePrompt(prompt, 'review');
 
       expect(validation.valid).toBe(true);
-      expect(validation.errors.length).toBe(0);
+      expect(validation.errors).toHaveLength(0);
       expect(validation.sections.systemMessage).toBe(true);
       expect(validation.sections.context).toBe(true);
       expect(validation.sections.taskDescription).toBe(true);
       expect(validation.sections.outputFormat).toBe(true);
     });
 
-    it('should validate modify prompt structure', () => {
-      const validPrompt = buildModifyPrompt(sampleResume, sampleJobInfo, sampleReviewResult, { validate: false });
-      const validation = validatePrompt(validPrompt, 'modify');
+    it('validates modify prompt structure', () => {
+      const prompt = combinePromptMessages(
+        buildModifyPromptMessages(sampleResume, sampleJobInfo, sampleReviewResult, { validate: false })
+      );
+      const validation = validatePrompt(prompt, 'modify');
 
       expect(validation.valid).toBe(true);
-      expect(validation.errors.length).toBe(0);
+      expect(validation.errors).toHaveLength(0);
       expect(validation.sections.systemMessage).toBe(true);
       expect(validation.sections.context).toBe(true);
     });
 
-    it('should detect missing sections', () => {
-      const invalidPrompt = 'Short prompt';
-      const validation = validatePrompt(invalidPrompt, 'review');
+    it('detects missing sections', () => {
+      const validation = validatePrompt('Short prompt', 'review');
 
       expect(validation.valid).toBe(false);
       expect(validation.errors.length).toBeGreaterThan(0);
     });
 
-    it('should detect missing review findings in modify prompt', () => {
+    it('detects missing review findings in modify prompt', () => {
       const promptWithoutReview = 'You are an expert. CONTEXT: RESUME: {} JOB REQUIREMENTS: {}';
       const validation = validatePrompt(promptWithoutReview, 'modify');
 
-      expect(validation.errors.some(e => e.includes('review findings'))).toBe(true);
+      expect(validation.errors.some(error => error.includes('review findings'))).toBe(true);
     });
 
-    it('should warn about very large prompts', () => {
-      const largePrompt = 'A'.repeat(500000); // Very large prompt
+    it('warns about very large prompts and reports token count', () => {
+      const largePrompt = 'A'.repeat(500000);
       const validation = validatePrompt(largePrompt, 'review');
 
-      expect(validation.warnings.length).toBeGreaterThan(0);
-      expect(validation.warnings.some(w => w.includes('Very large prompt'))).toBe(true);
-    });
-
-    it('should calculate token count', () => {
-      const prompt = buildReviewPrompt(sampleResume, sampleJobInfo, { validate: false });
-      const validation = validatePrompt(prompt, 'review');
-
+      expect(validation.warnings.some(warning => warning.includes('Very large prompt'))).toBe(true);
       expect(validation.tokenCount).toBeGreaterThan(0);
-      expect(typeof validation.tokenCount).toBe('number');
     });
   });
 
-  // ============================================================================
-  // Cache Management
-  // ============================================================================
-
-  describe('Cache Management', () => {
-    it('should cache prompts', () => {
-      buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true });
+  describe('cache management', () => {
+    it('caches prompt messages when enabled', () => {
+      const prompt1 = buildReviewPromptMessages(sampleResume, sampleJobInfo, { useCache: true });
+      const prompt2 = buildReviewPromptMessages(sampleResume, sampleJobInfo, { useCache: true });
       const stats = getPromptCacheStats();
 
+      expect(prompt1).toBe(prompt2);
       expect(stats.size).toBe(1);
-      expect(stats.entries.length).toBe(1);
+      expect(stats.entries).toHaveLength(1);
     });
 
-    it('should clear cache', () => {
-      buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true });
+    it('does not cache when disabled', () => {
+      buildReviewPromptMessages(sampleResume, sampleJobInfo, { useCache: false });
+
+      expect(getPromptCacheStats().size).toBe(0);
+    });
+
+    it('clears cache', () => {
+      buildReviewPromptMessages(sampleResume, sampleJobInfo, { useCache: true });
       expect(getPromptCacheStats().size).toBe(1);
 
       clearPromptCache();
       expect(getPromptCacheStats().size).toBe(0);
     });
 
-    it('should return cache statistics', () => {
-      buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true });
-      const stats = getPromptCacheStats();
+    it('separates cached entries by version', () => {
+      const prompt1 = buildReviewPromptMessages(sampleResume, sampleJobInfo, { useCache: true, version: '1.0.0' });
+      const prompt2 = buildReviewPromptMessages(sampleResume, sampleJobInfo, { useCache: true, version: '2.0.0' });
 
-      expect(stats).toHaveProperty('size');
-      expect(stats).toHaveProperty('maxSize');
-      expect(stats).toHaveProperty('entries');
-      expect(Array.isArray(stats.entries)).toBe(true);
-    });
-
-    it('should not cache when useCache is false', () => {
-      buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: false });
-      expect(getPromptCacheStats().size).toBe(0);
-    });
-
-    it('should handle cache versioning', () => {
-      const prompt1 = buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true, version: '1.0.0' });
-      const prompt2 = buildReviewPrompt(sampleResume, sampleJobInfo, { useCache: true, version: '2.0.0' });
-
-      // Different versions should not use cache
       expect(prompt1).toBeDefined();
       expect(prompt2).toBeDefined();
+      expect(getPromptCacheStats().size).toBe(2);
     });
   });
 
-  // ============================================================================
-  // Version Management
-  // ============================================================================
-
   describe('getPromptVersion', () => {
-    it('should return current prompt version', () => {
+    it('returns current prompt version', () => {
       const version = getPromptVersion();
-      expect(version).toBeDefined();
-      expect(typeof version).toBe('string');
-      expect(version).toMatch(/^\d+\.\d+\.\d+$/); // Semantic version format
+
+      expect(version).toMatch(/^\d+\.\d+\.\d+$/);
     });
   });
 });

@@ -5,6 +5,6 @@
  */
 
 export * from './types';
-export * from './review.template';
-export * from './modify.template';
+export * from './reviewPromptData';
+export * from './modifyPromptData';
 export * from './builder';

@@ -12,7 +12,7 @@ import type {
   ReviewRequest,
   ReviewResponse,
 } from './enhancement.types';
-import { buildReviewPrompt, buildModifyPrompt } from '@services/ai/prompts';
+import { buildReviewPromptMessages, buildModifyPromptMessages } from '@services/ai/prompts';
 import { InvalidResponseError } from './provider.types';
 import { validateResume } from '@utils/resumeParser';
 
@@ -90,7 +90,7 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
   const generateText = config.generateText || aiGenerateText;
 
   async function reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
-    const prompt = buildReviewPrompt(
+    const promptMessages = buildReviewPromptMessages(
       {
         resume: request.resume,
         jobInfo: request.jobInfo,
@@ -108,7 +108,8 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
         name: 'ResumeReviewResponse',
         description: 'Structured resume review response',
       }),
-      prompt,
+      system: promptMessages.system,
+      prompt: promptMessages.prompt,
       temperature: config.temperature,
       maxOutputTokens: config.maxTokens,
       maxRetries: config.maxRetries,
@@ -131,7 +132,7 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
 
     const options = request.options as Record<string, unknown> | undefined;
     const mode = (options?.enhancementMode as 'full' | 'bulletPoints' | 'skills' | 'summary') || 'full';
-    const prompt = buildModifyPrompt(
+    const promptMessages = buildModifyPromptMessages(
       {
         resume: request.resume,
         jobInfo: request.jobInfo,
@@ -151,7 +152,8 @@ export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AIS
         name: 'ResumeModifyResponse',
         description: 'Structured resume modification response',
       }),
-      prompt,
+      system: promptMessages.system,
+      prompt: promptMessages.prompt,
       temperature: config.temperature,
       maxOutputTokens: config.maxTokens,
       maxRetries: config.maxRetries,

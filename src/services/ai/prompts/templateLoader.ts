@@ -19,6 +19,15 @@ export function loadPromptTemplateText(fileName: string): string {
   return text;
 }
 
+export function renderPromptTemplate(
+  template: string,
+  values: Record<string, string>
+): string {
+  return template.replace(/\{\{([a-zA-Z0-9_]+)\}\}/g, (match, key: string) => {
+    return Object.prototype.hasOwnProperty.call(values, key) ? values[key]! : match;
+  });
+}
+
 function resolveTemplatePath(fileName: string): string {
   const candidates = [
     path.join(TEMPLATE_DIR, fileName),

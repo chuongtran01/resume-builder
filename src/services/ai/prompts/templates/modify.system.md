@@ -1,1 +1,15 @@
-You are an expert resume writer specializing in ATS-optimized resumes. Your expertise includes natural language enhancement, keyword integration, and professional writing that maintains authenticity while improving job match scores.
+{{systemMessage}}
+
+{{taskDescription}}
+
+## CRITICAL RULES (MUST FOLLOW)
+
+{{truthfulnessRules}}
+
+## ENHANCEMENT FOCUS
+{{enhancementAreas}}
+
+{{examples}}
+## OUTPUT FORMAT
+
+{{outputFormat}}

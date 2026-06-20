@@ -9,20 +9,6 @@ import type { ParsedJobDescription } from '@utils/jobParser';
 import type { ReviewResult } from '@services/ai/enhancement.types';
 
 /**
- * Base prompt structure
- */
-export interface BasePrompt {
-  /** System message with role and instructions */
-  systemMessage: string;
-  /** Context section with data */
-  context: PromptContext;
-  /** Task description */
-  taskDescription: string;
-  /** Output format specification */
-  outputFormat: string;
-}
-
-/**
  * Prompt context data
  */
 export interface PromptContext {
@@ -34,30 +20,6 @@ export interface PromptContext {
   reviewResult?: ReviewResult;
   /** Additional options */
   options?: Record<string, unknown>;
-}
-
-/**
- * Review prompt template
- */
-export interface ReviewPromptTemplate extends BasePrompt {
-  /** Analysis focus areas */
-  focusAreas: string[];
-  /** Example reviews (few-shot) */
-  examples?: ReviewExample[];
-}
-
-/**
- * Modify prompt template
- */
-export interface ModifyPromptTemplate extends BasePrompt {
-  /** Truthfulness requirements */
-  truthfulnessRules: string[];
-  /** Enhancement focus areas */
-  enhancementAreas: string[];
-  /** Example enhancements (few-shot) */
-  examples?: EnhancementExample[];
-  /** Enhancement mode */
-  mode?: 'full' | 'bulletPoints' | 'skills' | 'summary';
 }
 
 /**

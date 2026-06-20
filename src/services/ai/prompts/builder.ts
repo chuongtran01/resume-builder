@@ -1,19 +1,36 @@
 /**
  * Prompt Builder
- * 
- * Utility for building prompts from templates with variable substitution,
- * context management, optimization, caching, validation, and enhanced features.
+ *
+ * Utility for building system and caller prompts from Markdown templates with
+ * variable substitution, context management, caching, validation, and enhanced
+ * prompt options.
  */
 
 import type {
+  EnhancementExample,
   PromptContext,
   PromptBuilderOptions,
+  ReviewExample,
 } from './types';
 import type { Resume } from '@resume-types/resume.types';
 import type { ParsedJobDescription } from '@utils/jobParser';
 import type { ReviewResult } from '@services/ai/enhancement.types';
-import { buildReviewPromptTemplate } from './review.template';
-import { buildModifyPromptTemplate, getEnhancementAreasForMode } from './modify.template';
+import {
+  REVIEW_EXAMPLES,
+  REVIEW_FOCUS_AREAS,
+  REVIEW_OUTPUT_FORMAT,
+  REVIEW_SYSTEM_MESSAGE,
+  REVIEW_TASK_DESCRIPTION,
+} from './reviewPromptData';
+import {
+  ENHANCEMENT_EXAMPLES,
+  MODIFY_OUTPUT_FORMAT,
+  MODIFY_SYSTEM_MESSAGE,
+  MODIFY_TASK_DESCRIPTION,
+  TRUTHFULNESS_RULES,
+  getEnhancementAreasForMode,
+} from './modifyPromptData';
+import { loadPromptTemplateText, renderPromptTemplate } from './templateLoader';
 import { logger } from '@utils/logger';
 import * as crypto from 'crypto';
 
@@ -22,11 +39,16 @@ import * as crypto from 'crypto';
  */
 const PROMPT_VERSION = '1.0.0';
 
+export interface PromptMessages {
+  system: string;
+  prompt: string;
+}
+
 /**
  * Prompt cache entry
  */
 interface PromptCacheEntry {
-  prompt: string;
+  messages: PromptMessages;
   timestamp: number;
   version: string;
   tokenCount: number;
@@ -101,110 +123,96 @@ export interface PromptValidationResult {
 // ============================================================================
 
 /**
- * Build review prompt from template (base implementation)
+ * Build review prompt messages from templates (base implementation)
  */
-function buildReviewPromptBase(
+function buildReviewPromptMessagesBase(
   context: PromptContext,
   options: PromptBuilderOptions = {}
-): string {
-  const template = buildReviewPromptTemplate();
+): PromptMessages {
   const { includeExamples = true } = options;
+  const systemTemplate = loadPromptTemplateText('review.system.md');
+  const promptTemplate = loadPromptTemplateText('review.prompt.md');
 
-  // Build system message
-  let prompt = `${template.systemMessage}\n\n`;
-
-  // Add task description
-  prompt += `${template.taskDescription}\n\n`;
-
-  // Add context section
-  prompt += `## CONTEXT\n\n`;
-  prompt += `### RESUME:\n${JSON.stringify(context.resume, null, 2)}\n\n`;
-  prompt += `### JOB REQUIREMENTS:\n${JSON.stringify(context.jobInfo, null, 2)}\n\n`;
-
-  // Add focus areas
-  prompt += `## ANALYSIS FOCUS\n`;
-  template.focusAreas.forEach((area, index) => {
-    prompt += `${index + 1}. ${area}\n`;
-  });
-  prompt += `\n`;
-
-  // Add few-shot examples if requested
-  if (includeExamples && template.examples && template.examples.length > 0) {
-    prompt += `## EXAMPLES\n\n`;
-    template.examples.forEach((example, index) => {
-      prompt += `### Example ${index + 1}:\n`;
-      prompt += `Resume Snippet: ${example.resumeSnippet}\n`;
-      prompt += `Job Requirements: ${example.jobSnippet}\n`;
-      prompt += `Review Result: ${JSON.stringify(example.reviewResult, null, 2)}\n\n`;
-    });
-  }
-
-  // Add output format
-  prompt += `## OUTPUT FORMAT\n\n${template.outputFormat}\n`;
-
-  return prompt;
+  return {
+    system: `${renderPromptTemplate(systemTemplate, {
+      systemMessage: REVIEW_SYSTEM_MESSAGE,
+      taskDescription: REVIEW_TASK_DESCRIPTION,
+      focusAreas: formatNumberedList(REVIEW_FOCUS_AREAS),
+      examples: includeExamples ? formatReviewExamples(REVIEW_EXAMPLES) : '',
+      outputFormat: REVIEW_OUTPUT_FORMAT,
+    })}\n`,
+    prompt: `${renderPromptTemplate(promptTemplate, {
+      resumeJson: JSON.stringify(context.resume, null, 2),
+      jobInfoJson: JSON.stringify(context.jobInfo, null, 2),
+    })}\n`,
+  };
 }
 
 /**
- * Build modify prompt from template (base implementation)
+ * Build modify prompt messages from templates (base implementation)
  */
-function buildModifyPromptBase(
+function buildModifyPromptMessagesBase(
   context: PromptContext,
   options: PromptBuilderOptions = {}
-): string {
+): PromptMessages {
   if (!context.reviewResult) {
     throw new Error('Review result is required for modify prompt');
   }
 
   const mode = options.mode || 'full';
-  const template = buildModifyPromptTemplate(mode);
   const { includeExamples = true } = options;
+  const systemTemplate = loadPromptTemplateText('modify.system.md');
+  const promptTemplate = loadPromptTemplateText('modify.prompt.md');
 
-  // Build system message
-  let prompt = `${template.systemMessage}\n\n`;
+  return {
+    system: `${renderPromptTemplate(systemTemplate, {
+      systemMessage: MODIFY_SYSTEM_MESSAGE,
+      taskDescription: MODIFY_TASK_DESCRIPTION,
+      truthfulnessRules: formatNumberedList(TRUTHFULNESS_RULES),
+      enhancementAreas: formatNumberedList(getEnhancementAreasForMode(mode)),
+      examples: includeExamples ? formatModifyExamples(ENHANCEMENT_EXAMPLES) : '',
+      outputFormat: MODIFY_OUTPUT_FORMAT,
+    })}\n`,
+    prompt: `${renderPromptTemplate(promptTemplate, {
+      resumeJson: JSON.stringify(context.resume, null, 2),
+      jobInfoJson: JSON.stringify(context.jobInfo, null, 2),
+      reviewResultJson: JSON.stringify(context.reviewResult, null, 2),
+    })}\n`,
+  };
+}
 
-  // Add task description
-  prompt += `${template.taskDescription}\n\n`;
+function formatNumberedList(items: string[]): string {
+  return items.map((item, index) => `${index + 1}. ${item}`).join('\n');
+}
 
-  // Add context section
-  prompt += `## CONTEXT\n\n`;
-  prompt += `### ORIGINAL RESUME:\n${JSON.stringify(context.resume, null, 2)}\n\n`;
-  prompt += `### JOB REQUIREMENTS:\n${JSON.stringify(context.jobInfo, null, 2)}\n\n`;
-  prompt += `### REVIEW FINDINGS:\n${JSON.stringify(context.reviewResult, null, 2)}\n\n`;
-
-  // Add truthfulness rules
-  prompt += `## CRITICAL RULES (MUST FOLLOW)\n\n`;
-  template.truthfulnessRules.forEach((rule, index) => {
-    prompt += `${index + 1}. ${rule}\n`;
-  });
-  prompt += `\n`;
-
-  // Add enhancement areas (mode-specific)
-  const enhancementAreas = mode !== 'full' 
-    ? getEnhancementAreasForMode(mode)
-    : template.enhancementAreas;
-  
-  prompt += `## ENHANCEMENT FOCUS\n`;
-  enhancementAreas.forEach((area, index) => {
-    prompt += `${index + 1}. ${area}\n`;
-  });
-  prompt += `\n`;
-
-  // Add few-shot examples if requested
-  if (includeExamples && template.examples && template.examples.length > 0) {
-    prompt += `## EXAMPLES\n\n`;
-    template.examples.forEach((example, index) => {
-      prompt += `### Example ${index + 1}:\n`;
-      prompt += `Original: ${example.original}\n`;
-      prompt += `Enhanced: ${example.enhanced}\n`;
-      prompt += `Explanation: ${example.explanation}\n\n`;
-    });
+function formatReviewExamples(examples: ReviewExample[]): string {
+  if (examples.length === 0) {
+    return '';
   }
 
-  // Add output format
-  prompt += `## OUTPUT FORMAT\n\n${template.outputFormat}\n`;
+  const blocks = examples.map((example, index) => [
+    `### Example ${index + 1}:`,
+    `Resume Snippet: ${example.resumeSnippet}`,
+    `Job Requirements: ${example.jobSnippet}`,
+    `Review Result: ${JSON.stringify(example.reviewResult, null, 2)}`,
+  ].join('\n'));
 
-  return prompt;
+  return `## EXAMPLES\n\n${blocks.join('\n\n')}\n\n`;
+}
+
+function formatModifyExamples(examples: EnhancementExample[]): string {
+  if (examples.length === 0) {
+    return '';
+  }
+
+  const blocks = examples.map((example, index) => [
+    `### Example ${index + 1}:`,
+    `Original: ${example.original}`,
+    `Enhanced: ${example.enhanced}`,
+    `Explanation: ${example.explanation}`,
+  ].join('\n'));
+
+  return `## EXAMPLES\n\n${blocks.join('\n\n')}\n\n`;
 }
 
 // ============================================================================
@@ -212,44 +220,41 @@ function buildModifyPromptBase(
 // ============================================================================
 
 /**
- * Build review prompt from template
- * 
+ * Build review prompt messages from templates
+ *
  * @overload
  * Basic usage with PromptContext
  */
-export function buildReviewPrompt(
+export function buildReviewPromptMessages(
   context: PromptContext,
   options?: PromptBuilderOptions
-): string;
+): PromptMessages;
 
 /**
  * @overload
  * Enhanced usage with Resume and ParsedJobDescription
  */
-export function buildReviewPrompt(
+export function buildReviewPromptMessages(
   resume: Resume,
   jobInfo: ParsedJobDescription,
   options?: EnhancedPromptBuilderOptions
-): string;
+): PromptMessages;
 
 /**
  * Implementation
  */
-export function buildReviewPrompt(
+export function buildReviewPromptMessages(
   contextOrResume: PromptContext | Resume,
   optionsOrJobInfo?: PromptBuilderOptions | ParsedJobDescription | EnhancedPromptBuilderOptions,
   options?: EnhancedPromptBuilderOptions
-): string {
-  // Determine which overload is being used
+): PromptMessages {
   let context: PromptContext;
   let enhancedOptions: EnhancedPromptBuilderOptions = {};
 
   if ('resume' in contextOrResume && 'jobInfo' in contextOrResume) {
-    // First overload: PromptContext
     context = contextOrResume as PromptContext;
     enhancedOptions = (optionsOrJobInfo as PromptBuilderOptions) || {};
   } else {
-    // Second overload: Resume + ParsedJobDescription
     context = {
       resume: contextOrResume as Resume,
       jobInfo: optionsOrJobInfo as ParsedJobDescription,
@@ -259,7 +264,7 @@ export function buildReviewPrompt(
   }
 
   const {
-    useCache = false, // Default to false for backward compatibility
+    useCache = false,
     validate = false,
     tone = 'professional',
     focusAreas,
@@ -267,32 +272,31 @@ export function buildReviewPrompt(
     ...baseOptions
   } = enhancedOptions;
 
-  // Check cache (only if enhanced options are used)
   if (useCache) {
     const cacheKey = generateCacheKey('review', context.resume, context.jobInfo, enhancedOptions);
     const cached = promptCache.get(cacheKey);
     if (cached && isCacheValid(cached, version)) {
       logger.debug('Using cached review prompt');
-      return cached.prompt;
+      return cached.messages;
     }
   }
 
-  // Build base prompt
-  let prompt = buildReviewPromptBase(context, baseOptions);
+  let messages = buildReviewPromptMessagesBase(context, baseOptions);
 
-  // Apply enhanced features if requested
   if (useCache || validate || tone !== 'professional' || focusAreas) {
-    // Apply tone adjustments
-    prompt = applyTone(prompt, tone);
+    messages = applyMessageTone(messages, tone);
 
-    // Apply focus area filtering
     if (focusAreas) {
-      prompt = filterFocusAreas(prompt, focusAreas);
+      messages = {
+        ...messages,
+        system: filterFocusAreas(messages.system, focusAreas),
+      };
     }
 
-    // Validate if requested
+    const combinedPrompt = combinePromptMessages(messages);
+
     if (validate) {
-      const validation = validatePrompt(prompt, 'review');
+      const validation = validatePrompt(combinedPrompt, 'review');
       if (!validation.valid) {
         logger.warn('Prompt validation failed:', validation.errors);
       }
@@ -301,59 +305,55 @@ export function buildReviewPrompt(
       }
     }
 
-    const tokenCount = estimatePromptTokens(prompt);
+    const tokenCount = estimatePromptTokens(combinedPrompt);
 
-    // Cache result
     if (useCache) {
       const cacheKey = generateCacheKey('review', context.resume, context.jobInfo, enhancedOptions);
-      cachePrompt(cacheKey, prompt, version, tokenCount);
+      cachePrompt(cacheKey, messages, version, tokenCount);
     }
   }
 
-  return prompt;
+  return messages;
 }
 
 /**
- * Build modify prompt from template
- * 
+ * Build modify prompt messages from templates
+ *
  * @overload
  * Basic usage with PromptContext
  */
-export function buildModifyPrompt(
+export function buildModifyPromptMessages(
   context: PromptContext,
   options?: PromptBuilderOptions
-): string;
+): PromptMessages;
 
 /**
  * @overload
  * Enhanced usage with Resume, ParsedJobDescription, and ReviewResult
  */
-export function buildModifyPrompt(
+export function buildModifyPromptMessages(
   resume: Resume,
   jobInfo: ParsedJobDescription,
   reviewResult: ReviewResult,
   options?: EnhancedPromptBuilderOptions
-): string;
+): PromptMessages;
 
 /**
  * Implementation
  */
-export function buildModifyPrompt(
+export function buildModifyPromptMessages(
   contextOrResume: PromptContext | Resume,
   optionsOrJobInfo?: PromptBuilderOptions | ParsedJobDescription,
   reviewResultOrOptions?: ReviewResult | EnhancedPromptBuilderOptions,
   options?: EnhancedPromptBuilderOptions
-): string {
-  // Determine which overload is being used
+): PromptMessages {
   let context: PromptContext;
   let enhancedOptions: EnhancedPromptBuilderOptions = {};
 
   if ('resume' in contextOrResume && 'jobInfo' in contextOrResume) {
-    // First overload: PromptContext
     context = contextOrResume as PromptContext;
     enhancedOptions = (optionsOrJobInfo as PromptBuilderOptions) || {};
   } else {
-    // Second overload: Resume + ParsedJobDescription + ReviewResult
     context = {
       resume: contextOrResume as Resume,
       jobInfo: optionsOrJobInfo as ParsedJobDescription,
@@ -364,7 +364,7 @@ export function buildModifyPrompt(
   }
 
   const {
-    useCache = false, // Default to false for backward compatibility
+    useCache = false,
     validate = false,
     tone = 'professional',
     focusAreas,
@@ -372,32 +372,31 @@ export function buildModifyPrompt(
     ...baseOptions
   } = enhancedOptions;
 
-  // Check cache (only if enhanced options are used)
   if (useCache) {
     const cacheKey = generateCacheKey('modify', context.resume, context.jobInfo, enhancedOptions, context.reviewResult);
     const cached = promptCache.get(cacheKey);
     if (cached && isCacheValid(cached, version)) {
       logger.debug('Using cached modify prompt');
-      return cached.prompt;
+      return cached.messages;
     }
   }
 
-  // Build base prompt
-  let prompt = buildModifyPromptBase(context, baseOptions);
+  let messages = buildModifyPromptMessagesBase(context, baseOptions);
 
-  // Apply enhanced features if requested
   if (useCache || validate || tone !== 'professional' || focusAreas) {
-    // Apply tone adjustments
-    prompt = applyTone(prompt, tone);
+    messages = applyMessageTone(messages, tone);
 
-    // Apply focus area filtering
     if (focusAreas) {
-      prompt = filterFocusAreas(prompt, focusAreas);
+      messages = {
+        ...messages,
+        system: filterFocusAreas(messages.system, focusAreas),
+      };
     }
 
-    // Validate if requested
+    const combinedPrompt = combinePromptMessages(messages);
+
     if (validate) {
-      const validation = validatePrompt(prompt, 'modify');
+      const validation = validatePrompt(combinedPrompt, 'modify');
       if (!validation.valid) {
         logger.warn('Prompt validation failed:', validation.errors);
       }
@@ -406,21 +405,24 @@ export function buildModifyPrompt(
       }
     }
 
-    const tokenCount = estimatePromptTokens(prompt);
+    const tokenCount = estimatePromptTokens(combinedPrompt);
 
-    // Cache result
     if (useCache) {
       const cacheKey = generateCacheKey('modify', context.resume, context.jobInfo, enhancedOptions, context.reviewResult);
-      cachePrompt(cacheKey, prompt, version, tokenCount);
+      cachePrompt(cacheKey, messages, version, tokenCount);
     }
   }
 
-  return prompt;
+  return messages;
 }
 
 // ============================================================================
 // Utility Functions
 // ============================================================================
+
+export function combinePromptMessages(messages: PromptMessages): string {
+  return `${messages.system}\n\n${messages.prompt}`;
+}
 
 /**
  * Estimate token count for prompt
@@ -446,7 +448,6 @@ export function validatePrompt(
     outputFormat: false,
   };
 
-  // Check for required sections
   if (prompt.includes('You are an expert') || prompt.includes('System:')) {
     sections.systemMessage = true;
   } else {
@@ -471,7 +472,6 @@ export function validatePrompt(
     errors.push('Missing output format specification');
   }
 
-  // Type-specific checks
   if (type === 'modify') {
     if (!prompt.includes('REVIEW FINDINGS') && !prompt.includes('reviewResult')) {
       errors.push('Modify prompt missing review findings');
@@ -481,13 +481,11 @@ export function validatePrompt(
     }
   }
 
-  // Check token count
   const tokenCount = estimatePromptTokens(prompt);
   if (tokenCount > 100000) {
     warnings.push(`Very large prompt (${tokenCount} tokens), may exceed model limits`);
   }
 
-  // Check for empty sections
   if (prompt.length < 100) {
     errors.push('Prompt is too short, may be incomplete');
   }
@@ -502,18 +500,23 @@ export function validatePrompt(
 }
 
 /**
- * Apply tone adjustments to prompt
+ * Apply tone adjustments to system instructions
  */
+function applyMessageTone(messages: PromptMessages, tone: PromptTone): PromptMessages {
+  return {
+    ...messages,
+    system: applyTone(messages.system, tone),
+  };
+}
+
 function applyTone(prompt: string, tone: PromptTone): string {
   switch (tone) {
     case 'concise':
-      // Remove extra explanations, keep it brief
       return prompt
         .replace(/\n{3,}/g, '\n\n')
-        .replace(/##\s+EXAMPLES[\s\S]*?(?=##|$)/g, ''); // Remove examples for concise tone
+        .replace(/##\s+EXAMPLES[\s\S]*?(?=##|$)/g, '');
 
     case 'detailed':
-      // Add more context and explanations
       if (!prompt.includes('Please provide detailed')) {
         const taskDescIndex = prompt.indexOf('## OUTPUT FORMAT');
         if (taskDescIndex > 0) {
@@ -524,12 +527,10 @@ function applyTone(prompt: string, tone: PromptTone): string {
       return prompt;
 
     case 'friendly':
-      // Use more conversational language
       return prompt.replace(/You are an expert/g, 'You are a friendly and helpful expert');
 
     case 'professional':
     default:
-      // Keep as-is (already professional)
       return prompt;
   }
 }
@@ -548,7 +549,6 @@ function filterFocusAreas(prompt: string, filter: FocusAreaFilter): string {
 
   let filteredLines = focusLines;
 
-  // Apply include filter
   if (filter.include && filter.include.length > 0) {
     filteredLines = filteredLines.filter(line => {
       const lowerLine = line.toLowerCase();
@@ -556,7 +556,6 @@ function filterFocusAreas(prompt: string, filter: FocusAreaFilter): string {
     });
   }
 
-  // Apply exclude filter
   if (filter.exclude && filter.exclude.length > 0) {
     filteredLines = filteredLines.filter(line => {
       const lowerLine = line.toLowerCase();
@@ -564,12 +563,10 @@ function filterFocusAreas(prompt: string, filter: FocusAreaFilter): string {
     });
   }
 
-  // Apply max areas limit
   if (filter.maxAreas && filteredLines.length > filter.maxAreas) {
     filteredLines = filteredLines.slice(0, filter.maxAreas);
   }
 
-  // Rebuild focus section
   const newFocusSection = focusSectionMatch[1] + '\n' + filteredLines.join('\n') + '\n';
   return prompt.replace(focusSectionMatch[0], newFocusSection);
 }
@@ -612,12 +609,10 @@ function isCacheValid(entry: PromptCacheEntry, version: string): boolean {
   const now = Date.now();
   const age = now - entry.timestamp;
 
-  // Check TTL
   if (age > CACHE_TTL) {
     return false;
   }
 
-  // Check version
   if (entry.version !== version) {
     return false;
   }
@@ -626,15 +621,14 @@ function isCacheValid(entry: PromptCacheEntry, version: string): boolean {
 }
 
 /**
- * Cache a prompt
+ * Cache prompt messages
  */
 function cachePrompt(
   key: string,
-  prompt: string,
+  messages: PromptMessages,
   version: string,
   tokenCount: number
 ): void {
-  // Evict old entries if cache is full
   if (promptCache.size >= MAX_CACHE_SIZE) {
     const oldestKey = Array.from(promptCache.entries())
       .sort((a, b) => a[1].timestamp - b[1].timestamp)[0]?.[0];
@@ -644,7 +638,7 @@ function cachePrompt(
   }
 
   promptCache.set(key, {
-    prompt,
+    messages,
     timestamp: Date.now(),
     version,
     tokenCount,
