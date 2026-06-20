@@ -142,7 +142,6 @@ const templateOptionsSchema = z.object({
 export const generateResumeRequestSchema = z.object({
   resume: resumeSchema,
   options: z.object({
-    template: z.string().min(1, 'Template name is required').optional(),
     format: z.enum(['pdf', 'html']).optional(),
     validate: z.boolean().optional(),
     templateOptions: templateOptionsSchema.optional(),

@@ -26,7 +26,6 @@ program
   .alias('gen')
   .option('-i, --input <path>', 'Path to resume.json file (required)')
   .option('-o, --output <path>', 'Path for output file (required)')
-  .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
   .option('--validate', 'Run ATS validation', false)
   .option('-v, --verbose', 'Enable verbose logging', false)
@@ -121,27 +120,12 @@ program
         process.exit(1);
       }
 
-      // Validate template
-      const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
-      const availableTemplates = getTemplateNames();
-
-      if (!hasTemplate(options.template)) {
-        logger.error(`❌ Error: Template "${options.template}" not found`);
-        logger.info('💡 Available templates:');
-        availableTemplates.forEach((template: string) => {
-          logger.info(`   - ${template}`);
-        });
-        logger.info(`   Example: --template ${availableTemplates[0] || 'classic'}`);
-        process.exit(1);
-      }
-
       logger.info('Starting resume generation...');
 
       const result = await generateResumeFromFile(
         options.input,
         options.output,
         {
-          template: options.template,
           format: options.format.toLowerCase() as 'pdf' | 'html',
           validate: options.validate,
         }
@@ -188,7 +172,6 @@ program
       // Import error types for type checking
       const { FileNotFoundError, InvalidJsonError } = await import('@utils/fileLoader');
       const { ResumeValidationError, MissingRequiredFieldError } = await import('@utils/resumeParser');
-      const { TemplateNotFoundError } = await import('@services/resumeGenerator');
       const { PdfGenerationError } = await import('@utils/pdfGenerator');
 
       if (error instanceof FileNotFoundError) {
@@ -218,14 +201,6 @@ program
       } else if (error instanceof MissingRequiredFieldError) {
         logger.error(`\n❌ ${error.message}`);
         logger.info('💡 Tip: Check your resume.json file and ensure all required fields are included');
-      } else if (error instanceof TemplateNotFoundError) {
-        logger.error(`\n❌ ${error.message}`);
-        const { getTemplateNames } = await import('../templates/templateRegistry');
-        const availableTemplates = getTemplateNames();
-        logger.info('💡 Available templates:');
-        availableTemplates.forEach((template: string) => {
-          logger.info(`   - ${template}`);
-        });
       } else if (error instanceof PdfGenerationError) {
         logger.error(`\n❌ ${error.message}`);
         logger.info('💡 Suggestions:');
@@ -250,30 +225,6 @@ program
           logger.info('💡 Tip: Use --verbose flag to see detailed error information');
         }
       }
-      process.exit(1);
-    }
-  });
-
-// List templates command
-program
-  .command('templates')
-  .description('List available resume templates')
-  .alias('list')
-  .action(async () => {
-    try {
-      // Import templates to ensure they are registered
-      await import('@templates/index');
-      const { getTemplateNames } = await import('../templates/templateRegistry');
-      const templates = getTemplateNames();
-
-      logger.info('Available templates:');
-      templates.forEach((template: string) => {
-        logger.info(`  - ${template}`);
-      });
-
-      process.exit(0);
-    } catch (error) {
-      logger.error(`Error listing templates: ${error instanceof Error ? error.message : String(error)}`);
       process.exit(1);
     }
   });
@@ -413,7 +364,6 @@ program
   .option('-i, --input <path>', 'Path to resume.json file (required)')
   .option('-j, --job <path>', 'Path to job description file (required)')
   .option('-o, --output <path>', 'Output directory for enhanced files', './output')
-  .option('-t, --template <name>', 'Template name (modern, classic)', 'classic')
   .option('-f, --format <format>', 'Output format (pdf, html)', 'pdf')
   .option('--ai-temperature <temp>', 'AI temperature 0-1 (default: 0.7)', parseFloat)
   .option('-v, --verbose', 'Enable verbose logging', false)
@@ -508,19 +458,6 @@ program
         }
       }
 
-      // Validate template
-      const { getTemplateNames, hasTemplate } = await import('@templates/templateRegistry');
-      const availableTemplates = getTemplateNames();
-
-      if (!hasTemplate(options.template)) {
-        logger.error(`❌ Error: Template "${options.template}" not found`);
-        logger.info('💡 Available templates:');
-        availableTemplates.forEach((template: string) => {
-          logger.info(`   - ${template}`);
-        });
-        process.exit(1);
-      }
-
       logger.info('🚀 Starting resume enhancement...\n');
 
       // Step 1: Load and parse resume
@@ -598,7 +535,6 @@ program
         enhancementResult.enhancedResume,
         pdfPath,
         {
-          template: options.template,
           format: format as 'pdf' | 'html',
           validate: false,
         }
@@ -644,7 +580,6 @@ program
       // Import error types for type checking
       const { FileNotFoundError, InvalidJsonError } = await import('@utils/fileLoader');
       const { ResumeValidationError, MissingRequiredFieldError } = await import('@utils/resumeParser');
-      const { TemplateNotFoundError } = await import('@services/resumeGenerator');
       const { PdfGenerationError } = await import('@utils/pdfGenerator');
       const { JsonWriteError } = await import('@services/enhancedResumeGenerator');
       const { MarkdownWriteError } = await import('@services/mdGenerator');
@@ -670,14 +605,6 @@ program
         }
       } else if (error instanceof MissingRequiredFieldError) {
         logger.error(`\n❌ ${error.message}`);
-      } else if (error instanceof TemplateNotFoundError) {
-        logger.error(`\n❌ ${error.message}`);
-        const { getTemplateNames } = await import('../templates/templateRegistry');
-        const availableTemplates = getTemplateNames();
-        logger.info('💡 Available templates:');
-        availableTemplates.forEach((template: string) => {
-          logger.info(`   - ${template}`);
-        });
       } else if (error instanceof PdfGenerationError) {
         logger.error(`\n❌ ${error.message}`);
         logger.info('💡 Suggestions:');

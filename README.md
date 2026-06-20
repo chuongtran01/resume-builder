@@ -9,7 +9,7 @@ A modular, ATS-friendly resume generator that accepts structured JSON input and 
 - 🔗 Support for reusable resume sections via file references
 - 💻 CLI interface for command-line usage
 - 🌐 REST API for programmatic access
-- 🎨 Multiple ATS-safe resume templates
+- 🎨 ATS-safe classic resume template
 - ✅ Built-in ATS validation and compliance checking
 - 📊 Change tracking and detailed enhancement reports
 
@@ -57,11 +57,6 @@ Generate an HTML resume:
 npm run dev -- generate --input resume.json --output resume.html --format html
 ```
 
-Specify a template:
-```bash
-npm run dev -- generate --input resume.json --output resume.pdf --template modern
-```
-
 Use compact spacing:
 ```bash
 npm run dev -- generate --input resume.json --output resume.pdf --spacing compact
@@ -75,7 +70,6 @@ npm run dev -- generate --input resume.json --output resume.pdf --validate
 **Generate Command Options:**
 - `--input, -i <path>` - Path to resume JSON file (required)
 - `--output, -o <path>` - Path for output file (required)
-- `--template, -t <name>` - Template name: `classic` or `modern` (default: `classic`)
 - `--format, -f <format>` - Output format: `pdf` or `html` (default: `pdf`)
 - `--spacing <mode>` - Spacing mode: `auto` (default), `compact`, or `normal`
 - `--compact` - Use compact spacing (shorthand for `--spacing compact`)
@@ -106,7 +100,6 @@ This uses default settings:
 - AI Model: `gemini-3.1-pro` from `GEMINI_MODEL` in `.env`
 - AI Temperature: `0.7` (default)
 - Output directory: `./output` (default)
-- Template: `classic` (default)
 - Format: `pdf` (default)
 
 **With all options:**
@@ -115,7 +108,6 @@ npm run dev -- enhanceResume \
   --input resume.json \
   --job job-description.txt \
   --output ./output \
-  --template classic \
   --format pdf \
   --ai-temperature 0.7 \
   --verbose
@@ -125,7 +117,6 @@ npm run dev -- enhanceResume \
 - `--input, -i` - Path to resume JSON file (required)
 - `--job, -j` - Path to job description file (required)
 - `--output, -o` - Output directory for enhanced files (default: `./output`)
-- `--template, -t` - Template name: `classic` or `modern` (default: `classic`)
 - `--format, -f` - Output format: `pdf` or `html` (default: `pdf`)
 - `--ai-temperature <temp>` - AI temperature 0-1 (default: `0.7`)
 - `--verbose, -v` - Enable verbose logging
@@ -216,7 +207,7 @@ For complete API documentation, see [API.md](./API.md).
 ```
 resume-builder/
 ├── src/
-│   ├── templates/          # ATS-safe resume templates
+│   ├── templates/          # ATS-safe classic resume template
 │   ├── services/          # Core business logic
 │   ├── types/             # TypeScript type definitions
 │   ├── utils/             # Utility functions

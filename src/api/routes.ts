@@ -7,7 +7,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as os from 'os';
 import { logger } from '@utils/logger';
-import { generateResumeFromObject, TemplateNotFoundError } from '@services/resumeGenerator';
+import { generateResumeFromObject } from '@services/resumeGenerator';
 import { PdfGenerationError } from '@utils/pdfGenerator';
 import {
   validateRequest,
@@ -25,7 +25,6 @@ import type { Resume } from '@resume-types/resume.types';
 type GenerateResumeRequestBody = {
   resume: Resume;
   options?: {
-    template?: string;
     format?: 'pdf' | 'html';
     validate?: boolean;
     templateOptions?: {
@@ -57,12 +56,11 @@ export function registerRoutes(app: Express): void {
         const { resume, options = {} } = body;
 
         // Extract options with defaults
-        const template = options.template || 'classic';
         const format = options.format || 'pdf';
         const runValidation = options.validate || false;
         const templateOptions = options.templateOptions;
 
-        logger.debug(`[${requestId}] Template: ${template}, Format: ${format}, Validate: ${runValidation}`);
+        logger.debug(`[${requestId}] Format: ${format}, Validate: ${runValidation}`);
 
         // Create temporary output file
         const tempDir = os.tmpdir();
@@ -71,7 +69,6 @@ export function registerRoutes(app: Express): void {
 
         // Generate resume
         const result = await generateResumeFromObject(resume, outputPath, {
-          template,
           format,
           validate: runValidation,
           templateOptions,
@@ -113,24 +110,7 @@ export function registerRoutes(app: Express): void {
         const duration = Date.now() - startTime;
         logger.error(`[${requestId}] Error generating resume (${duration}ms): ${error instanceof Error ? error.message : String(error)}`);
 
-        if (error instanceof TemplateNotFoundError) {
-          // Get available templates for error response
-          try {
-            const { getTemplateNames } = await import('../templates/templateRegistry');
-            const availableTemplates = getTemplateNames();
-
-            res.status(400).json({
-              error: 'Invalid template',
-              message: error.message,
-              availableTemplates,
-            });
-          } catch (importError) {
-            res.status(400).json({
-              error: 'Invalid template',
-              message: error.message,
-            });
-          }
-        } else if (error instanceof PdfGenerationError) {
+        if (error instanceof PdfGenerationError) {
           res.status(500).json({
             error: 'PDF generation failed',
             message: error.message,
@@ -277,7 +257,6 @@ export function registerRoutes(app: Express): void {
           enhancementResult.enhancedResume,
           pdfPath,
           {
-            template: 'classic',
             format: 'pdf',
             validate: false,
           }

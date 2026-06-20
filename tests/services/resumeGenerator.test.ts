@@ -8,7 +8,6 @@ import {
   generateResumeFromFile,
   generateResumeFromObject,
   generateResumeHtml,
-  TemplateNotFoundError,
 } from '@services/resumeGenerator';
 import type { Resume } from '@resume-types/resume.types';
 
@@ -33,6 +32,7 @@ jest.mock('@utils/pdfGenerator', () => ({
     await fs.writeFile(options.outputPath, Buffer.from('mock pdf content'));
     return options.outputPath;
   }),
+  calculatePageCount: jest.fn().mockResolvedValue({ pageCount: 1 }),
   getBrowser: jest.fn().mockResolvedValue({
     newPage: jest.fn().mockResolvedValue({
       setContent: jest.fn(),
@@ -88,12 +88,11 @@ describe('ResumeGenerator', () => {
       await fs.writeJson(testResumePath, testResume);
 
       const result = await generateResumeFromFile(testResumePath, testOutputPath, {
-        template: 'modern',
         format: 'pdf',
       });
 
       expect(result.format).toBe('pdf');
-      expect(result.template).toBe('modern');
+      expect(result.template).toBe('classic');
       expect(result.outputPath).toBeDefined();
       expect(result.fileSize).toBeGreaterThan(0);
     });
@@ -105,12 +104,11 @@ describe('ResumeGenerator', () => {
 
       const htmlOutputPath = testOutputPath.replace('.pdf', '.html');
       const result = await generateResumeFromFile(testResumePath, htmlOutputPath, {
-        template: 'modern',
         format: 'html',
       });
 
       expect(result.format).toBe('html');
-      expect(result.template).toBe('modern');
+      expect(result.template).toBe('classic');
       expect(result.outputPath).toBe(htmlOutputPath);
       expect(fs.existsSync(htmlOutputPath)).toBe(true);
 
@@ -120,23 +118,11 @@ describe('ResumeGenerator', () => {
       }
     });
 
-    it('should throw error for invalid template', async () => {
-      await fs.ensureDir(path.dirname(testResumePath));
-      await fs.writeJson(testResumePath, testResume);
-
-      await expect(
-        generateResumeFromFile(testResumePath, testOutputPath, {
-          template: 'invalid-template',
-        })
-      ).rejects.toThrow(TemplateNotFoundError);
-    });
-
     it('should run ATS validation when requested', async () => {
       await fs.ensureDir(path.dirname(testResumePath));
       await fs.writeJson(testResumePath, testResume);
 
       const result = await generateResumeFromFile(testResumePath, testOutputPath, {
-        template: 'modern',
         validate: true,
       });
 
@@ -150,7 +136,6 @@ describe('ResumeGenerator', () => {
       await fs.writeJson(testResumePath, testResume);
 
       const result = await generateResumeFromFile(testResumePath, testOutputPath, {
-        template: 'modern',
         validate: true,
       });
 
@@ -161,12 +146,11 @@ describe('ResumeGenerator', () => {
   describe('generateResumeFromObject', () => {
     it('should generate PDF from Resume object', async () => {
       const result = await generateResumeFromObject(testResume, testOutputPath, {
-        template: 'modern',
         format: 'pdf',
       });
 
       expect(result.format).toBe('pdf');
-      expect(result.template).toBe('modern');
+      expect(result.template).toBe('classic');
       expect(result.outputPath).toBeDefined();
       expect(result.fileSize).toBeGreaterThan(0);
     });
@@ -174,12 +158,11 @@ describe('ResumeGenerator', () => {
     it('should generate HTML from Resume object', async () => {
       const htmlOutputPath = testOutputPath.replace('.pdf', '.html');
       const result = await generateResumeFromObject(testResume, htmlOutputPath, {
-        template: 'modern',
         format: 'html',
       });
 
       expect(result.format).toBe('html');
-      expect(result.template).toBe('modern');
+      expect(result.template).toBe('classic');
       expect(result.outputPath).toBe(htmlOutputPath);
       expect(fs.existsSync(htmlOutputPath)).toBe(true);
 
@@ -189,17 +172,8 @@ describe('ResumeGenerator', () => {
       }
     });
 
-    it('should throw error for invalid template', async () => {
-      await expect(
-        generateResumeFromObject(testResume, testOutputPath, {
-          template: 'invalid-template',
-        })
-      ).rejects.toThrow(TemplateNotFoundError);
-    });
-
     it('should run ATS validation when requested', async () => {
       const result = await generateResumeFromObject(testResume, testOutputPath, {
-        template: 'modern',
         validate: true,
       });
 
@@ -208,25 +182,18 @@ describe('ResumeGenerator', () => {
       expect(result.atsValidation?.score).toBeLessThanOrEqual(100);
     });
 
-    it('should support different templates', async () => {
-      const templates = ['modern', 'classic'];
+    it('should use the classic template', async () => {
+      const result = await generateResumeFromObject(testResume, testOutputPath, {
+        format: 'pdf',
+      });
 
-      for (const template of templates) {
-        const result = await generateResumeFromObject(testResume, testOutputPath, {
-          template,
-          format: 'pdf',
-        });
-
-        expect(result.template).toBe(template);
-      }
+      expect(result.template).toBe('classic');
     });
   });
 
   describe('generateResumeHtml', () => {
     it('should generate HTML string from Resume object', async () => {
-      const html = await generateResumeHtml(testResume, {
-        template: 'modern',
-      });
+      const html = await generateResumeHtml(testResume);
 
       expect(typeof html).toBe('string');
       expect(html).toContain('<!DOCTYPE html>');
@@ -234,22 +201,11 @@ describe('ResumeGenerator', () => {
       expect(html).toContain('john@example.com');
     });
 
-    it('should throw error for invalid template', async () => {
-      await expect(
-        generateResumeHtml(testResume, {
-          template: 'invalid-template',
-        })
-      ).rejects.toThrow(TemplateNotFoundError);
-    });
+    it('should render the classic template', async () => {
+      const html = await generateResumeHtml(testResume);
 
-    it('should support different templates', async () => {
-      const templates = ['modern', 'classic'];
-
-      for (const template of templates) {
-        const html = await generateResumeHtml(testResume, { template });
-        expect(html).toContain('<!DOCTYPE html>');
-        expect(html).toContain('John Doe');
-      }
+      expect(html).toContain('<!DOCTYPE html>');
+      expect(html).toContain('Times New Roman');
     });
   });
 

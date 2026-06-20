@@ -60,26 +60,6 @@ describe('CLI', () => {
     });
   });
 
-  describe('templates command', () => {
-    it('should list available templates', () => {
-      const output = execSync(`${cliPath} templates`, { 
-        encoding: 'utf-8',
-        cwd: path.join(__dirname, '../..')
-      });
-      expect(output).toContain('Available templates:');
-      // At least one template should be listed
-      expect(output.length).toBeGreaterThan('Available templates:'.length);
-    });
-
-    it('should work with list alias', () => {
-      const output = execSync(`${cliPath} list`, { 
-        encoding: 'utf-8',
-        cwd: path.join(__dirname, '../..')
-      });
-      expect(output).toContain('Available templates:');
-    });
-  });
-
   describe('validate command', () => {
     it('should validate a resume file', () => {
       const output = execSync(

@@ -96,17 +96,8 @@ describe('classicTemplate', () => {
     expect(template?.name).toBe('classic');
   });
 
-  it('should be visually distinct from modern template', () => {
-    const classicHtml = classicTemplate.render(sampleResume);
-    const { modernTemplate } = require('../../src/templates/modern');
-    const modernHtml = modernTemplate.render(sampleResume);
-
-    // Classic uses Times New Roman, modern uses Arial
-    expect(classicHtml).toContain('Times New Roman');
-    expect(modernHtml).toContain('Arial');
-
-    // Both templates use "Experience" as the section title
-    expect(classicHtml).toContain('Experience');
-    expect(modernHtml).toContain('Experience');
+  it('should be the only registered template', () => {
+    expect(getTemplate('classic')).toBeDefined();
+    expect(getTemplate('modern')).toBeUndefined();
   });
 });

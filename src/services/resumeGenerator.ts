@@ -18,12 +18,12 @@ import * as fs from 'fs-extra';
  */
 export type OutputFormat = 'pdf' | 'html';
 
+const TEMPLATE_NAME = 'classic';
+
 /**
  * Generator options
  */
 export interface GeneratorOptions {
-  /** Template name to use (default: 'classic') */
-  template?: string;
   /** Output format (default: 'pdf') */
   format?: OutputFormat;
   /** Whether to run ATS validation */
@@ -52,16 +52,12 @@ export interface GeneratorResult {
   warnings: string[];
 }
 
-/**
- * Error thrown when template is not found
- */
-export class TemplateNotFoundError extends Error {
-  constructor(templateName: string, availableTemplates: string[]) {
-    super(
-      `Template "${templateName}" not found. Available templates: ${availableTemplates.join(', ')}`
-    );
-    this.name = 'TemplateNotFoundError';
+function getClassicTemplate(): ResumeTemplate {
+  const template = getTemplate(TEMPLATE_NAME);
+  if (!template) {
+    throw new Error('Classic resume template is not registered');
   }
+  return template;
 }
 
 /**
@@ -207,7 +203,6 @@ export async function generateResumeFromFile(
   options: GeneratorOptions = {}
 ): Promise<GeneratorResult> {
   const {
-    template: templateName = 'classic',
     format: outputFormat = 'pdf',
     validate: runValidation = false,
     templateOptions,
@@ -223,13 +218,8 @@ export async function generateResumeFromFile(
   });
 
   // Get template
-  logger.debug(`Selecting template: ${templateName}`);
-  const template = getTemplate(templateName);
-  if (!template) {
-    const { getTemplateNames } = await import('../templates/templateRegistry');
-    const availableTemplates = getTemplateNames();
-    throw new TemplateNotFoundError(templateName, availableTemplates);
-  }
+  logger.debug(`Selecting template: ${TEMPLATE_NAME}`);
+  const template = getClassicTemplate();
 
   // Run ATS validation if requested
   let atsValidation: AtsValidationResult | undefined;
@@ -293,7 +283,7 @@ export async function generateResumeFromFile(
   return {
     outputPath: finalOutputPath,
     format: outputFormat,
-    template: templateName,
+    template: TEMPLATE_NAME,
     fileSize,
     atsValidation,
     warnings,
@@ -313,7 +303,6 @@ export async function generateResumeFromObject(
   options: GeneratorOptions = {}
 ): Promise<GeneratorResult> {
   const {
-    template: templateName = 'classic',
     format: outputFormat = 'pdf',
     validate: runValidation = false,
     templateOptions,
@@ -322,13 +311,8 @@ export async function generateResumeFromObject(
   logger.info(`Generating ${outputFormat.toUpperCase()} resume from Resume object`);
 
   // Get template
-  logger.debug(`Selecting template: ${templateName}`);
-  const template = getTemplate(templateName);
-  if (!template) {
-    const { getTemplateNames } = await import('../templates/templateRegistry');
-    const availableTemplates = getTemplateNames();
-    throw new TemplateNotFoundError(templateName, availableTemplates);
-  }
+  logger.debug(`Selecting template: ${TEMPLATE_NAME}`);
+  const template = getClassicTemplate();
 
   // Run ATS validation if requested
   let atsValidation: AtsValidationResult | undefined;
@@ -392,7 +376,7 @@ export async function generateResumeFromObject(
   return {
     outputPath: finalOutputPath,
     format: outputFormat,
-    template: templateName,
+    template: TEMPLATE_NAME,
     fileSize,
     atsValidation,
     warnings,
@@ -409,15 +393,10 @@ export async function generateResumeHtml(
   resume: Resume,
   options: Omit<GeneratorOptions, 'format'> = {}
 ): Promise<string> {
-  const { template: templateName = 'classic', templateOptions } = options;
+  const { templateOptions } = options;
 
   // Get template
-  const template = getTemplate(templateName);
-  if (!template) {
-    const { getTemplateNames } = await import('../templates/templateRegistry');
-    const availableTemplates = getTemplateNames();
-    throw new TemplateNotFoundError(templateName, availableTemplates);
-  }
+  const template = getClassicTemplate();
 
   // Render template to HTML
   const html = template.render(resume, templateOptions);

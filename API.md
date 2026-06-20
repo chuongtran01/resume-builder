@@ -145,7 +145,6 @@ Generate a PDF or HTML resume from structured JSON input.
     }
   },
   "options": {
-    "template": "classic",
     "format": "pdf",
     "validate": false,
     "templateOptions": {
@@ -162,7 +161,6 @@ Generate a PDF or HTML resume from structured JSON input.
 | Field | Type | Required | Default | Description |
 |-------|------|----------|---------|-------------|
 | `resume` | `Resume` | Yes | - | Complete resume object (see [Resume JSON Schema](#resume-json-schema)) |
-| `options.template` | `string` | No | `"classic"` | Template name (`"modern"` or `"classic"`) |
 | `options.format` | `"pdf" \| "html"` | No | `"pdf"` | Output format |
 | `options.validate` | `boolean` | No | `false` | Run ATS validation before generation |
 | `options.templateOptions.spacing` | `"compact" \| "normal" \| "auto"` | No | `"normal"` | Spacing mode |
@@ -184,15 +182,6 @@ Generate a PDF or HTML resume from structured JSON input.
 - **Body:** Binary file (PDF or HTML)
 
 **Error Responses:**
-
-**400 Bad Request** - Invalid template:
-```json
-{
-  "error": "Invalid template",
-  "message": "Template \"invalid\" not found. Available templates: modern, classic",
-  "availableTemplates": ["modern", "classic"]
-}
-```
 
 **400 Bad Request** - Validation error:
 ```json
@@ -234,14 +223,13 @@ curl -X POST http://localhost:3000/api/generateResume \
   --output resume.pdf
 ```
 
-Generate HTML resume with modern template:
+Generate HTML resume:
 ```bash
 curl -X POST http://localhost:3000/api/generateResume \
   -H "Content-Type: application/json" \
   -d '{
     "resume": { ... },
     "options": {
-      "template": "modern",
       "format": "html"
     }
   }' \
@@ -281,7 +269,6 @@ const response = await fetch('http://localhost:3000/api/generateResume', {
       // ... rest of resume
     },
     options: {
-      template: 'classic',
       format: 'pdf',
     },
   }),
@@ -818,7 +805,7 @@ See [examples/resume.json](./examples/resume.json) for a complete example.
 All endpoints return appropriate HTTP status codes:
 
 - **200 OK** - Request successful
-- **400 Bad Request** - Invalid request (validation errors, invalid template, etc.)
+- **400 Bad Request** - Invalid request (validation errors, etc.)
 - **404 Not Found** - Endpoint not found
 - **500 Internal Server Error** - Server error
 
@@ -870,7 +857,7 @@ Default: `*` (all origins allowed)
 | `Content-Type` | `application/pdf` or `text/html` |
 | `Content-Disposition` | `attachment; filename="resume.pdf"` |
 | `Content-Length` | File size in bytes |
-| `X-Resume-Template` | Template name used |
+| `X-Resume-Template` | Resume template used (`classic`) |
 | `X-Resume-Format` | Output format (`pdf` or `html`) |
 | `X-Resume-Size` | File size in bytes |
 | `X-ATS-Score` | ATS score (if validation enabled) |
@@ -884,7 +871,7 @@ Default: `*` (all origins allowed)
 2. **Use file references** for reusable sections to keep your resume JSON clean
 3. **Choose appropriate spacing** - Use `"auto"` for automatic spacing adjustment based on content
 4. **Handle errors gracefully** - Check response status codes and error messages
-5. **Use appropriate templates** - `"classic"` for traditional industries, `"modern"` for tech/creative roles
+5. **Use the default classic template** for consistent ATS-friendly output
 
 ---
 
