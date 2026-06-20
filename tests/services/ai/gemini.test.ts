@@ -13,14 +13,17 @@ import {
 } from '../../../src/services/ai/provider.types';
 import type { Resume } from '../../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../../src/utils/jobParser';
-import { AISdkResumeGenerator } from '../../../src/services/ai/aiSdkResumeGenerator';
+import {
+  createAISdkResumeClient,
+  type AISdkResumeClient,
+} from '../../../src/services/ai/aiSdkResumeGenerator';
 
 jest.mock('../../../src/services/ai/aiSdkResumeGenerator', () => ({
-  AISdkResumeGenerator: jest.fn(),
+  createAISdkResumeClient: jest.fn(),
 }));
 
 describe('createGeminiResumeClient', () => {
-  const MockAISdkResumeGenerator = AISdkResumeGenerator as jest.MockedClass<typeof AISdkResumeGenerator>;
+  const mockCreateAISdkResumeClient = createAISdkResumeClient as jest.MockedFunction<typeof createAISdkResumeClient>;
 
   const mockConfig: GeminiConfig = {
     apiKey: 'test-api-key',
@@ -99,7 +102,7 @@ describe('createGeminiResumeClient', () => {
       reviewResume: jest.fn().mockResolvedValue(reviewResponse),
       modifyResume: jest.fn().mockResolvedValue(modifyResponse),
     };
-    MockAISdkResumeGenerator.mockImplementation(() => mockGenerator as unknown as AISdkResumeGenerator);
+    mockCreateAISdkResumeClient.mockImplementation(() => mockGenerator as unknown as AISdkResumeClient);
     provider = createGeminiResumeClient(mockConfig);
   });
 
@@ -107,7 +110,7 @@ describe('createGeminiResumeClient', () => {
     it('creates client with valid config and maps model to AI SDK gateway id', () => {
       expect(provider.reviewResume).toEqual(expect.any(Function));
       expect(provider.modifyResume).toEqual(expect.any(Function));
-      expect(MockAISdkResumeGenerator).toHaveBeenCalledWith({
+      expect(mockCreateAISdkResumeClient).toHaveBeenCalledWith({
         model: 'google/gemini-2.5-pro',
         temperature: 0.7,
         maxTokens: 2000,
@@ -121,7 +124,7 @@ describe('createGeminiResumeClient', () => {
         model: 'gemini-3-flash-preview',
       });
 
-      expect(MockAISdkResumeGenerator).toHaveBeenLastCalledWith(
+      expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
         expect.objectContaining({
           model: 'google/gemini-3-flash',
         })
@@ -144,7 +147,7 @@ describe('createGeminiResumeClient', () => {
       };
       const p = createGeminiResumeClient(minimalConfig);
       expect(p.reviewResume).toEqual(expect.any(Function));
-      expect(MockAISdkResumeGenerator).toHaveBeenLastCalledWith(
+      expect(mockCreateAISdkResumeClient).toHaveBeenLastCalledWith(
         expect.objectContaining({
           temperature: 0.7,
           maxTokens: 2000,

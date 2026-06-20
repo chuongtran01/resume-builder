@@ -8,6 +8,7 @@ import { z } from 'zod';
 import type {
   AIRequest,
   AIResponse,
+  ResumeAIClient,
   ReviewRequest,
   ReviewResponse,
 } from './enhancement.types';
@@ -23,6 +24,8 @@ export interface AISdkResumeGeneratorConfig {
   maxRetries?: number;
   generateObject?: GenerateObject;
 }
+
+export type AISdkResumeClient = ResumeAIClient;
 
 const prioritizedActionSchema = z.object({
   type: z.enum(['enhance', 'reorder', 'add', 'remove', 'rewrite']),
@@ -61,14 +64,10 @@ const modifyResponseSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
 });
 
-export class AISdkResumeGenerator {
-  private readonly generateObject: GenerateObject;
+export function createAISdkResumeClient(config: AISdkResumeGeneratorConfig): AISdkResumeClient {
+  const generateObject = config.generateObject || aiGenerateObject;
 
-  constructor(private readonly config: AISdkResumeGeneratorConfig) {
-    this.generateObject = config.generateObject || aiGenerateObject;
-  }
-
-  async reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
+  async function reviewResume(request: ReviewRequest): Promise<ReviewResponse> {
     const prompt = buildReviewPrompt(
       {
         resume: request.resume,
@@ -77,30 +76,30 @@ export class AISdkResumeGenerator {
       },
       {
         includeExamples: true,
-        maxContextLength: this.config.maxTokens ? this.config.maxTokens * 4 : undefined,
+        maxContextLength: config.maxTokens ? config.maxTokens * 4 : undefined,
         compress: false,
       }
     );
 
-    const result = await this.generateObject({
-      model: this.config.model,
+    const result = await generateObject({
+      model: config.model,
       schema: reviewResponseSchema,
       schemaName: 'ResumeReviewResponse',
       schemaDescription: 'Structured resume review response',
       prompt,
-      temperature: this.config.temperature,
-      maxOutputTokens: this.config.maxTokens,
-      maxRetries: this.config.maxRetries,
+      temperature: config.temperature,
+      maxOutputTokens: config.maxTokens,
+      maxRetries: config.maxRetries,
     });
 
     return {
       reviewResult: result.object.reviewResult,
-      tokensUsed: this.getTotalTokens(result.usage),
+      tokensUsed: getTotalTokens(result.usage),
       cost: 0,
     };
   }
 
-  async modifyResume(request: AIRequest): Promise<AIResponse> {
+  async function modifyResume(request: AIRequest): Promise<AIResponse> {
     if (!request.reviewResult) {
       throw new InvalidResponseError(
         'Review result is required for modifyResume',
@@ -119,21 +118,21 @@ export class AISdkResumeGenerator {
       },
       {
         includeExamples: true,
-        maxContextLength: this.config.maxTokens ? this.config.maxTokens * 4 : undefined,
+        maxContextLength: config.maxTokens ? config.maxTokens * 4 : undefined,
         compress: false,
         mode,
       }
     );
 
-    const result = await this.generateObject({
-      model: this.config.model,
+    const result = await generateObject({
+      model: config.model,
       schema: modifyResponseSchema,
       schemaName: 'ResumeModifyResponse',
       schemaDescription: 'Structured resume modification response',
       prompt,
-      temperature: this.config.temperature,
-      maxOutputTokens: this.config.maxTokens,
-      maxRetries: this.config.maxRetries,
+      temperature: config.temperature,
+      maxOutputTokens: config.maxTokens,
+      maxRetries: config.maxRetries,
     });
 
     const object = result.object;
@@ -151,25 +150,29 @@ export class AISdkResumeGenerator {
       improvements: object.improvements,
       reasoning: object.reasoning,
       confidence: object.confidence,
-      tokensUsed: this.getTotalTokens(result.usage),
+      tokensUsed: getTotalTokens(result.usage),
       cost: 0,
     };
   }
 
-  private getTotalTokens(usage?: LanguageModelUsage): number | undefined {
-    if (!usage) {
-      return undefined;
-    }
+  return {
+    reviewResume,
+    modifyResume,
+  };
+}
 
-    return usage.totalTokens ?? this.sumTokens(usage.inputTokens, usage.outputTokens);
+function getTotalTokens(usage?: LanguageModelUsage): number | undefined {
+  if (!usage) {
+    return undefined;
   }
 
-  private sumTokens(input?: number, output?: number): number | undefined {
-    if (input === undefined && output === undefined) {
-      return undefined;
-    }
+  return usage.totalTokens ?? sumTokens(usage.inputTokens, usage.outputTokens);
+}
 
-    return (input || 0) + (output || 0);
+function sumTokens(input?: number, output?: number): number | undefined {
+  if (input === undefined && output === undefined) {
+    return undefined;
   }
 
+  return (input || 0) + (output || 0);
 }

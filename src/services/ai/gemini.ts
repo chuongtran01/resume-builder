@@ -22,8 +22,10 @@ import {
   NetworkError,
   TimeoutError,
 } from '@services/ai/provider.types';
-import { AISdkResumeGenerator } from '@services/ai/aiSdkResumeGenerator';
-import type { AISdkResumeGeneratorConfig } from '@services/ai/aiSdkResumeGenerator';
+import {
+  createAISdkResumeClient,
+  type AISdkResumeGeneratorConfig,
+} from '@services/ai/aiSdkResumeGenerator';
 import type { LanguageModel } from 'ai';
 import { logger } from '@utils/logger';
 
@@ -79,7 +81,7 @@ export function createGeminiResumeClient(config: GeminiConfig): GeminiResumeClie
     ...config,
   } as GeminiConfig;
 
-  const generator = new AISdkResumeGenerator(buildGeneratorConfig(finalConfig));
+  const generator = createAISdkResumeClient(buildGeneratorConfig(finalConfig));
 
   logger.info(`Initialized Gemini provider with model: ${finalConfig.model}`);
 

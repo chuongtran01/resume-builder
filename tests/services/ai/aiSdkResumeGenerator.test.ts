@@ -2,7 +2,7 @@
  * Unit tests for the AI SDK resume generator adapter.
  */
 
-import { AISdkResumeGenerator } from '../../../src/services/ai/aiSdkResumeGenerator';
+import { createAISdkResumeClient } from '../../../src/services/ai/aiSdkResumeGenerator';
 import type { AIRequest, ReviewRequest } from '../../../src/services/ai/enhancement.types';
 import type { Resume } from '../../../src/types/resume.types';
 import type { ParsedJobDescription } from '../../../src/utils/jobParser';
@@ -12,7 +12,7 @@ jest.mock('ai', () => ({
   generateObject: jest.fn(),
 }));
 
-describe('AISdkResumeGenerator', () => {
+describe('createAISdkResumeClient', () => {
   const mockGenerateObject = generateObject as jest.MockedFunction<typeof generateObject>;
 
   const resume: Resume = {
@@ -67,7 +67,7 @@ describe('AISdkResumeGenerator', () => {
       },
     } as Awaited<ReturnType<typeof generateObject>>);
 
-    const generator = new AISdkResumeGenerator({
+    const generator = createAISdkResumeClient({
       model: 'google/gemini-3-flash',
       temperature: 0.2,
       maxTokens: 1000,
@@ -132,7 +132,7 @@ describe('AISdkResumeGenerator', () => {
       },
     } as Awaited<ReturnType<typeof generateObject>>);
 
-    const generator = new AISdkResumeGenerator({
+    const generator = createAISdkResumeClient({
       model: 'google/gemini-3-flash',
     });
 
@@ -152,7 +152,7 @@ describe('AISdkResumeGenerator', () => {
   });
 
   it('requires a review result before modify generation', async () => {
-    const generator = new AISdkResumeGenerator({
+    const generator = createAISdkResumeClient({
       model: 'google/gemini-3-flash',
     });
 
