@@ -45,8 +45,6 @@ export interface AIConfig {
     gemini?: GeminiProviderConfig;
     // Future: other providers can be added here
   };
-  /** Enhancement mode */
-  enhancementMode?: 'sequential' | 'agent';
 }
 
 /**
@@ -83,7 +81,6 @@ const ENV_VARS = {
   GEMINI_MAX_TOKENS: 'GEMINI_MAX_TOKENS',
   GEMINI_TIMEOUT: 'GEMINI_TIMEOUT',
   GEMINI_MAX_RETRIES: 'GEMINI_MAX_RETRIES',
-  ENHANCEMENT_MODE: 'ENHANCEMENT_MODE',
 } as const;
 
 /**
@@ -175,15 +172,6 @@ function loadFromEnvironment(): Partial<AIConfig> {
     }
   }
 
-  // Enhancement mode
-  const enhancementModeEnv = getEnvVar(ENV_VARS.ENHANCEMENT_MODE);
-  if (enhancementModeEnv) {
-    const mode = enhancementModeEnv as 'sequential' | 'agent';
-    if (mode === 'sequential' || mode === 'agent') {
-      config.enhancementMode = mode;
-    }
-  }
-
   return config;
 }
 
@@ -262,7 +250,6 @@ function mergeConfigs(
   const merged: AIConfig = {
     defaultProvider: fileConfig.defaultProvider ?? envConfig.defaultProvider ?? 'gemini',
     providers,
-    enhancementMode: fileConfig.enhancementMode ?? envConfig.enhancementMode ?? 'sequential',
   };
 
   return merged;
@@ -325,11 +312,6 @@ function validateConfig(config: AIConfig): ConfigValidationResult {
   } else if (config.defaultProvider === 'gemini') {
     // Default provider is gemini but no config provided - this is a warning, not an error
     warnings.push('Gemini is selected as default provider but no configuration found. API key will be required at runtime.');
-  }
-
-  // Validate enhancement mode
-  if (config.enhancementMode && config.enhancementMode !== 'sequential' && config.enhancementMode !== 'agent') {
-    errors.push(`Invalid enhancementMode: ${config.enhancementMode}. Must be 'sequential' or 'agent'`);
   }
 
   // Additional warnings (already handled above for missing config case)
@@ -478,6 +460,5 @@ export function createDefaultConfig(): AIConfig {
   return {
     defaultProvider: 'gemini',
     providers: {},
-    enhancementMode: 'sequential',
   };
 }

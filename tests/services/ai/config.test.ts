@@ -33,7 +33,6 @@ describe('AI Configuration Management', () => {
     delete process.env.GEMINI_TIMEOUT;
     delete process.env.GEMINI_MAX_RETRIES;
     delete process.env.FALLBACK_TO_MOCK;
-    delete process.env.ENHANCEMENT_MODE;
   });
 
   afterEach(() => {
@@ -51,7 +50,6 @@ describe('AI Configuration Management', () => {
       });
 
       expect(config.defaultProvider).toBe('gemini');
-      expect(config.enhancementMode).toBe('sequential');
     });
 
     it('should load configuration from environment variables', async () => {
@@ -60,7 +58,6 @@ describe('AI Configuration Management', () => {
       process.env.GEMINI_MODEL = 'gemini-2.5-pro';
       process.env.GEMINI_TEMPERATURE = '0.8';
       process.env.GEMINI_MAX_TOKENS = '3000';
-      process.env.ENHANCEMENT_MODE = 'sequential';
 
       const config = await loadAIConfig({
         loadFromFile: false,
@@ -71,7 +68,6 @@ describe('AI Configuration Management', () => {
       expect(config.providers?.gemini?.model).toBe('gemini-2.5-pro');
       expect(config.providers?.gemini?.temperature).toBe(0.8);
       expect(config.providers?.gemini?.maxTokens).toBe(3000);
-      expect(config.enhancementMode).toBe('sequential');
     });
 
     it('should load configuration from JSON file', async () => {
@@ -85,7 +81,6 @@ describe('AI Configuration Management', () => {
             maxTokens: 1500,
           },
         },
-        enhancementMode: 'sequential',
       };
 
       await fs.writeJSON(configPath, configContent);
@@ -397,7 +392,6 @@ describe('AI Configuration Management', () => {
       const config = createDefaultConfig();
 
       expect(config.defaultProvider).toBe('gemini');
-      expect(config.enhancementMode).toBe('sequential');
       expect(config.providers).toEqual({});
     });
   });

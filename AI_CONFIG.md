@@ -36,8 +36,6 @@ export GEMINI_MAX_TOKENS="2000"       # Maximum tokens to generate
 export GEMINI_TIMEOUT="30000"         # Request timeout in milliseconds
 export GEMINI_MAX_RETRIES="3"         # Maximum retry attempts
 
-# General settings
-export ENHANCEMENT_MODE="sequential"   # sequential or agent
 ```
 
 ### Example: Setting up in your shell
@@ -98,7 +96,6 @@ GEMINI_TEMPERATURE=0.7
 GEMINI_MAX_TOKENS=2000
 GEMINI_TIMEOUT=30000
 GEMINI_MAX_RETRIES=3
-ENHANCEMENT_MODE=sequential
 ```
 
 **Note:** The `.env` file is automatically loaded by the application. It's already in `.gitignore` so your API key won't be committed.
@@ -154,15 +151,6 @@ ENHANCEMENT_MODE=sequential
 - **Default:** `1000` (1 second)
 - **Description:** Base delay for exponential backoff retries
 
-
-### `enhancementMode`
-- **Type:** `"sequential" | "agent"`
-- **Default:** `"sequential"`
-- **Description:** Enhancement workflow mode
-  - `sequential`: Two-step process (Review → Modify)
-  - `agent`: Future agent-based approach (not yet implemented)
-
----
 
 ## Usage in Code
 
@@ -323,7 +311,6 @@ cp .env.example .env
 # GEMINI_MAX_TOKENS=2000
 # GEMINI_TIMEOUT=30000
 # GEMINI_MAX_RETRIES=3
-# ENHANCEMENT_MODE=sequential
 
 # 3. Basic usage (uses all defaults from .env)
 npm run cli -- enhanceResume --input resume.json --job job.txt
