@@ -53,6 +53,8 @@ export interface Education {
   degree: string;
   /** Field of study */
   field: string;
+  /** Minor field of study (optional) */
+  minor?: string;
   /** Start date in YYYY or YYYY-MM format (optional) */
   startDate?: string;
   /** End date in YYYY or YYYY-MM format, or "Present" (optional) */

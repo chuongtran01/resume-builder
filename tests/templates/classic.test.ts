@@ -108,6 +108,26 @@ describe('classicTemplate', () => {
     expect(html).toContain('May 2023');
   });
 
+  it('should render an education minor after the major field', () => {
+    const resumeWithEducationMinor = {
+      ...sampleResume,
+      education: [
+        {
+          institution: 'University of California',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          minor: 'Mathematics',
+          startDate: '2014',
+          endDate: '2018-05',
+        },
+      ],
+    } as any;
+
+    const html = classicTemplate.render(resumeWithEducationMinor);
+
+    expect(html).toContain('Bachelor of Science in Computer Science, Minor in Mathematics');
+  });
+
   it('should reject invalid education start and end dates', () => {
     const resumeWithInvalidEducationDates = {
       ...sampleResume,

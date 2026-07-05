@@ -102,6 +102,29 @@ describe('API middleware schemas', () => {
     expect(result.success).toBe(true);
   });
 
+  it('supports an optional education minor', () => {
+    const result = generateResumeRequestSchema.safeParse({
+      resume: {
+        ...resume,
+        education: [
+          {
+            institution: 'University of California',
+            degree: 'Bachelor of Science',
+            field: 'Computer Science',
+            minor: 'Mathematics',
+            startDate: '2014',
+            endDate: '2018-05',
+          },
+        ],
+      },
+      options: {
+        format: 'pdf',
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
   it('rejects legacy education graduationDate', () => {
     const result = generateResumeRequestSchema.safeParse({
       resume: {

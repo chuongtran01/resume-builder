@@ -430,6 +430,7 @@ function renderEducationItem(edu: {
   institution: string;
   degree: string;
   field: string;
+  minor?: string;
   startDate?: string;
   endDate?: string;
   gpa?: string;
@@ -440,7 +441,10 @@ function renderEducationItem(edu: {
   if (edu.field) {
     parts.push(escapeHtml(edu.field));
   }
-  const degreeLine = parts.join(' in ');
+  let degreeLine = parts.join(' in ');
+  if (edu.minor) {
+    degreeLine += `${degreeLine ? ', ' : ''}Minor in ${escapeHtml(edu.minor)}`;
+  }
   const dateLine = formatEducationDateRange(edu.startDate, edu.endDate);
 
   return `
