@@ -42,7 +42,8 @@
         "institution": "University of Houston",
         "degree": "Bachelor's",
         "field": "Computer Science",
-        "graduationDate": "2023-12",
+        "startDate": "2019",
+        "endDate": "2023-12",
         "gpa": "3.9"
       }
     ],

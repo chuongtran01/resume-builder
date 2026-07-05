@@ -40,7 +40,8 @@ describe('API middleware schemas', () => {
       institution: 'University of California',
       degree: 'Bachelor of Science',
       field: 'Computer Science',
-      graduationDate: '2018-05',
+      startDate: '2014',
+      endDate: '2018-05',
     };
 
     const arrayResult = generateResumeRequestSchema.safeParse({
@@ -65,5 +66,60 @@ describe('API middleware schemas', () => {
 
     expect(arrayResult.success).toBe(true);
     expect(singleResult.success).toBe(false);
+  });
+
+  it('supports optional education start and end dates with flexible precision', () => {
+    const result = generateResumeRequestSchema.safeParse({
+      resume: {
+        ...resume,
+        education: [
+          {
+            institution: 'University of California',
+            degree: 'Bachelor of Science',
+            field: 'Computer Science',
+            startDate: '2014',
+            endDate: '2018-05',
+          },
+          {
+            institution: 'State University',
+            degree: 'Master of Science',
+            field: 'Data Science',
+            startDate: '2026-08',
+            endDate: 'Present',
+          },
+          {
+            institution: 'Community College',
+            degree: 'Certificate',
+            field: 'Web Development',
+          },
+        ],
+      },
+      options: {
+        format: 'pdf',
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects legacy education graduationDate', () => {
+    const result = generateResumeRequestSchema.safeParse({
+      resume: {
+        ...resume,
+        education: [
+          {
+            institution: 'University of California',
+            degree: 'Bachelor of Science',
+            field: 'Computer Science',
+            graduationDate: '2018-05',
+          },
+        ],
+      },
+      options: {
+        format: 'pdf',
+      },
+    });
+
+    expect(result.success).toBe(false);
   });
 });

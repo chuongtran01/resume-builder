@@ -61,6 +61,17 @@ export function validateDateFormat(date: string): boolean {
 }
 
 /**
+ * Validate education date formats (YYYY or YYYY-MM)
+ */
+export function validateEducationDateFormat(
+  date: string,
+  allowPresent = false
+): boolean {
+  const dateRegex = /^\d{4}(-\d{2})?$/;
+  return dateRegex.test(date) || (allowPresent && date === 'Present');
+}
+
+/**
  * Validate that bullet points are not too long
  */
 export function validateBulletPoints(
@@ -117,11 +128,22 @@ export function baseTemplateValidation(resume: Resume): ValidationResult {
     const educationArray = Array.isArray(resume.education) ? resume.education : [];
 
     educationArray.forEach((edu, index) => {
-      if (typeof edu === 'object' && edu !== null && 'graduationDate' in edu) {
-        const graduationDate = edu.graduationDate;
-        if (typeof graduationDate === 'string' && !validateDateFormat(graduationDate)) {
+      if (typeof edu === 'object' && edu !== null) {
+        if (
+          typeof edu.startDate === 'string' &&
+          !validateEducationDateFormat(edu.startDate)
+        ) {
           errors.push(
-            `education[${index}].graduationDate has invalid format (expected YYYY-MM)`
+            `education[${index}].startDate has invalid format (expected YYYY or YYYY-MM)`
+          );
+        }
+
+        if (
+          typeof edu.endDate === 'string' &&
+          !validateEducationDateFormat(edu.endDate, true)
+        ) {
+          errors.push(
+            `education[${index}].endDate has invalid format (expected YYYY, YYYY-MM, or "Present")`
           );
         }
       }
@@ -181,4 +203,38 @@ export function formatDate(date: string): string {
   }
 
   return date;
+}
+
+/**
+ * Format education dates while preserving user-provided precision.
+ */
+export function formatEducationDate(date: string): string {
+  if (date === 'Present') {
+    return 'Present';
+  }
+
+  if (/^\d{4}$/.test(date)) {
+    return date;
+  }
+
+  return formatDate(date);
+}
+
+/**
+ * Format an education date range.
+ */
+export function formatEducationDateRange(startDate?: string, endDate?: string): string {
+  if (startDate && endDate) {
+    return `${formatEducationDate(startDate)} - ${formatEducationDate(endDate)}`;
+  }
+
+  if (endDate) {
+    return formatEducationDate(endDate);
+  }
+
+  if (startDate) {
+    return formatEducationDate(startDate);
+  }
+
+  return '';
 }

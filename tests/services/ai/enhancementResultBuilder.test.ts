@@ -37,7 +37,8 @@ describe('enhancementResultBuilder', () => {
         institution: 'University',
         degree: 'BS',
         field: 'Computer Science',
-        graduationDate: '2019-05',
+        startDate: '2015',
+        endDate: '2019-05',
       },
     ],
     skills: {

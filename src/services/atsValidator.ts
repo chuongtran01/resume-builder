@@ -187,11 +187,25 @@ export function validateAtsCompliance(
 
     educationArray.forEach((edu, index) => {
       if (typeof edu === 'object' && edu !== null) {
-        if (opts.checkDateFormats && 'graduationDate' in edu) {
-          const graduationDate = edu.graduationDate;
-          if (typeof graduationDate === 'string' && !isValidDateFormat(graduationDate)) {
+        if (opts.checkDateFormats && 'startDate' in edu) {
+          const startDate = edu.startDate;
+          if (
+            typeof startDate === 'string' &&
+            !/^\d{4}(-\d{2})?$/.test(startDate)
+          ) {
             warnings.push(
-              `education[${index}].graduationDate has invalid format (expected YYYY-MM)`
+              `education[${index}].startDate has invalid format (expected YYYY or YYYY-MM)`
+            );
+          }
+        }
+        if (opts.checkDateFormats && 'endDate' in edu) {
+          const endDate = edu.endDate;
+          if (
+            typeof endDate === 'string' &&
+            !/^\d{4}(-\d{2})?$|^Present$/.test(endDate)
+          ) {
+            warnings.push(
+              `education[${index}].endDate has invalid format (expected YYYY, YYYY-MM, or "Present")`
             );
           }
         }

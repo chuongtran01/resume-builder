@@ -129,7 +129,8 @@ describe('resumeParser', () => {
           institution: 'Test University',
           degree: 'Bachelor of Science',
           field: 'Computer Science',
-          graduationDate: '2020-05',
+          startDate: '2016',
+          endDate: '2020-05',
         } as any,
       };
 
@@ -175,7 +176,8 @@ describe('resumeParser', () => {
           institution: 'Test University',
           degree: 'Bachelor of Science',
           field: 'Computer Science',
-          graduationDate: '2020-05',
+          startDate: '2016',
+          endDate: '2020-05',
         },
       ]);
 
@@ -210,7 +212,8 @@ describe('resumeParser', () => {
           institution: 'Test University',
           degree: 'Bachelor of Science',
           field: 'Computer Science',
-          graduationDate: '2020-05',
+          startDate: '2016',
+          endDate: '2020-05',
         },
       ]);
     });

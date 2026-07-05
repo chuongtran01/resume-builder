@@ -37,7 +37,8 @@ describe('TruthfulnessValidator', () => {
         institution: 'University of California',
         degree: 'Bachelor of Science',
         field: 'Computer Science',
-        graduationDate: '2019-05',
+        startDate: '2015',
+        endDate: '2019-05',
       },
     ],
     skills: {
@@ -217,7 +218,8 @@ describe('TruthfulnessValidator', () => {
             institution: 'Different University',
             degree: firstEdu.degree,
             field: firstEdu.field,
-            graduationDate: firstEdu.graduationDate,
+            startDate: firstEdu.startDate,
+            endDate: firstEdu.endDate,
           },
         ],
       };
@@ -240,7 +242,8 @@ describe('TruthfulnessValidator', () => {
             institution: firstEdu.institution,
             degree: 'Master of Science',
             field: firstEdu.field,
-            graduationDate: firstEdu.graduationDate,
+            startDate: firstEdu.startDate,
+            endDate: firstEdu.endDate,
           },
         ],
       };
@@ -683,7 +686,8 @@ describe('TruthfulnessValidator', () => {
             institution: 'New University',
             degree: 'Master',
             field: 'CS',
-            graduationDate: '2023-05',
+            startDate: '2021',
+            endDate: '2023-05',
           },
         ],
       };

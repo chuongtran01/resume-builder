@@ -50,10 +50,11 @@ const educationSchema = z.object({
   institution: z.string().min(1, 'Institution name is required'),
   degree: z.string().min(1, 'Degree is required'),
   field: z.string().min(1, 'Field of study is required'),
-  graduationDate: z.string().regex(/^\d{4}-\d{2}$/, 'Graduation date must be in YYYY-MM format'),
+  startDate: z.string().regex(/^\d{4}(-\d{2})?$/, 'Start date must be in YYYY or YYYY-MM format').optional(),
+  endDate: z.string().regex(/^\d{4}(-\d{2})?$|^Present$/, 'End date must be in YYYY, YYYY-MM, or "Present"').optional(),
   gpa: z.string().optional(),
   honors: z.array(z.string()).optional(),
-});
+}).strict();
 
 /**
  * Zod schema for SkillCategory

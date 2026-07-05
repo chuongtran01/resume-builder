@@ -36,7 +36,8 @@ describe('atsValidator', () => {
         institution: 'University',
         degree: 'Bachelor of Science',
         field: 'Computer Science',
-        graduationDate: '2018-05',
+        startDate: '2014',
+        endDate: '2018-05',
       },
     ],
     skills: {

@@ -53,8 +53,10 @@ export interface Education {
   degree: string;
   /** Field of study */
   field: string;
-  /** Graduation date in YYYY-MM format */
-  graduationDate: string;
+  /** Start date in YYYY or YYYY-MM format (optional) */
+  startDate?: string;
+  /** End date in YYYY or YYYY-MM format, or "Present" (optional) */
+  endDate?: string;
   /** GPA (optional) */
   gpa?: string;
   /** Honors or distinctions (optional) */

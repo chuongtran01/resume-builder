@@ -34,7 +34,8 @@ describe('classicTemplate', () => {
         institution: 'University of California',
         degree: 'Bachelor of Science',
         field: 'Computer Science',
-        graduationDate: '2018-05',
+        startDate: '2014',
+        endDate: '2018-05',
       },
     ],
     skills: {
@@ -71,6 +72,65 @@ describe('classicTemplate', () => {
     expect(html).toContain('Experience');
     expect(html).toContain('Education');
     expect(html).toContain('Skills');
+  });
+
+  it('should render education ranges using the provided date precision', () => {
+    const resumeWithEducationRanges = {
+      ...sampleResume,
+      education: [
+        {
+          institution: 'University of California',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          startDate: '2014',
+          endDate: '2018',
+        },
+        {
+          institution: 'State University',
+          degree: 'Master of Science',
+          field: 'Data Science',
+          startDate: '2026-08',
+          endDate: 'Present',
+        },
+        {
+          institution: 'Community College',
+          degree: 'Certificate',
+          field: 'Web Development',
+          endDate: '2023-05',
+        },
+      ],
+    } as any;
+
+    const html = classicTemplate.render(resumeWithEducationRanges);
+
+    expect(html).toContain('2014 - 2018');
+    expect(html).toContain('August 2026 - Present');
+    expect(html).toContain('May 2023');
+  });
+
+  it('should reject invalid education start and end dates', () => {
+    const resumeWithInvalidEducationDates = {
+      ...sampleResume,
+      education: [
+        {
+          institution: 'University of California',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          startDate: 'Fall 2014',
+          endDate: 'Now',
+        },
+      ],
+    } as any;
+
+    const result = classicTemplate.validate(resumeWithInvalidEducationDates);
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toContain(
+      'education[0].startDate has invalid format (expected YYYY or YYYY-MM)'
+    );
+    expect(result.errors).toContain(
+      'education[0].endDate has invalid format (expected YYYY, YYYY-MM, or "Present")'
+    );
   });
 
   it('should escape HTML special characters', () => {

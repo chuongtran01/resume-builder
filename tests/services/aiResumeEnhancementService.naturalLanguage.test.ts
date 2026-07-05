@@ -47,7 +47,8 @@ describe('Natural Language Enhancement Logic', () => {
           degree: 'BS Computer Science',
           field: 'Computer Science',
           institution: 'University of California',
-          graduationDate: '2019-05',
+          startDate: '2015',
+          endDate: '2019-05',
         },
       ],
       skills: {

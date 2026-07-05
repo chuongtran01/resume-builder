@@ -426,10 +426,18 @@ function validateEducation(
       result.errors.push(result.mismatchedDegrees[result.mismatchedDegrees.length - 1] || '');
     }
 
-    // Check graduation date
-    if (orig.graduationDate && enh.graduationDate && orig.graduationDate !== enh.graduationDate) {
+    // Check education dates
+    if (orig.startDate && enh.startDate && orig.startDate !== enh.startDate) {
       result.mismatchedDates.push(
-        `Education[${i}]: Graduation date changed from "${orig.graduationDate}" to "${enh.graduationDate}"`
+        `Education[${i}]: Start date changed from "${orig.startDate}" to "${enh.startDate}"`
+      );
+      result.valid = false;
+      result.errors.push(result.mismatchedDates[result.mismatchedDates.length - 1] || '');
+    }
+
+    if (orig.endDate && enh.endDate && orig.endDate !== enh.endDate) {
+      result.mismatchedDates.push(
+        `Education[${i}]: End date changed from "${orig.endDate}" to "${enh.endDate}"`
       );
       result.valid = false;
       result.errors.push(result.mismatchedDates[result.mismatchedDates.length - 1] || '');

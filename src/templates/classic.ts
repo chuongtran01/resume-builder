@@ -9,6 +9,7 @@ import type { Resume } from '@resume-types/resume.types';
 import {
   baseTemplateValidation,
   escapeHtml,
+  formatEducationDateRange,
   formatDate,
 } from './templateHelpers';
 import { isEducationArray } from '@resume-types/resume.types';
@@ -429,7 +430,8 @@ function renderEducationItem(edu: {
   institution: string;
   degree: string;
   field: string;
-  graduationDate: string;
+  startDate?: string;
+  endDate?: string;
   gpa?: string;
   honors?: string[];
 }): string {
@@ -439,12 +441,13 @@ function renderEducationItem(edu: {
     parts.push(escapeHtml(edu.field));
   }
   const degreeLine = parts.join(' in ');
+  const dateLine = formatEducationDateRange(edu.startDate, edu.endDate);
 
   return `
     <div class="education-item">
       <div class="education-header">
         <div class="education-institution">${escapeHtml(edu.institution)}</div>
-        <div class="education-dates">${formatDate(edu.graduationDate)}</div>
+        <div class="education-dates">${escapeHtml(dateLine)}</div>
       </div>
       <div class="education-institution-gpa">
         <span class="education-title">${degreeLine}</span>
