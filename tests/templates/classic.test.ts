@@ -29,12 +29,14 @@ describe('classicTemplate', () => {
         ],
       },
     ],
-    education: {
-      institution: 'University of California',
-      degree: 'Bachelor of Science',
-      field: 'Computer Science',
-      graduationDate: '2018-05',
-    },
+    education: [
+      {
+        institution: 'University of California',
+        degree: 'Bachelor of Science',
+        field: 'Computer Science',
+        graduationDate: '2018-05',
+      },
+    ],
     skills: {
       categories: [
         {

@@ -205,13 +205,7 @@ describe('TruthfulnessValidator', () => {
     });
 
     it('should detect education institution changes', () => {
-      const educationArray = Array.isArray(baseResume.education) 
-        ? baseResume.education.filter((e): e is { institution: string; degree: string; field: string; graduationDate: string } => 
-            typeof e !== 'string' && e !== undefined
-          )
-        : (baseResume.education && typeof baseResume.education !== 'string' 
-            ? [baseResume.education] 
-            : []);
+      const educationArray = Array.isArray(baseResume.education) ? baseResume.education : [];
       
       if (educationArray.length === 0 || !educationArray[0]) return;
       
@@ -234,13 +228,7 @@ describe('TruthfulnessValidator', () => {
     });
 
     it('should detect education degree changes', () => {
-      const educationArray = Array.isArray(baseResume.education) 
-        ? baseResume.education.filter((e): e is typeof baseResume.education[0] & { degree: string } => 
-            typeof e !== 'string' && e !== undefined
-          )
-        : (baseResume.education && typeof baseResume.education !== 'string' 
-            ? [baseResume.education] 
-            : []);
+      const educationArray = Array.isArray(baseResume.education) ? baseResume.education : [];
       
       if (educationArray.length === 0 || !educationArray[0]) return;
       
@@ -674,32 +662,18 @@ describe('TruthfulnessValidator', () => {
       expect(result.isTruthful).toBe(true);
     });
 
-    it('should handle education as single object', () => {
-      const educationArray = Array.isArray(baseResume.education) 
-        ? baseResume.education 
-        : (baseResume.education ? [baseResume.education] : []);
-      
-      if (educationArray.length === 0) {
-        return; // Skip if no education
-      }
-      
-      const resumeWithSingleEdu: Resume = {
+    it('should handle education as an array', () => {
+      const resumeWithEducationArray: Resume = {
         ...baseResume,
-        education: educationArray[0],
+        education: Array.isArray(baseResume.education) ? baseResume.education : [],
       };
 
-      const result = validateTruthfulness(resumeWithSingleEdu, resumeWithSingleEdu);
+      const result = validateTruthfulness(resumeWithEducationArray, resumeWithEducationArray);
       expect(result.isTruthful).toBe(true);
     });
 
     it('should handle new education entries', () => {
-      const educationArray = Array.isArray(baseResume.education) 
-        ? baseResume.education.filter((e): e is typeof baseResume.education[0] & { institution: string } => 
-            typeof e !== 'string' && e !== undefined
-          )
-        : (baseResume.education && typeof baseResume.education !== 'string' 
-            ? [baseResume.education] 
-            : []);
+      const educationArray = Array.isArray(baseResume.education) ? baseResume.education : [];
       
       const enhanced: Resume = {
         ...baseResume,

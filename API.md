@@ -132,11 +132,11 @@ Generate a PDF or HTML resume from structured JSON input.
     ],
     "education": [
       {
-        "school": "University of California",
-        "degree": "Bachelor of Science in Computer Science",
+        "institution": "University of California",
+        "degree": "Bachelor of Science",
+        "field": "Computer Science",
         "gpa": "3.8/4.0",
-        "startDate": "2018-09",
-        "endDate": "2022-05"
+        "graduationDate": "2022-05"
       }
     ],
     "skills": {
@@ -312,10 +312,10 @@ Validate a resume for ATS compliance and get detailed feedback.
     ],
     "education": [
       {
-        "school": "University of California",
-        "degree": "Bachelor of Science in Computer Science",
-        "startDate": "2018-09",
-        "endDate": "2022-05"
+        "institution": "University of California",
+        "degree": "Bachelor of Science",
+        "field": "Computer Science",
+        "graduationDate": "2022-05"
       }
     ],
     "skills": {
@@ -451,12 +451,14 @@ Enhance a resume based on a job description. This endpoint analyzes the job desc
         ]
       }
     ],
-    "education": {
-      "institution": "University of California",
-      "degree": "Bachelor of Science",
-      "field": "Computer Science",
-      "graduationDate": "2020-05"
-    },
+    "education": [
+      {
+        "institution": "University of California",
+        "degree": "Bachelor of Science",
+        "field": "Computer Science",
+        "graduationDate": "2020-05"
+      }
+    ],
     "skills": {
       "categories": [
         {

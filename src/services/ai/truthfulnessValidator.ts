@@ -380,10 +380,8 @@ function validateEducation(
     mismatchedDates: [],
   };
 
-  const originalEdu = Array.isArray(original.education) ? original.education :
-    (original.education ? [original.education] : []);
-  const enhancedEdu = Array.isArray(enhanced.education) ? enhanced.education :
-    (enhanced.education ? [enhanced.education] : []);
+  const originalEdu = Array.isArray(original.education) ? original.education : [];
+  const enhancedEdu = Array.isArray(enhanced.education) ? enhanced.education : [];
 
   // Quick check: if education is the same array/object reference, they're identical
   if (original.education === enhanced.education) {

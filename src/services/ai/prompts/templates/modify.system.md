@@ -84,7 +84,7 @@ Provide valid JSON with exactly this top-level structure:
         "bulletPoints": ["enhanced bullet point 1"]
       }
     ],
-    "education": { },
+    "education": [ ],
     "skills": { }
   },
   "improvements": [

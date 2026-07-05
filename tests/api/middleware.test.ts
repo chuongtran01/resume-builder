@@ -34,4 +34,36 @@ describe('API middleware schemas', () => {
 
     expect(result.success).toBe(false);
   });
+
+  it('accepts only an array for education', () => {
+    const education = {
+      institution: 'University of California',
+      degree: 'Bachelor of Science',
+      field: 'Computer Science',
+      graduationDate: '2018-05',
+    };
+
+    const arrayResult = generateResumeRequestSchema.safeParse({
+      resume: {
+        ...resume,
+        education: [education],
+      },
+      options: {
+        format: 'pdf',
+      },
+    });
+
+    const singleResult = generateResumeRequestSchema.safeParse({
+      resume: {
+        ...resume,
+        education,
+      },
+      options: {
+        format: 'pdf',
+      },
+    });
+
+    expect(arrayResult.success).toBe(true);
+    expect(singleResult.success).toBe(false);
+  });
 });

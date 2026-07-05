@@ -106,6 +106,36 @@ describe('resumeParser', () => {
       const errors = validateResume(resume);
       expect(errors.some((e) => e.includes('role is required'))).toBe(true);
     });
+
+    it('should reject education as a single object', () => {
+      const resume: Partial<Resume> = {
+        personalInfo: {
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: '+1 123-456-7890',
+          location: 'San Francisco, CA',
+        },
+        experience: [
+          {
+            company: 'Test Corp',
+            role: 'Software Engineer',
+            startDate: '2020-01',
+            endDate: 'Present',
+            location: 'Remote',
+            bulletPoints: ['Did something'],
+          },
+        ],
+        education: {
+          institution: 'Test University',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          graduationDate: '2020-05',
+        } as any,
+      };
+
+      const errors = validateResume(resume);
+      expect(errors).toContain('education must be an array');
+    });
   });
 
   describe('parseResume', () => {
@@ -140,12 +170,14 @@ describe('resumeParser', () => {
     it('should resolve file references in resume', async () => {
       // Create education file
       const educationFile = path.join(testDir, 'education.json');
-      await fs.writeJson(educationFile, {
-        institution: 'Test University',
-        degree: 'Bachelor of Science',
-        field: 'Computer Science',
-        graduationDate: '2020-05',
-      });
+      await fs.writeJson(educationFile, [
+        {
+          institution: 'Test University',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          graduationDate: '2020-05',
+        },
+      ]);
 
       // Create resume with file reference
       const resumeFile = path.join(testDir, 'resume.json');
@@ -173,9 +205,14 @@ describe('resumeParser', () => {
 
       const parsed = await parseResume({ resumePath: resumeFile });
       expect(parsed.education).toBeDefined();
-      if (parsed.education && typeof parsed.education === 'object' && !Array.isArray(parsed.education)) {
-        expect(parsed.education.institution).toBe('Test University');
-      }
+      expect(parsed.education).toEqual([
+        {
+          institution: 'Test University',
+          degree: 'Bachelor of Science',
+          field: 'Computer Science',
+          graduationDate: '2020-05',
+        },
+      ]);
     });
 
     it('should throw error for missing file', async () => {

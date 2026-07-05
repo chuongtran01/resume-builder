@@ -118,7 +118,7 @@ export const resumeSchema = z.object({
   personalInfo: personalInfoSchema,
   summary: z.string().optional(),
   experience: z.array(experienceSchema).min(1, 'At least one experience entry is required'),
-  education: z.union([educationSchema, z.array(educationSchema)]).optional(),
+  education: z.array(educationSchema).optional(),
   skills: skillsSchema.optional(),
   certifications: z.union([certificationSchema, z.array(certificationSchema)]).optional(),
   projects: z.array(projectSchema).optional(),

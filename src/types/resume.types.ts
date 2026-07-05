@@ -188,8 +188,8 @@ export interface Resume {
   summary?: string;
   /** Work experience (required) */
   experience: Experience[];
-  /** Education - can be single entry, array, or file reference (optional) */
-  education?: SectionOrFile<Education | Education[]>;
+  /** Education - can be an array or file reference (optional) */
+  education?: SectionOrFile<Education[]>;
   /** Skills - can be object or file reference (optional) */
   skills?: SectionOrFile<Skills>;
   /** Certifications - can be array or file reference (optional) */
@@ -212,25 +212,10 @@ export function isFileReference(value: unknown): value is FileReference {
 }
 
 /**
- * Type guard to check if education is a single Education object
- */
-export function isSingleEducation(
-  education: SectionOrFile<Education | Education[]>
-): education is Education {
-  return (
-    typeof education === 'object' &&
-    education !== null &&
-    !Array.isArray(education) &&
-    !isFileReference(education) &&
-    'institution' in education
-  );
-}
-
-/**
  * Type guard to check if education is an array of Education objects
  */
 export function isEducationArray(
-  education: SectionOrFile<Education | Education[]>
+  education: SectionOrFile<Education[]>
 ): education is Education[] {
   return (
     Array.isArray(education) &&

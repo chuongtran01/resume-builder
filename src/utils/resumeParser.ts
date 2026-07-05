@@ -92,6 +92,14 @@ export function validateResume(resume: Partial<Resume>): string[] {
     });
   }
 
+  if (
+    resume.education &&
+    !Array.isArray(resume.education) &&
+    !(typeof resume.education === 'string' && resume.education.startsWith('file:'))
+  ) {
+    errors.push('education must be an array');
+  }
+
   return errors;
 }
 

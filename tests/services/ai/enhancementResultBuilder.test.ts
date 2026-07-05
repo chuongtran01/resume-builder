@@ -32,12 +32,14 @@ describe('enhancementResultBuilder', () => {
         bulletPoints: ['Built web applications'],
       },
     ],
-    education: {
-      institution: 'University',
-      degree: 'BS',
-      field: 'Computer Science',
-      graduationDate: '2019-05',
-    },
+    education: [
+      {
+        institution: 'University',
+        degree: 'BS',
+        field: 'Computer Science',
+        graduationDate: '2019-05',
+      },
+    ],
     skills: {
       categories: [
         {

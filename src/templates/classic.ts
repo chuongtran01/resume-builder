@@ -11,7 +11,7 @@ import {
   escapeHtml,
   formatDate,
 } from './templateHelpers';
-import { isSingleEducation, isEducationArray } from '@resume-types/resume.types';
+import { isEducationArray } from '@resume-types/resume.types';
 import { registerTemplate } from './templateRegistry';
 
 /**
@@ -404,11 +404,7 @@ function renderEducation(education: Resume['education']): string {
 
   let educationItems: string[] = [];
 
-  if (isSingleEducation(education)) {
-    if (!education.disabled) {
-      educationItems = [renderEducationItem(education)];
-    }
-  } else if (isEducationArray(education)) {
+  if (isEducationArray(education)) {
     educationItems = education
       .filter((edu) => !edu.disabled)
       .map((edu) => renderEducationItem(edu));

@@ -114,9 +114,7 @@ export function baseTemplateValidation(resume: Resume): ValidationResult {
 
   // Validate education dates
   if (resume.education) {
-    const educationArray = Array.isArray(resume.education)
-      ? resume.education
-      : [resume.education];
+    const educationArray = Array.isArray(resume.education) ? resume.education : [];
 
     educationArray.forEach((edu, index) => {
       if (typeof edu === 'object' && edu !== null && 'graduationDate' in edu) {

@@ -183,9 +183,7 @@ export function validateAtsCompliance(
 
   // Check education entries
   if (resume.education) {
-    const educationArray = Array.isArray(resume.education)
-      ? resume.education
-      : [resume.education];
+    const educationArray = Array.isArray(resume.education) ? resume.education : [];
 
     educationArray.forEach((edu, index) => {
       if (typeof edu === 'object' && edu !== null) {
