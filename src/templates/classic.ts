@@ -77,7 +77,7 @@ function getCss(multiplier: number = 1.0): string {
     lineHeight: 1.6,  // Base line height
     headerMarginBottom: '8pt',
     headerPaddingBottom: '2pt',
-    headerH1FontSize: 20,
+    headerH1FontSize: 22, // Fixed: not scaled by the autofit multiplier
     headerH1MarginBottom: '2pt',
     headerContactFontSize: 8,
     headerContactSpanMargin: '0 2pt',
@@ -104,7 +104,7 @@ function getCss(multiplier: number = 1.0): string {
     ...baseSpacing,
     bodyFontSize: `${(baseSpacing.bodyFontSize * multiplier).toFixed(1)}pt`,
     lineHeight: Math.max(baseSpacing.lineHeight * multiplier, 1.0).toFixed(2),
-    headerH1FontSize: `${(baseSpacing.headerH1FontSize * multiplier).toFixed(1)}pt`,
+    headerH1FontSize: `${baseSpacing.headerH1FontSize.toFixed(1)}pt`,
     headerContactFontSize: `${(baseSpacing.headerContactFontSize * multiplier).toFixed(1)}pt`,
     sectionTitleFontSize: `${(baseSpacing.sectionTitleFontSize * multiplier).toFixed(1)}pt`,
     summaryLineHeight: Math.max(baseSpacing.summaryLineHeight * multiplier, 1.0).toFixed(2),
