@@ -221,9 +221,27 @@ export function formatEducationDate(date: string): string {
 }
 
 /**
- * Format an education date range.
+ * Whether a YYYY or YYYY-MM education date is after the current month.
+ */
+function isFutureEducationDate(date: string, now: Date = new Date()): boolean {
+  const match = /^(\d{4})(?:-(\d{2}))?$/.exec(date);
+  if (!match) {
+    return false;
+  }
+
+  const year = parseInt(match[1] as string, 10);
+  const month = match[2] ? parseInt(match[2], 10) : 12;
+  return year * 12 + month > now.getFullYear() * 12 + now.getMonth() + 1;
+}
+
+/**
+ * Format an education date range. A future end date renders as "Expected <date>".
  */
 export function formatEducationDateRange(startDate?: string, endDate?: string): string {
+  if (endDate && isFutureEducationDate(endDate)) {
+    return `Expected ${formatEducationDate(endDate)}`;
+  }
+
   if (startDate && endDate) {
     return `${formatEducationDate(startDate)} - ${formatEducationDate(endDate)}`;
   }
